@@ -58,6 +58,12 @@ export default tseslint.config(
       // cannot resolve without extra resolver config (e.g. package `exports`
       // fields, or the router plugin's generated routeTree.gen.ts).
       'import/no-unresolved': 'off',
+      // airbnb's react/require-default-props predates TypeScript prop typing and
+      // wants a `defaultProps` static for every optional prop; that pattern is
+      // deprecated for function components (React 18.3+) and redundant here since
+      // TS interfaces already express optionality and defaults are handled via
+      // destructuring default values.
+      'react/require-default-props': 'off',
       'import/no-extraneous-dependencies': [
         'error',
         {
