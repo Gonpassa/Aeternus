@@ -1,5 +1,5 @@
 import { createApp } from './app';
-import { connectDB } from './config/database';
+import { connectDB } from './db';
 import config from './config/default';
 
 const start = async (): Promise<void> => {
