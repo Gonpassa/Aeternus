@@ -41,6 +41,7 @@ npm run dev      # vite dev server
 npm run build     # tsc -b && vite build
 npm run lint       # eslint .
 npm run preview     # preview the production build
+npm test         # vitest run
 ```
 
 `packages/shared-types/` has its own `build` (`tsc -b`) and `lint` scripts, run via the root workspace commands above.

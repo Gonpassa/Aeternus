@@ -60,7 +60,14 @@ export default tseslint.config(
       'import/no-unresolved': 'off',
       'import/no-extraneous-dependencies': [
         'error',
-        { devDependencies: ['vite.config.ts', 'src/routes/__root.tsx'] },
+        {
+          devDependencies: [
+            'vite.config.ts',
+            'src/routes/__root.tsx',
+            '**/*.test.{ts,tsx}',
+            'src/test/**',
+          ],
+        },
       ],
     },
   },
