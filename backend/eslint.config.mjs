@@ -8,6 +8,14 @@ export default tseslint.config(
     extends: [tseslint.configs.recommended, eslintConfigPrettier],
     rules: {
       'no-console': 'error',
+      // Options passed explicitly rather than relying on the rule's built-in
+      // `defaultOptions` merge, an ESLint 9 Linter feature not available here
+      // since this workspace pins ESLint 8.
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        { allowShortCircuit: true, allowTernary: true, allowTaggedTemplates: true },
+      ],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
 );
