@@ -108,6 +108,56 @@ Set up a deployment pipeline for both packages. Evaluate whether to migrate the 
 
 ---
 
+## Commands
+
+Root-level (npm workspaces; run from `Nee.3/`):
+
+```sh
+npm install                # installs all three workspaces
+npm run lint                # lint --workspaces --if-present (client, backend, shared-types)
+npm run format              # prettier --write "**/*.{ts,tsx,md,json}"
+npm run build               # builds shared-types, then client (backend has no build script yet)
+npm test                    # runs backend jest suite
+```
+
+Backend (`backend/`):
+
+```sh
+npm run dev      # nodemon src/index.ts
+npm start        # ts-node src/index.ts
+npm run lint      # eslint 'src/**/*.ts'
+npm test         # jest (ts-jest, testEnvironment: node)
+npx jest path/to/file.test.ts   # run a single test file
+```
+
+Client (`client/`):
+
+```sh
+npm run dev      # vite dev server
+npm run build     # tsc -b && vite build
+npm run lint       # eslint .
+npm run preview     # preview the production build
+```
+
+`packages/shared-types/` has its own `build` (`tsc -b`) and `lint` scripts, run via the root workspace commands above.
+
+There is no top-level dev script that runs client and backend together; run each separately.
+
+### Local Postgres setup
+
+Backend tests and the dev server require a local PostgreSQL instance (installed natively, e.g. via Homebrew — not Docker):
+
+```sh
+brew install postgresql@16
+brew services start postgresql@16
+createdb nee3        # dev database
+createdb nee3_test   # test database
+```
+
+Copy `backend/.env.example` to `backend/.env` and `backend/.env.test.example` to `backend/.env.test`, then set a real `SESSION_SECRET` in `backend/.env`. Both files are gitignored.
+
+---
+
 ## Design Principles
 
 - **Modular, not monolithic** — journal, writing, calendar, and AI features are separate modules sharing one shell; no module should require understanding another to work on.
