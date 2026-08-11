@@ -1,0 +1,117 @@
+import { sql } from 'drizzle-orm';
+import { runMigrations } from './migrate';
+import { db, pool } from './index';
+import { createUser } from './users';
+import {
+  createEntry,
+  listEntriesByUser,
+  findEntryById,
+  findEntryByDate,
+  updateEntry,
+  deleteEntry,
+  DuplicateEntryError,
+} from './entries';
+
+describe('entry service', () => {
+  let userId: number;
+
+  beforeAll(async () => {
+    await runMigrations();
+  });
+
+  beforeEach(async () => {
+    await db.execute(sql`TRUNCATE TABLE entries, users RESTART IDENTITY CASCADE`);
+    const user = await createUser('alice', 'alice@example.com', 'secret123');
+    userId = user.id;
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  const baseInput = {
+    date: '2026-08-01',
+    title: 'A good day',
+    primaryMood: 'happy' as const,
+    specificEmotion: 'content' as const,
+    content: '<p>Hello</p>',
+  };
+
+  it('creates an entry scoped to the user', async () => {
+    const entry = await createEntry({ userId, ...baseInput });
+    expect(entry.title).toBe('A good day');
+    expect(entry.userId).toBe(userId);
+  });
+
+  it('throws DuplicateEntryError for a second entry on the same date', async () => {
+    await createEntry({ userId, ...baseInput });
+    await expect(createEntry({ userId, ...baseInput, title: 'Different title' })).rejects.toThrow(
+      DuplicateEntryError,
+    );
+  });
+
+  it('lists entries for a user in reverse-chronological order with a total count', async () => {
+    await createEntry({ userId, ...baseInput, date: '2026-08-01' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-03' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-02' });
+
+    const { entries, total } = await listEntriesByUser({ userId, page: 1, pageSize: 20 });
+    expect(total).toBe(3);
+    expect(entries.map((e) => e.date)).toEqual(['2026-08-03', '2026-08-02', '2026-08-01']);
+  });
+
+  it('finds an entry by id scoped to the owning user', async () => {
+    const created = await createEntry({ userId, ...baseInput });
+    const found = await findEntryById({ id: created.id, userId });
+    expect(found?.title).toBe('A good day');
+
+    const otherUser = await createUser('bob', 'bob@example.com', 'secret123');
+    const notFound = await findEntryById({ id: created.id, userId: otherUser.id });
+    expect(notFound).toBeUndefined();
+  });
+
+  it('finds an entry by date scoped to the owning user', async () => {
+    await createEntry({ userId, ...baseInput });
+    const found = await findEntryByDate({ userId, date: '2026-08-01' });
+    expect(found?.title).toBe('A good day');
+    const notFound = await findEntryByDate({ userId, date: '2026-08-02' });
+    expect(notFound).toBeUndefined();
+  });
+
+  it('updates an entry scoped to the owning user', async () => {
+    const created = await createEntry({ userId, ...baseInput });
+    const updated = await updateEntry({
+      id: created.id,
+      userId,
+      ...baseInput,
+      title: 'Updated title',
+    });
+    expect(updated?.title).toBe('Updated title');
+  });
+
+  it('returns undefined when updating an entry owned by another user', async () => {
+    const created = await createEntry({ userId, ...baseInput });
+    const otherUser = await createUser('bob', 'bob@example.com', 'secret123');
+    const result = await updateEntry({
+      id: created.id,
+      userId: otherUser.id,
+      ...baseInput,
+      title: 'Hacked',
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it('deletes an entry scoped to the owning user and reports success', async () => {
+    const created = await createEntry({ userId, ...baseInput });
+    const deleted = await deleteEntry({ id: created.id, userId });
+    expect(deleted).toBe(true);
+    expect(await findEntryById({ id: created.id, userId })).toBeUndefined();
+  });
+
+  it('returns false when deleting an entry owned by another user', async () => {
+    const created = await createEntry({ userId, ...baseInput });
+    const otherUser = await createUser('bob', 'bob@example.com', 'secret123');
+    const deleted = await deleteEntry({ id: created.id, userId: otherUser.id });
+    expect(deleted).toBe(false);
+  });
+});
