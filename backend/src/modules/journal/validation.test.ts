@@ -1,4 +1,4 @@
-import { validateEntryInput, parsePagination } from './validation';
+import { validateEntryInput, parsePagination, normalizeSpecificEmotion } from './validation';
 
 const validInput = {
   date: '2026-08-01',
@@ -34,12 +34,26 @@ describe('validateEntryInput', () => {
     });
   });
 
-  it('rejects a specific emotion that does not belong to the primary mood bucket', () => {
-    expect(
-      validateEntryInput({ ...validInput, primaryMood: 'happy', specificEmotion: 'lonely' }),
-    ).toEqual({
+  it('accepts input with no specific emotion at all', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { specificEmotion, ...rest } = validInput;
+    expect(validateEntryInput(rest)).toEqual({ valid: true });
+  });
+
+  it('accepts a null specific emotion', () => {
+    expect(validateEntryInput({ ...validInput, specificEmotion: null })).toEqual({ valid: true });
+  });
+
+  it('accepts an arbitrary custom specific emotion', () => {
+    expect(validateEntryInput({ ...validInput, specificEmotion: 'bittersweet' })).toEqual({
+      valid: true,
+    });
+  });
+
+  it('rejects a whitespace-only specific emotion', () => {
+    expect(validateEntryInput({ ...validInput, specificEmotion: '   ' })).toEqual({
       valid: false,
-      error: 'The specific emotion must match the selected primary mood.',
+      error: 'The specific emotion, if provided, cannot be blank.',
     });
   });
 
@@ -48,6 +62,18 @@ describe('validateEntryInput', () => {
       valid: false,
       error: 'Content is required.',
     });
+  });
+});
+
+describe('normalizeSpecificEmotion', () => {
+  it('trims surrounding whitespace', () => {
+    expect(normalizeSpecificEmotion('  wistful  ')).toBe('wistful');
+  });
+
+  it('returns null for undefined, null, or blank input', () => {
+    expect(normalizeSpecificEmotion(undefined)).toBeNull();
+    expect(normalizeSpecificEmotion(null)).toBeNull();
+    expect(normalizeSpecificEmotion('   ')).toBeNull();
   });
 });
 

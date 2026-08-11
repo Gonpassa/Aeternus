@@ -1,4 +1,4 @@
-import { MOOD_TAXONOMY, PrimaryMood } from '@nee3/shared-types';
+import { PrimaryMood } from '@nee3/shared-types';
 
 export type ValidationResult = { valid: true } | { valid: false; error: string };
 
@@ -10,8 +10,10 @@ const isValidDate = (value: unknown): value is string =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   !Number.isNaN(Date.parse(value));
 
+const PRIMARY_MOODS: readonly PrimaryMood[] = ['happy', 'calm', 'sad', 'anxious', 'angry'];
+
 const isPrimaryMood = (value: unknown): value is PrimaryMood =>
-  typeof value === 'string' && Object.prototype.hasOwnProperty.call(MOOD_TAXONOMY, value);
+  typeof value === 'string' && (PRIMARY_MOODS as readonly string[]).includes(value);
 
 export const validateEntryInput = (input: {
   date?: unknown;
@@ -29,14 +31,23 @@ export const validateEntryInput = (input: {
   if (!isPrimaryMood(input.primaryMood)) {
     return { valid: false, error: 'A valid primary mood is required.' };
   }
-  const bucket: string[] = MOOD_TAXONOMY[input.primaryMood];
-  if (typeof input.specificEmotion !== 'string' || !bucket.includes(input.specificEmotion)) {
-    return { valid: false, error: 'The specific emotion must match the selected primary mood.' };
+  if (input.specificEmotion !== undefined && input.specificEmotion !== null) {
+    if (typeof input.specificEmotion !== 'string' || input.specificEmotion.trim().length === 0) {
+      return { valid: false, error: 'The specific emotion, if provided, cannot be blank.' };
+    }
   }
   if (!isNonEmptyString(input.content)) {
     return { valid: false, error: 'Content is required.' };
   }
   return { valid: true };
+};
+
+export const normalizeSpecificEmotion = (value: unknown): string | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 };
 
 export type PaginationParams = { page: number; pageSize: number };

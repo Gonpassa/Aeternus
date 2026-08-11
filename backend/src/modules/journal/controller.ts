@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiErrorResponse, CreateEntryRequest, UpdateEntryRequest } from '@nee3/shared-types';
-import { validateEntryInput, parsePagination } from './validation';
+import { validateEntryInput, parsePagination, normalizeSpecificEmotion } from './validation';
 import { sanitizeEntryContent } from './sanitize';
 import {
   createEntry as createEntryRecord,
@@ -85,7 +85,7 @@ export const createEntry = async (
       date,
       title,
       primaryMood,
-      specificEmotion,
+      specificEmotion: normalizeSpecificEmotion(specificEmotion),
       content: sanitizeEntryContent(content),
     });
     res.status(201).json({ entry });
@@ -121,7 +121,7 @@ export const updateEntry = async (
       date,
       title,
       primaryMood,
-      specificEmotion,
+      specificEmotion: normalizeSpecificEmotion(specificEmotion),
       content: sanitizeEntryContent(content),
     });
     if (!entry) {
