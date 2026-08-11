@@ -15,7 +15,8 @@ export function EntryView({ entry }: EntryViewProps) {
           className={`h-2.5 w-2.5 rounded-full ${MOOD_DOT_CLASS[entry.primaryMood]}`}
           aria-hidden="true"
         />
-        {MOOD_LABEL[entry.primaryMood]} &middot; {entry.specificEmotion}
+        {MOOD_LABEL[entry.primaryMood]}
+        {entry.specificEmotion && <> &middot; {entry.specificEmotion}</>}
       </p>
       <div
         className="entry-content font-body mt-6 text-[1.0625rem] text-ink"
