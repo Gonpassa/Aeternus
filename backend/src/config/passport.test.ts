@@ -13,6 +13,10 @@ const mockedVerifyPassword = userService.verifyPassword as jest.MockedFunction<
 const mockedFindByIdPublic = userService.findByIdPublic as jest.MockedFunction<
   typeof userService.findByIdPublic
 >;
+const mockedToPublicUser = userService.toPublicUser as jest.MockedFunction<
+  typeof userService.toPublicUser
+>;
+const { toPublicUser: actualToPublicUser } = jest.requireActual<typeof userService>('../db/users');
 
 const fakeUser: User = {
   id: 1,
@@ -39,6 +43,10 @@ const runStrategy = (username: string, password: string): Promise<[unknown, unkn
   });
 
 describe('passport local strategy', () => {
+  beforeEach(() => {
+    mockedToPublicUser.mockImplementation(actualToPublicUser);
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -50,7 +58,14 @@ describe('passport local strategy', () => {
     const [err, user, info] = await runStrategy('alice', 'correct-password');
 
     expect(err).toBeNull();
-    expect(user).toEqual(fakeUser);
+    expect(user).toEqual({
+      id: fakeUser.id,
+      username: fakeUser.username,
+      email: fakeUser.email,
+      createdAt: fakeUser.createdAt,
+      updatedAt: fakeUser.updatedAt,
+    });
+    expect((user as { password?: string }).password).toBeUndefined();
     expect(info).toBeUndefined();
   });
 
@@ -98,5 +113,15 @@ describe('passport local strategy', () => {
 
     expect(deserialized).toEqual(expect.objectContaining({ username: 'alice' }));
     expect((deserialized as { password?: string }).password).toBeUndefined();
+  });
+
+  it('deserializes to false (not undefined) when the user no longer exists', async () => {
+    mockedFindByIdPublic.mockResolvedValue(undefined);
+
+    const deserialized = await new Promise((resolve) => {
+      passport.deserializeUser(999, (_err, user) => resolve(user));
+    });
+
+    expect(deserialized).toBe(false);
   });
 });

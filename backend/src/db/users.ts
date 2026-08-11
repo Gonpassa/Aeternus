@@ -20,7 +20,7 @@ const isUniqueViolation = (err: unknown): boolean =>
   'code' in err &&
   (err as { code: unknown }).code === '23505';
 
-const toPublicUser = (user: User): PublicUser => ({
+export const toPublicUser = (user: User): PublicUser => ({
   id: user.id,
   username: user.username,
   email: user.email,

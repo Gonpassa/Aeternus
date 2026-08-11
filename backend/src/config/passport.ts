@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { findByUsername, findByIdPublic, verifyPassword } from '../db/users';
+import { findByUsername, findByIdPublic, verifyPassword, toPublicUser } from '../db/users';
 
 passport.use(
   new LocalStrategy({ usernameField: 'username' }, async (username, password, done) => {
@@ -15,7 +15,7 @@ passport.use(
         done(null, false, { message: 'Invalid password' });
         return;
       }
-      done(null, user);
+      done(null, toPublicUser(user));
     } catch (err) {
       done(err);
     }
@@ -29,7 +29,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id: number, done) => {
   try {
     const user = await findByIdPublic(id);
-    done(null, user);
+    done(null, user ?? false);
   } catch (err) {
     done(err);
   }

@@ -15,5 +15,7 @@ describe('createRateLimiter', () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(third.status).toBe(429);
+    expect(third.body).toEqual({ error: 'Too many requests, please try again later.' });
+    expect(third.headers['ratelimit-limit']).toBeDefined();
   });
 });
