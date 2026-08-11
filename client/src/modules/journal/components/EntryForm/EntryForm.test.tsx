@@ -79,6 +79,35 @@ describe('EntryForm date-collision', () => {
     expect(screen.queryByText(/editing it instead/i)).not.toBeInTheDocument();
   });
 
+  it('does not clear a user-typed title while the collision lookup is still loading', async () => {
+    // Start with a resolved "no collision" response for the initial (today) date so the
+    // form isn't loading when the user starts typing.
+    mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
+    const handleSubmit = vi.fn().mockResolvedValue(undefined);
+    const { rerender } = render(<EntryForm onSubmit={handleSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'My draft title' } });
+    expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
+
+    // Now the user changes the date to a never-before-queried date. The query enters its
+    // loading transient: data is undefined, isLoading is true. The form must NOT wipe the
+    // user's typed title during this window.
+    mockUseEntryByDate.mockImplementation(() => ({ data: undefined, isLoading: true }));
+    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-09-09' } });
+    rerender(<EntryForm onSubmit={handleSubmit} />);
+
+    expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
+
+    // The lookup resolves: no collision for this date either. Since it never collided,
+    // the title must still not be cleared.
+    mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
+    rerender(<EntryForm onSubmit={handleSubmit} />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
+    });
+  });
+
   it('submits a plain create when no colliding entry exists', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const handleSubmit = vi.fn().mockResolvedValue(undefined);

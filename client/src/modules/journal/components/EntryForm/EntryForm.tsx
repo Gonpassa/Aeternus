@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
@@ -25,21 +25,34 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
 
   // Only look up by-date collisions in create mode; an edit route already has its entry.
   const collisionLookupDate = initialEntry ? null : date;
-  const { data: collidingEntry } = useEntryByDate(collisionLookupDate);
+  const { data: collidingEntry, isLoading: collisionLookupLoading } =
+    useEntryByDate(collisionLookupDate);
+  // Tracks whether the form's fields are currently populated from a fetched collision,
+  // so we only clear them once that collision is confirmed gone - never merely because
+  // the lookup is loading or resolved to "no collision" for data the user typed themselves.
+  const prefilledFromCollisionId = useRef<number | null>(null);
 
   useEffect(() => {
+    if (collisionLookupLoading) {
+      // The collision lookup for the current date is still in flight; `collidingEntry`
+      // is momentarily `undefined` here even though no collision has been ruled out yet.
+      // Don't clear user-typed data based on this transient state.
+      return;
+    }
     if (collidingEntry) {
+      prefilledFromCollisionId.current = collidingEntry.id;
       setTitle(collidingEntry.title);
       setPrimaryMood(collidingEntry.primaryMood);
       setSpecificEmotion(collidingEntry.specificEmotion);
       setContent(collidingEntry.content);
-    } else if (!initialEntry) {
+    } else if (!initialEntry && prefilledFromCollisionId.current !== null) {
+      prefilledFromCollisionId.current = null;
       setTitle('');
       setPrimaryMood(null);
       setSpecificEmotion(null);
       setContent('');
     }
-  }, [collidingEntry, initialEntry]);
+  }, [collidingEntry, collisionLookupLoading, initialEntry]);
 
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 
