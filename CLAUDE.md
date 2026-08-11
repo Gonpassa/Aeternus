@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository overview
 
-Nee.3 is a personal hub application (journaling, structured writing, calendar, AI-assisted learning) and the current, planned rewrite of Harmonee. It lives inside a parent folder containing two other, unrelated generations of the same app (`harmonee/`, `Nee.2/`) — each is a separate git repository. This directory (`Nee.3/`) is its own git repo, branch `main`, no remote configured yet.
+Nee.3 is a personal hub application (journaling, structured writing, calendar, AI-assisted learning) and the current, planned rewrite of Harmonee. It lives inside a parent folder containing two other, unrelated generations of the same app (`harmonee/`, `Nee.2/`) — each is a separate git repository. This directory (`Nee.3/`) is its own git repo, branch `main`, with a remote named `Aeternus` pointing at `github.com/Gonpassa/Aeternus`.
 
 **Phase 1 (architecture scaffold) is complete.** The npm-workspaces monorepo skeleton exists and builds/lints/tests cleanly, but no feature/module code has been written — `backend/src/modules/` and `client/src/modules/` are intentionally empty (just `.gitkeep`) until Phase 4. Don't design later-phase data models (writing, calendar, AI) before their phase starts.
 
