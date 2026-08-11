@@ -27,29 +27,9 @@ export interface ApiErrorResponse {
 
 export type PrimaryMood = 'happy' | 'calm' | 'sad' | 'anxious' | 'angry';
 
-export type SpecificEmotion =
-  | 'content'
-  | 'proud'
-  | 'excited'
-  | 'grateful'
-  | 'peaceful'
-  | 'relaxed'
-  | 'relieved'
-  | 'secure'
-  | 'lonely'
-  | 'disappointed'
-  | 'hurt'
-  | 'grieving'
-  | 'nervous'
-  | 'overwhelmed'
-  | 'insecure'
-  | 'worried'
-  | 'frustrated'
-  | 'irritated'
-  | 'resentful'
-  | 'jealous';
+export type SpecificEmotion = string;
 
-export const MOOD_TAXONOMY: Record<PrimaryMood, SpecificEmotion[]> = {
+export const MOOD_TAXONOMY: Record<PrimaryMood, string[]> = {
   happy: ['content', 'proud', 'excited', 'grateful'],
   calm: ['peaceful', 'relaxed', 'relieved', 'secure'],
   sad: ['lonely', 'disappointed', 'hurt', 'grieving'],
@@ -63,7 +43,7 @@ export interface Entry {
   date: string;
   title: string;
   primaryMood: PrimaryMood;
-  specificEmotion: SpecificEmotion;
+  specificEmotion: SpecificEmotion | null;
   content: string;
   createdAt: string;
   updatedAt: string;
@@ -73,7 +53,7 @@ export interface CreateEntryRequest {
   date: string;
   title: string;
   primaryMood: PrimaryMood;
-  specificEmotion: SpecificEmotion;
+  specificEmotion: SpecificEmotion | null;
   content: string;
 }
 
