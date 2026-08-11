@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import sessionMiddleware from './config/session';
 import passport from './config/passport';
+import authRouter from './auth/routes';
 
 export const createApp = (): Express => {
   const app = express();
@@ -11,6 +12,8 @@ export const createApp = (): Express => {
   app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
+
+  app.use('/api/auth', authRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
