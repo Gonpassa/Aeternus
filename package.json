@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "./start.sh",
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\" --ignore-unknown",
     "build": "npm run build --workspace=packages/shared-types && npm run build --workspace=client",
