@@ -6,22 +6,23 @@ import { endpoints } from '../api/endpoints.ts';
 
 export const authQueryKey = ['auth', 'me'] as const;
 
-export const useCurrentUser = () =>
-  useQuery<AuthUser | null>({
-    queryKey: authQueryKey,
-    queryFn: async () => {
-      try {
-        const { data } = await apiClient.get<AuthResponse>(endpoints.auth.me);
-        return data.user;
-      } catch (err) {
-        if (err instanceof AxiosError && err.response?.status === 401) {
-          return null;
-        }
-        throw err;
+export const authQueryOptions = {
+  queryKey: authQueryKey,
+  queryFn: async (): Promise<AuthUser | null> => {
+    try {
+      const { data } = await apiClient.get<AuthResponse>(endpoints.auth.me);
+      return data.user;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 401) {
+        return null;
       }
-    },
-    retry: false,
-  });
+      throw err;
+    }
+  },
+  retry: false,
+} as const;
+
+export const useCurrentUser = () => useQuery<AuthUser | null>(authQueryOptions);
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
@@ -56,6 +57,12 @@ export const useLogout = () => {
       await apiClient.post(endpoints.auth.logout);
     },
     onSuccess: () => {
+      queryClient.setQueryData(authQueryKey, null);
+    },
+    onError: () => {
+      // The server may already consider the session gone (e.g. a 401 from
+      // an expired session). Either way, the client should stop treating
+      // the user as logged in.
       queryClient.setQueryData(authQueryKey, null);
     },
   });

@@ -1,10 +1,17 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
 import { FormEvent, useState } from 'react';
 import { useAuth } from '../shell/AuthProvider.tsx';
+
+export interface LoginSearch {
+  redirect?: string;
+}
+
+const routeApi = getRouteApi('/login');
 
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const search = routeApi.useSearch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +21,7 @@ function LoginPage() {
     setError(null);
     try {
       await login({ username, password });
-      navigate({ to: '/' });
+      navigate({ to: search.redirect ?? '/' });
     } catch {
       setError('Invalid username or password.');
     }
@@ -56,4 +63,7 @@ function LoginPage() {
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+  }),
 });

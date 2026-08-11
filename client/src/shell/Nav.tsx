@@ -6,8 +6,11 @@ export function Nav() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
-    navigate({ to: '/' });
+    try {
+      await logout();
+    } finally {
+      navigate({ to: '/' });
+    }
   };
 
   return (
