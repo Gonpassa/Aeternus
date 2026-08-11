@@ -22,28 +22,6 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
 export const primaryMoodEnum = pgEnum('primary_mood', ['happy', 'calm', 'sad', 'anxious', 'angry']);
-export const specificEmotionEnum = pgEnum('specific_emotion', [
-  'content',
-  'proud',
-  'excited',
-  'grateful',
-  'peaceful',
-  'relaxed',
-  'relieved',
-  'secure',
-  'lonely',
-  'disappointed',
-  'hurt',
-  'grieving',
-  'nervous',
-  'overwhelmed',
-  'insecure',
-  'worried',
-  'frustrated',
-  'irritated',
-  'resentful',
-  'jealous',
-]);
 
 export const entries = pgTable(
   'entries',
@@ -55,7 +33,7 @@ export const entries = pgTable(
     date: date('date').notNull(),
     title: text('title').notNull(),
     primaryMood: primaryMoodEnum('primary_mood').notNull(),
-    specificEmotion: specificEmotionEnum('specific_emotion').notNull(),
+    specificEmotion: text('specific_emotion'),
     content: text('content').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),

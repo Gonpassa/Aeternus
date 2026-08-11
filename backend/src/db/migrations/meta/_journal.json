@@ -15,6 +15,13 @@
       "when": 1786484131691,
       "tag": "0001_deep_george_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786490541838,
+      "tag": "0002_next_firedrake",
+      "breakpoints": true
     }
   ]
 }
