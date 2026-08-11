@@ -76,7 +76,7 @@ describe('passport local strategy', () => {
 
     expect(err).toBeNull();
     expect(user).toBe(false);
-    expect(info).toEqual({ message: 'Username nobody not found.' });
+    expect(info).toEqual({ message: 'Invalid username or password' });
   });
 
   it('fails when the password is incorrect', async () => {
@@ -87,7 +87,7 @@ describe('passport local strategy', () => {
 
     expect(err).toBeNull();
     expect(user).toBe(false);
-    expect(info).toEqual({ message: 'Invalid password' });
+    expect(info).toEqual({ message: 'Invalid username or password' });
   });
 
   it('serializes a user to its id', () => {
