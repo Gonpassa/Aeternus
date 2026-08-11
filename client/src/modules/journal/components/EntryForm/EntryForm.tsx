@@ -33,8 +33,13 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
       setPrimaryMood(collidingEntry.primaryMood);
       setSpecificEmotion(collidingEntry.specificEmotion);
       setContent(collidingEntry.content);
+    } else if (!initialEntry) {
+      setTitle('');
+      setPrimaryMood(null);
+      setSpecificEmotion(null);
+      setContent('');
     }
-  }, [collidingEntry]);
+  }, [collidingEntry, initialEntry]);
 
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 

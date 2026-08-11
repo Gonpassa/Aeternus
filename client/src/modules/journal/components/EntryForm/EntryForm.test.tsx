@@ -54,6 +54,31 @@ describe('EntryForm date-collision', () => {
     });
   });
 
+  it('clears the pre-filled fields when the date changes away from a collision', async () => {
+    mockUseEntryByDate.mockImplementation((date: string | null) => ({
+      data: date === '2026-08-01' ? existingEntry : null,
+    }));
+    const handleSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onSubmit={handleSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-08-01' } });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
+    });
+    expect(screen.getByRole('radio', { name: /calm/i })).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-08-05' } });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('');
+    });
+    expect(screen.getByLabelText(/content/i)).toHaveValue('');
+    expect(screen.getByRole('radio', { name: /calm/i })).toHaveAttribute('aria-checked', 'false');
+    expect(screen.queryByRole('radiogroup', { name: /specific emotion/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/editing it instead/i)).not.toBeInTheDocument();
+  });
+
   it('submits a plain create when no colliding entry exists', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const handleSubmit = vi.fn().mockResolvedValue(undefined);
