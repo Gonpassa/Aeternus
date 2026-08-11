@@ -77,4 +77,27 @@ describe('MoodPicker', () => {
 
     expect(handleChange).toHaveBeenLastCalledWith({ primaryMood: 'happy', specificEmotion: null });
   });
+
+  it('typing a custom value that matches a fixed suggestion does not switch to the fixed-button-selected state', () => {
+    const handleChange = vi.fn();
+    const { rerender } = render(
+      <MoodPicker primaryMood="happy" specificEmotion={null} onChange={handleChange} />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Custom'), { target: { value: 'content' } });
+
+    expect(handleChange).toHaveBeenLastCalledWith({
+      primaryMood: 'happy',
+      specificEmotion: 'content',
+    });
+    expect(screen.getByPlaceholderText('Custom')).toHaveValue('content');
+    expect(screen.getByRole('radio', { name: 'content' })).toHaveAttribute('aria-checked', 'false');
+
+    // Simulate the parent echoing the emitted value back down as a controlled prop,
+    // which is what previously caused the derived-state bug to fire.
+    rerender(<MoodPicker primaryMood="happy" specificEmotion="content" onChange={handleChange} />);
+
+    expect(screen.getByPlaceholderText('Custom')).toHaveValue('content');
+    expect(screen.getByRole('radio', { name: 'content' })).toHaveAttribute('aria-checked', 'false');
+  });
 });
