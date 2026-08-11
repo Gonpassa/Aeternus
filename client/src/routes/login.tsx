@@ -1,4 +1,4 @@
-import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react-router';
 import { FormEvent, useState } from 'react';
 import { useAuth } from '../shell/AuthProvider.tsx';
 
@@ -57,6 +57,9 @@ function LoginPage() {
           Log in
         </button>
       </form>
+      <p className="mt-3 text-sm text-ink-soft">
+        Don&apos;t have an account? <Link to="/register">Register</Link>
+      </p>
     </div>
   );
 }
