@@ -19,6 +19,8 @@ The paper tone is real (it's genuinely the right material for this subject), but
 | `--moss` | `#55684A` | Secondary accent — links, secondary buttons, focus ring |
 | `--rust` | `#A8532F` | Tertiary accent — tags, mood mark, active tab, error state |
 | `--line` | `#D8CFB8` | Hairlines, ruled paper lines, card borders |
+| `--mood-anxious` | `#B98A2E` | Mood mark — anxious (Phase 4a taxonomy) |
+| `--mood-angry` | `#7A2E1E` | Mood mark — angry (Phase 4a taxonomy) |
 
 Rust is a spice, not a base. It should never cover more than a tag, a dot, or a 2px underline at a time.
 
@@ -83,6 +85,19 @@ This is the one place the design allows itself a flourish (the tab + punch hole)
 
 **Mood mark**
 - A small filled dot (rust/moss/ink-soft) instead of an emoji — keeps the journal's tone literary rather than cute, while still giving a fast visual scan of entry mood.
+
+**Mood mark colors (5-value primary taxonomy)**
+Phase 4a's two-tier feelings-wheel taxonomy needs five distinct primary-mood colors. Three come from the existing palette; two extend it:
+
+| Primary mood | Token | Hex |
+|---|---|---|
+| happy | `--rust` | #A8532F |
+| calm | `--moss` | #55684A |
+| sad | `--ink-blue` | #2C3E52 |
+| anxious | `--mood-anxious` | #B98A2E |
+| angry | `--mood-angry` | #7A2E1E |
+
+Mood marks still carry a text label on hover/focus per the accessibility floor below, so mood pairs never rely on color alone to stay distinguishable.
 
 ## Motion
 
