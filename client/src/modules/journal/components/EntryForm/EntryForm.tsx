@@ -59,7 +59,7 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    if (!primaryMood || !specificEmotion) {
+    if (!primaryMood) {
       setError('Please choose a mood.');
       return;
     }

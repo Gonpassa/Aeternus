@@ -125,4 +125,21 @@ describe('EntryForm date-collision', () => {
       );
     });
   });
+
+  it('saves successfully with a primary mood but no specific emotion', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const handleSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onSubmit={handleSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'No specific mood' } });
+    fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
+
+    await waitFor(() => {
+      expect(handleSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ primaryMood: 'happy', specificEmotion: null }),
+        undefined,
+      );
+    });
+  });
 });
