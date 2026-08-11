@@ -6,6 +6,9 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 export default defineConfig({
   plugins: [TanStackRouterVite(), viteReact(), tailwindcss()],
+  resolve: {
+    preserveSymlinks: true,
+  },
   server: {
     proxy: {
       '/api': {
