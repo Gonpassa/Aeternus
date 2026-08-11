@@ -11,6 +11,10 @@ export interface MoodPickerProps {
 const PRIMARY_MOODS = Object.keys(MOOD_TAXONOMY) as PrimaryMood[];
 
 export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPickerProps) {
+  const isFixedEmotion =
+    primaryMood !== null && MOOD_TAXONOMY[primaryMood].includes(specificEmotion ?? '');
+  const customValue = specificEmotion && !isFixedEmotion ? specificEmotion : '';
+
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="font-mono text-xs uppercase tracking-wide text-ink-soft">Mood</legend>
@@ -35,21 +39,40 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
         ))}
       </div>
       {primaryMood && (
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Specific emotion">
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="radiogroup"
+          aria-label="Specific emotion"
+        >
           {MOOD_TAXONOMY[primaryMood].map((emotion) => (
             <button
               key={emotion}
               type="button"
               role="radio"
-              aria-checked={specificEmotion === emotion}
+              aria-checked={isFixedEmotion && specificEmotion === emotion}
               onClick={() => onChange({ primaryMood, specificEmotion: emotion })}
               className={`border px-2 py-1 font-mono text-xs uppercase ${
-                specificEmotion === emotion ? 'border-moss text-moss' : 'border-line'
+                isFixedEmotion && specificEmotion === emotion
+                  ? 'border-moss text-moss'
+                  : 'border-line'
               }`}
             >
               {emotion}
             </button>
           ))}
+          <input
+            type="text"
+            placeholder="Custom"
+            value={customValue}
+            onChange={(e) => {
+              const trimmed = e.target.value.trim();
+              onChange({
+                primaryMood,
+                specificEmotion: trimmed.length > 0 ? e.target.value : null,
+              });
+            }}
+            className="border border-line bg-paper-card px-2 py-1 font-mono text-xs normal-case"
+          />
         </div>
       )}
     </fieldset>

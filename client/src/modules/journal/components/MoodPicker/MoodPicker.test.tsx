@@ -31,4 +31,50 @@ describe('MoodPicker', () => {
 
     expect(handleChange).toHaveBeenCalledWith({ primaryMood: 'happy', specificEmotion: 'content' });
   });
+
+  it('renders a custom emotion text input alongside the fixed buttons', () => {
+    render(<MoodPicker primaryMood="happy" specificEmotion={null} onChange={vi.fn()} />);
+    expect(screen.getByPlaceholderText('Custom')).toBeInTheDocument();
+  });
+
+  it('typing a custom emotion calls onChange with the typed value and deselects fixed buttons', () => {
+    const handleChange = vi.fn();
+    render(<MoodPicker primaryMood="happy" specificEmotion={null} onChange={handleChange} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Custom'), { target: { value: 'bittersweet' } });
+
+    expect(handleChange).toHaveBeenLastCalledWith({
+      primaryMood: 'happy',
+      specificEmotion: 'bittersweet',
+    });
+    expect(screen.getByRole('radio', { name: 'content' })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('clicking a fixed emotion clears the custom input', () => {
+    const handleChange = vi.fn();
+    const { rerender } = render(
+      <MoodPicker primaryMood="happy" specificEmotion="bittersweet" onChange={handleChange} />,
+    );
+    expect(screen.getByPlaceholderText('Custom')).toHaveValue('bittersweet');
+
+    fireEvent.click(screen.getByRole('radio', { name: 'content' }));
+    expect(handleChange).toHaveBeenLastCalledWith({
+      primaryMood: 'happy',
+      specificEmotion: 'content',
+    });
+
+    rerender(<MoodPicker primaryMood="happy" specificEmotion="content" onChange={handleChange} />);
+    expect(screen.getByPlaceholderText('Custom')).toHaveValue('');
+  });
+
+  it('emptying the custom input calls onChange with null', () => {
+    const handleChange = vi.fn();
+    render(
+      <MoodPicker primaryMood="happy" specificEmotion="bittersweet" onChange={handleChange} />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Custom'), { target: { value: '' } });
+
+    expect(handleChange).toHaveBeenLastCalledWith({ primaryMood: 'happy', specificEmotion: null });
+  });
 });
