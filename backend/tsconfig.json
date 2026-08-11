@@ -9,5 +9,8 @@
     "types": ["node", "jest"]
   },
   "references": [{ "path": "../packages/shared-types" }],
-  "include": ["src"]
+  "include": ["src"],
+  "ts-node": {
+    "files": true
+  }
 }
