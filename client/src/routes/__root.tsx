@@ -1,7 +1,18 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { lazy, Suspense } from 'react';
 import { AuthProvider } from '../shell/AuthProvider.tsx';
 import { Layout } from '../shell/Layout.tsx';
+
+// import.meta.env.PROD is statically replaced at build time, so Vite/Rollup
+// dead-code-eliminates the dynamic import below entirely from the production
+// bundle rather than just skipping it at runtime.
+const TanStackRouterDevtools = import.meta.env.PROD
+  ? () => null
+  : lazy(() =>
+      import('@tanstack/router-devtools').then((mod) => ({
+        default: mod.TanStackRouterDevtools,
+      })),
+    );
 
 export const Route = createRootRoute({
   component: () => (
@@ -9,7 +20,9 @@ export const Route = createRootRoute({
       <Layout>
         <Outlet />
       </Layout>
-      <TanStackRouterDevtools />
+      <Suspense fallback={null}>
+        <TanStackRouterDevtools />
+      </Suspense>
     </AuthProvider>
   ),
 });

@@ -11,7 +11,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "composite": true,
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "types": ["vite/client"]
   },
   "references": [{ "path": "../packages/shared-types" }],
   "include": ["src"]
