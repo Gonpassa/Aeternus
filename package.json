@@ -1,0 +1,18 @@
+{
+  "name": "nee3",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "client",
+    "backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\" --ignore-unknown"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}
