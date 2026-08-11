@@ -17,6 +17,32 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
+.entry-content p {
+  margin-bottom: 1em;
+}
+
+.entry-content h1,
+.entry-content h2,
+.entry-content h3 {
+  font-family: var(--font-display);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.entry-content ul,
+.entry-content ol {
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.entry-content ul {
+  list-style-type: disc;
+}
+
+.entry-content ol {
+  list-style-type: decimal;
+}
+
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
