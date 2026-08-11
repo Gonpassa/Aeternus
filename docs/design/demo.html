@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nee.3 — Design System Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #F3EEE2;
+    --paper-card: #EAE2CC;
+    --ink: #232220;
+    --ink-soft: #5B564C;
+    --ink-blue: #2C3E52;
+    --moss: #55684A;
+    --rust: #A8532F;
+    --line: #D8CFB8;
+
+    --font-display: "Fraunces", serif;
+    --font-body: "Newsreader", serif;
+    --font-mono: "IBM Plex Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+
+  body {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  a { color: var(--moss); }
+
+  /* ---------- Rail ---------- */
+
+  .rail {
+    width: 15rem;
+    flex-shrink: 0;
+    background: var(--ink-blue);
+    color: var(--paper);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .rail__mark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.375rem;
+    letter-spacing: 0.01em;
+  }
+
+  .rail__mark small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(243, 238, 226, 0.6);
+    margin-top: 0.35rem;
+  }
+
+  .rail__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .rail__link {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(243, 238, 226, 0.72);
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 0.6rem 0.65rem;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .rail__link:hover {
+    color: var(--paper);
+    background: rgba(243, 238, 226, 0.08);
+  }
+
+  .rail__link[aria-current="true"] {
+    color: var(--paper);
+    background: rgba(243, 238, 226, 0.12);
+    box-shadow: inset 2px 0 0 var(--rust);
+  }
+
+  .rail__link:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 2px;
+  }
+
+  .rail__foot {
+    margin-top: auto;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: rgba(243, 238, 226, 0.45);
+    line-height: 1.6;
+  }
+
+  /* ---------- Main ---------- */
+
+  main {
+    flex: 1;
+    padding: 3rem 3.5rem 4rem;
+    max-width: 68rem;
+  }
+
+  .mode { display: none; }
+  .mode.is-active { display: block; }
+
+  .mode__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin: 0 0 0.4rem;
+  }
+
+  .mode__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.75rem;
+    line-height: 1.05;
+    margin: 0 0 2rem;
+    color: var(--ink-blue);
+    max-width: 24ch;
+  }
+
+  /* ---------- Journal page ---------- */
+
+  .page {
+    max-width: 42rem;
+    background: var(--paper);
+    position: relative;
+    padding-left: 2.5rem;
+  }
+
+  .page::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    width: 0;
+    border-left: 2px dashed var(--line);
+  }
+
+  .page__meta {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-end;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field__label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="search"],
+  .field select {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--ink);
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.55rem 0.7rem;
+    min-width: 11rem;
+  }
+
+  .field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%232C3E52' d='M0 1l6 6 6-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 0.6rem;
+    padding-right: 2rem;
+  }
+
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible,
+  button:focus-visible {
+    outline: none;
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(85, 104, 74, 0.25);
+  }
+
+  .mood-picker {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .mood {
+    appearance: none;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: var(--paper-card);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .mood::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--dot);
+    opacity: 0.25;
+  }
+
+  .mood:checked::after { opacity: 1; }
+  .mood:checked { border-color: var(--dot); }
+  .mood[data-mood="steady"] { --dot: var(--moss); }
+  .mood[data-mood="restless"] { --dot: var(--rust); }
+  .mood[data-mood="quiet"] { --dot: var(--ink-soft); }
+
+  .mood-picker__label {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .entry-title {
+    width: 100%;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.5rem;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-title::placeholder { color: var(--ink-soft); opacity: 0.6; }
+  .entry-title:focus-visible { outline: none; border-color: var(--moss); }
+
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 1.95rem,
+      var(--line) 1.95rem,
+      var(--line) calc(1.95rem + 1px)
+    );
+    line-height: 1.95rem;
+  }
+
+  .entry-text {
+    width: 100%;
+    min-height: 15.6rem;
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    resize: vertical;
+    padding: 0;
+  }
+
+  .entry-text::placeholder { color: var(--ink-soft); font-style: italic; }
+  .entry-text:focus-visible { outline: none; }
+
+  .page__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  /* ---------- Buttons ---------- */
+
+  button {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.65rem 1.15rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .btn-primary {
+    background: var(--ink-blue);
+    color: var(--paper);
+    border: 1.5px solid var(--ink-blue);
+  }
+  .btn-primary:hover { background: #24374A; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-blue);
+    border: 1.5px solid var(--ink-blue);
+  }
+  .btn-secondary:hover { background: rgba(44, 62, 82, 0.08); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--moss);
+    border: 1.5px solid transparent;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+  .btn-ghost:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---------- Catalog ---------- */
+
+  .filter-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.25rem;
+    margin-bottom: 2.25rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-bar .field:first-child { flex: 1; min-width: 14rem; }
+  .filter-bar .field input { width: 100%; }
+  .filter-bar .btn-primary { margin-left: auto; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.5rem 1.25rem 1.25rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .card__tab {
+    position: absolute;
+    top: -0.6rem;
+    left: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--rust);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+
+  .card[data-cat="calendar"] .card__tab { background: var(--moss); }
+
+  .card__hole {
+    position: absolute;
+    top: 0.9rem;
+    left: 0.9rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.125rem;
+    margin: 0.5rem 0 0;
+    padding-left: 1rem;
+    color: var(--ink);
+  }
+
+  .card__excerpt {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    color: var(--ink);
+    line-height: 1.55;
+    margin: 0;
+    flex: 1;
+  }
+
+  .card__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--line);
+  }
+
+  .card__num {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .card__tags {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ink-blue);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.15rem 0.4rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 860px) {
+    body { flex-direction: column; }
+    .rail { width: 100%; flex-direction: row; align-items: center; padding: 1rem 1.25rem; gap: 1.5rem; }
+    .rail__nav { flex-direction: row; }
+    .rail__foot { display: none; }
+    main { padding: 2rem 1.25rem 3rem; }
+    .mode__title { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="rail" aria-label="Nee.3 sections">
+    <div class="rail__mark">
+      Nee
+      <small>Journal &amp; commonplace book</small>
+    </div>
+    <div class="rail__nav">
+      <button class="rail__link" data-target="journal" aria-current="true">Journal</button>
+      <button class="rail__link" data-target="catalog" aria-current="false">Research catalog</button>
+    </div>
+    <div class="rail__foot">
+      Filed under Nee.3<br />design system v0.1
+    </div>
+  </nav>
+
+  <main>
+
+    <section class="mode is-active" id="mode-journal">
+      <p class="mode__eyebrow">Today</p>
+      <h1 class="mode__title">Write it down before it settles.</h1>
+
+      <div class="page">
+        <div class="page__meta">
+          <div class="field">
+            <label class="field__label" for="entry-date">Written on</label>
+            <input type="date" id="entry-date" value="2026-08-11" />
+          </div>
+
+          <fieldset class="field" style="border:none; padding:0; margin:0;">
+            <legend class="field__label">Mood</legend>
+            <div class="mood-picker" role="radiogroup" aria-label="Mood">
+              <label>
+                <input class="mood" type="radio" name="mood" data-mood="steady" checked />
+                <span class="mood-picker__label">Steady</span>
+              </label>
+              <label>
+                <input class="mood" type="radio" name="mood" data-mood="restless" />
+                <span class="mood-picker__label">Restless</span>
+              </label>
+              <label>
+                <input class="mood" type="radio" name="mood" data-mood="quiet" />
+                <span class="mood-picker__label">Quiet</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <input class="entry-title" type="text" placeholder="Give the page a title (optional)" />
+
+        <textarea class="entry-text ruled" placeholder="Start anywhere. You can always find the thread later.">Spent the morning re-reading the chapter on tidal marshes and kept getting distracted by the way the author writes about mud like it's a character with opinions. Made a note to steal that move for the piece I'm stuck on.</textarea>
+
+        <div class="page__actions">
+          <button class="btn-ghost" type="button">Discard</button>
+          <button class="btn-secondary" type="button">Save draft</button>
+          <button class="btn-primary" type="button">File entry</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="mode" id="mode-catalog">
+      <p class="mode__eyebrow">Research</p>
+      <h1 class="mode__title">Everything you've read, filed where you'll find it.</h1>
+
+      <div class="filter-bar">
+        <div class="field">
+          <label class="field__label" for="cat-search">Search notes</label>
+          <input type="search" id="cat-search" placeholder="Search by title, tag, or chapter…" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cat-book">Book</label>
+          <select id="cat-book">
+            <option>All books</option>
+            <option selected>The Living Coast</option>
+            <option>Salt Marsh Ecologies</option>
+            <option>Notes on Sediment</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cat-chapter">Chapter</label>
+          <select id="cat-chapter">
+            <option selected>All chapters</option>
+            <option>Ch. 1 — Tideline</option>
+            <option>Ch. 2 — Mudflats</option>
+            <option>Ch. 3 — Estuary</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" type="button">New card</button>
+      </div>
+
+      <div class="card-grid">
+        <article class="card" data-cat="reading">
+          <span class="card__tab">Ch. 2 — Mudflats</span>
+          <span class="card__hole" aria-hidden="true"></span>
+          <h2 class="card__title">Mud as a character</h2>
+          <p class="card__excerpt">"The mud does not merely receive the tide, it negotiates with it." Worth stealing this framing for the essay — objects with agency, not just setting.</p>
+          <div class="card__foot">
+            <span class="card__num">No. 014</span>
+            <span class="card__tags">
+              <span class="tag">Voice</span>
+              <span class="tag">Craft</span>
+            </span>
+          </div>
+        </article>
+
+        <article class="card" data-cat="reading">
+          <span class="card__tab">Ch. 1 — Tideline</span>
+          <span class="card__hole" aria-hidden="true"></span>
+          <h2 class="card__title">Tidal vocabulary</h2>
+          <p class="card__excerpt">Neap, spring, slack water. Collecting these for the glossary I want to build into the second draft.</p>
+          <div class="card__foot">
+            <span class="card__num">No. 013</span>
+            <span class="card__tags">
+              <span class="tag">Glossary</span>
+            </span>
+          </div>
+        </article>
+
+        <article class="card" data-cat="calendar">
+          <span class="card__tab">Reminder</span>
+          <span class="card__hole" aria-hidden="true"></span>
+          <h2 class="card__title">Library hold expires</h2>
+          <p class="card__excerpt">Salt Marsh Ecologies is due back Friday — renew online or finish Chapter 4 first.</p>
+          <div class="card__foot">
+            <span class="card__num">No. 012</span>
+            <span class="card__tags">
+              <span class="tag">Due Fri</span>
+            </span>
+          </div>
+        </article>
+
+        <article class="card" data-cat="reading">
+          <span class="card__tab">Ch. 3 — Estuary</span>
+          <span class="card__hole" aria-hidden="true"></span>
+          <h2 class="card__title">Where fresh water gives up</h2>
+          <p class="card__excerpt">The estuary chapter keeps circling back to thresholds — a good structural idea for how I organize the journal entries by season instead of by date.</p>
+          <div class="card__foot">
+            <span class="card__num">No. 011</span>
+            <span class="card__tags">
+              <span class="tag">Structure</span>
+              <span class="tag">Idea</span>
+            </span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const links = document.querySelectorAll('.rail__link');
+    const modes = document.querySelectorAll('.mode');
+
+    links.forEach((link) => {
+      link.addEventListener('click', () => {
+        const target = link.dataset.target;
+
+        links.forEach((l) => l.setAttribute('aria-current', String(l === link)));
+        modes.forEach((m) => m.classList.toggle('is-active', m.id === `mode-${target}`));
+      });
+    });
+  </script>
+
+</body>
+</html>
