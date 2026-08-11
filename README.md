@@ -108,6 +108,23 @@ Set up a deployment pipeline for both packages. Evaluate whether to migrate the 
 
 ---
 
+## Commands
+
+### Local Postgres setup
+
+Backend tests and the dev server require a local PostgreSQL instance (installed natively, e.g. via Homebrew — not Docker):
+
+```sh
+brew install postgresql@16
+brew services start postgresql@16
+createdb nee3        # dev database
+createdb nee3_test   # test database
+```
+
+Copy `backend/.env.example` to `backend/.env` and `backend/.env.test.example` to `backend/.env.test`, then set a real `SESSION_SECRET` in `backend/.env`. Both files are gitignored.
+
+---
+
 ## Design Principles
 
 - **Modular, not monolithic** — journal, writing, calendar, and AI features are separate modules sharing one shell; no module should require understanding another to work on.
