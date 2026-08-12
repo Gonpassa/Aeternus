@@ -1,6 +1,5 @@
-/* eslint-disable import/extensions, react/jsx-props-no-spreading --
-   shadcn/ui's generated primitives lean on the `@/*` alias (resolved by
-   TypeScript, not eslint-plugin-import) and forward all remaining props via
+/* eslint-disable react/jsx-props-no-spreading --
+   shadcn/ui's generated primitives forward all remaining props via
    `{...props}`, which is the pattern's whole point. */
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';

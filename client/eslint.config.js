@@ -58,6 +58,11 @@ export default tseslint.config(
       // cannot resolve without extra resolver config (e.g. package `exports`
       // fields, or the router plugin's generated routeTree.gen.ts).
       'import/no-unresolved': 'off',
+      // Same reasoning as import/no-unresolved above: without that resolver
+      // config, eslint-plugin-import can't tell the `@/*` TS path alias apart
+      // from an unresolvable module, so it falls back to demanding a file
+      // extension on every `@/...` import. tsc -b already enforces this.
+      'import/extensions': 'off',
       // airbnb's react/require-default-props predates TypeScript prop typing and
       // wants a `defaultProps` static for every optional prop; that pattern is
       // deprecated for function components (React 18.3+) and redundant here since

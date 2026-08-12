@@ -1,10 +1,9 @@
 'use client';
 
-/* eslint-disable import/extensions, react/jsx-props-no-spreading,
+/* eslint-disable react/jsx-props-no-spreading,
    react/no-unstable-nested-components, react/prop-types,
    @typescript-eslint/no-shadow, no-use-before-define --
-   shadcn/ui's generated Calendar primitive uses the `@/*` alias (resolved by
-   TypeScript, not eslint-plugin-import), forwards remaining DayPicker props
+   shadcn/ui's generated Calendar primitive forwards remaining DayPicker props
    via `{...props}`, defines DayPicker's `components` overrides inline (the
    library's own customization pattern, hence the locally-shadowed prop
    names), and references CalendarDayButton before its declaration further

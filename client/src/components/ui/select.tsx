@@ -1,6 +1,5 @@
-/* eslint-disable import/extensions, react/jsx-props-no-spreading, no-use-before-define --
-   shadcn/ui's generated Select primitive uses the `@/*` alias (resolved by
-   TypeScript, not eslint-plugin-import), forwards remaining Radix props via
+/* eslint-disable react/jsx-props-no-spreading, no-use-before-define --
+   shadcn/ui's generated Select primitive forwards remaining Radix props via
    `{...props}`, and references SelectScrollUpButton/SelectScrollDownButton
    (defined further down the file) from SelectContent above. */
 import * as React from 'react';
