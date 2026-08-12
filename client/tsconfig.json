@@ -12,6 +12,7 @@
     "jsx": "react-jsx",
     "composite": true,
     "baseUrl": "src",
+    "paths": { "@/*": ["./*"] },
     "types": ["vite/client"]
   },
   "references": [{ "path": "../packages/shared-types" }],

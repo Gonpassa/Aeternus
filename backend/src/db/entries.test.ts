@@ -2,9 +2,11 @@ import { sql } from 'drizzle-orm';
 import { runMigrations } from './migrate';
 import { db, pool } from './index';
 import { createUser } from './users';
+import { Entry } from './schema';
 import {
   createEntry,
   listEntriesByUser,
+  listEntriesByRange,
   findEntryById,
   findEntryByDate,
   updateEntry,
@@ -113,5 +115,23 @@ describe('entry service', () => {
     const otherUser = await createUser('bob', 'bob@example.com', 'secret123');
     const deleted = await deleteEntry({ id: created.id, userId: otherUser.id });
     expect(deleted).toBe(false);
+  });
+
+  it('lists entries within an inclusive date range, sorted ascending, scoped to the user', async () => {
+    await createEntry({ userId, ...baseInput, date: '2026-08-01' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-15' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-31' });
+    const otherUser = await createUser('bob', 'bob@example.com', 'secret123');
+    await createEntry({ userId: otherUser.id, ...baseInput, date: '2026-08-15' });
+
+    const result = await listEntriesByRange({ userId, start: '2026-08-01', end: '2026-08-15' });
+
+    expect(result.map((e: Entry) => e.date)).toEqual(['2026-08-01', '2026-08-15']);
+  });
+
+  it('returns an empty array when nothing falls in range', async () => {
+    await createEntry({ userId, ...baseInput, date: '2026-08-01' });
+    const result = await listEntriesByRange({ userId, start: '2026-09-01', end: '2026-09-30' });
+    expect(result).toEqual([]);
   });
 });

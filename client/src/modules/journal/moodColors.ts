@@ -15,3 +15,11 @@ export const MOOD_LABEL: Record<PrimaryMood, string> = {
   anxious: 'Anxious',
   angry: 'Angry',
 };
+
+export const MOOD_RING_COLOR: Record<PrimaryMood, string> = {
+  happy: '#A8532F',
+  calm: '#55684A',
+  sad: '#2C3E52',
+  anxious: '#B98A2E',
+  angry: '#7A2E1E',
+};

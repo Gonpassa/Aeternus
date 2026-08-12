@@ -1,6 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiErrorResponse, CreateEntryRequest, UpdateEntryRequest } from '@nee3/shared-types';
-import { validateEntryInput, parsePagination, normalizeSpecificEmotion } from './validation';
+import {
+  ApiErrorResponse,
+  CreateEntryRequest,
+  EntryRangeQuery,
+  UpdateEntryRequest,
+} from '@nee3/shared-types';
+import {
+  validateEntryInput,
+  validateRangeQuery,
+  parsePagination,
+  normalizeSpecificEmotion,
+} from './validation';
 import { sanitizeEntryContent } from './sanitize';
 import {
   createEntry as createEntryRecord,
@@ -9,6 +19,7 @@ import {
   findEntryById,
   findEntryByDate,
   listEntriesByUser,
+  listEntriesByRange,
   DuplicateEntryError,
 } from '../../db/entries';
 
@@ -63,6 +74,25 @@ export const getEntryByDate = async (
       return;
     }
     res.status(200).json({ entry });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getEntriesByRange = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const validation = validateRangeQuery(req.query);
+  if (!validation.valid) {
+    res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
+    return;
+  }
+  const { start, end } = req.query as unknown as EntryRangeQuery;
+  try {
+    const rangeEntries = await listEntriesByRange({ userId: getUserId(req), start, end });
+    res.status(200).json(rangeEntries);
   } catch (err) {
     next(err);
   }

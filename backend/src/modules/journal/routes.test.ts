@@ -101,6 +101,42 @@ describe('journal routes (integration)', () => {
     });
   });
 
+  describe('GET /api/journal/entries/by-range', () => {
+    it('returns entries within range, scoped to the requester, sorted ascending', async () => {
+      await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-01' });
+      await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-15' });
+      await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-09-01' });
+      await bobAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-10' });
+
+      const res = await aliceAgent.get(
+        '/api/journal/entries/by-range?start=2026-08-01&end=2026-08-31',
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body.map((e: { date: string }) => e.date)).toEqual(['2026-08-01', '2026-08-15']);
+    });
+
+    it('returns 400 for a malformed range', async () => {
+      const res = await aliceAgent.get('/api/journal/entries/by-range?start=bad&end=2026-08-31');
+      expect(res.status).toBe(400);
+    });
+
+    it('returns an empty array with 200 when nothing matches', async () => {
+      const res = await aliceAgent.get(
+        '/api/journal/entries/by-range?start=2099-01-01&end=2099-01-31',
+      );
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
+    });
+
+    it('requires authentication', async () => {
+      const res = await request(createApp()).get(
+        '/api/journal/entries/by-range?start=2026-08-01&end=2026-08-31',
+      );
+      expect(res.status).toBe(401);
+    });
+  });
+
   describe('cross-user isolation', () => {
     it("returns 404 when reading, updating, or deleting another user's entry", async () => {
       const created = await aliceAgent.post('/api/journal/entries').send(validPayload);

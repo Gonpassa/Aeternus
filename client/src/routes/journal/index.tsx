@@ -1,8 +1,11 @@
 import { createFileRoute, getRouteApi, Link } from '@tanstack/react-router';
-import { useEntries } from '../../modules/journal/api/journalHooks.ts';
+import { useState } from 'react';
+import { useEntries, useEntriesByRange } from '../../modules/journal/api/journalHooks.ts';
 import { MOOD_DOT_CLASS, MOOD_LABEL } from '../../modules/journal/moodColors.ts';
 import { stripHtml } from '../../modules/journal/textUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
+import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
+import type { DateRangeValue } from '../../components/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 
 export interface JournalIndexSearch {
   page: number;
@@ -10,9 +13,26 @@ export interface JournalIndexSearch {
 
 const routeApi = getRouteApi('/journal/');
 
+const toIsoDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function JournalIndexPage() {
   const { page } = routeApi.useSearch();
-  const { data } = useEntries(page);
+  const [selectedRange, setSelectedRange] = useState<DateRangeValue>({});
+  const hasFilter = Boolean(selectedRange.from);
+
+  const paginated = useEntries(page);
+  const filtered = useEntriesByRange({
+    start: selectedRange.from ? toIsoDate(selectedRange.from) : '',
+    end: selectedRange.to ? toIsoDate(selectedRange.to) : '',
+  });
+
+  const entries = hasFilter ? (filtered.data ?? []) : (paginated.data?.entries ?? []);
+  const dataLoaded = hasFilter ? filtered.data !== undefined : paginated.data !== undefined;
 
   return (
     <div className="mx-auto max-w-2xl p-4">
@@ -25,8 +45,15 @@ function JournalIndexPage() {
           New entry
         </Link>
       </div>
+      <div className="mb-4">
+        <JournalCalendarFilter
+          selectedRange={selectedRange}
+          onRangeChange={setSelectedRange}
+          entryCount={hasFilter ? filtered.data?.length : undefined}
+        />
+      </div>
       <ul className="flex flex-col gap-3">
-        {data?.entries.map((entry) => (
+        {entries.map((entry) => (
           <li key={entry.id} className="border border-line bg-paper-card p-4">
             <Link to="/journal/$entryId" params={{ entryId: String(entry.id) }} className="block">
               <div className="flex items-center gap-2 font-mono text-xs uppercase text-ink-soft">
@@ -42,7 +69,7 @@ function JournalIndexPage() {
           </li>
         ))}
       </ul>
-      {data && data.entries.length === 0 && <p className="text-ink-soft">No entries yet.</p>}
+      {dataLoaded && entries.length === 0 && <p className="text-ink-soft">No entries yet.</p>}
     </div>
   );
 }

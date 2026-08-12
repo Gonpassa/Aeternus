@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import path from 'node:path';
 import { defineConfig } from 'vite';
 import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -8,6 +9,9 @@ export default defineConfig({
   plugins: [TanStackRouterVite(), viteReact(), tailwindcss()],
   resolve: {
     preserveSymlinks: true,
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
     proxy: {
