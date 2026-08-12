@@ -3,6 +3,7 @@ import {
   listEntries,
   getEntry,
   getEntryByDate,
+  getEntriesByRange,
   createEntry,
   updateEntry,
   deleteEntry,
@@ -18,6 +19,7 @@ jest.mock('../../db/entries', () => ({
   findEntryById: jest.fn(),
   findEntryByDate: jest.fn(),
   listEntriesByUser: jest.fn(),
+  listEntriesByRange: jest.fn(),
 }));
 
 const mocked = entryService as jest.Mocked<typeof entryService>;
@@ -97,6 +99,47 @@ describe('getEntryByDate', () => {
     await getEntryByDate(req, res, jest.fn());
 
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+});
+
+describe('getEntriesByRange', () => {
+  afterEach(() => jest.resetAllMocks());
+
+  it('returns 400 for an invalid range without calling the db layer', async () => {
+    const req = reqAs(7, { query: { start: 'not-a-date', end: '2026-08-31' } });
+    const res = buildRes();
+
+    await getEntriesByRange(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mocked.listEntriesByRange).not.toHaveBeenCalled();
+  });
+
+  it('returns the range scoped to the requester as a bare array', async () => {
+    mocked.listEntriesByRange.mockResolvedValue([fakeEntry]);
+    const req = reqAs(7, { query: { start: '2026-08-01', end: '2026-08-31' } });
+    const res = buildRes();
+
+    await getEntriesByRange(req, res, jest.fn());
+
+    expect(mocked.listEntriesByRange).toHaveBeenCalledWith({
+      userId: 7,
+      start: '2026-08-01',
+      end: '2026-08-31',
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith([fakeEntry]);
+  });
+
+  it('returns an empty array with 200 when nothing matches', async () => {
+    mocked.listEntriesByRange.mockResolvedValue([]);
+    const req = reqAs(7, { query: { start: '2026-09-01', end: '2026-09-30' } });
+    const res = buildRes();
+
+    await getEntriesByRange(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith([]);
   });
 });
 
