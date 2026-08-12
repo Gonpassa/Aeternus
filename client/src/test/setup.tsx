@@ -21,15 +21,27 @@ afterEach(() => {
 // so this globally wraps that `render` with the app's `ChakraProvider` (same
 // `system` used in `main.tsx`) rather than requiring every test file to
 // import and wrap manually.
+//
+// If a caller passes its own `wrapper` (e.g. to add a router or
+// query-client context), compose it with `ChakraProvider` instead of
+// letting the caller's `wrapper` replace it outright - otherwise the
+// `ContextError` this fix exists to prevent would resurface for any test
+// that supplies a `wrapper` option.
 vi.mock('@testing-library/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@testing-library/react')>();
   return {
     ...actual,
-    render: (ui: ReactElement, options?: RenderOptions) =>
-      actual.render(ui, {
-        wrapper: ({ children }) => <ChakraProvider value={system}>{children}</ChakraProvider>,
+    render: (ui: ReactElement, options?: RenderOptions) => {
+      const CallerWrapper = options?.wrapper;
+      return actual.render(ui, {
         ...options,
-      }),
+        wrapper: ({ children }) => (
+          <ChakraProvider value={system}>
+            {CallerWrapper ? <CallerWrapper>{children}</CallerWrapper> : children}
+          </ChakraProvider>
+        ),
+      });
+    },
   };
 });
 
