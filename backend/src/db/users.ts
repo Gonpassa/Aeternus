@@ -14,11 +14,15 @@ export class DuplicateUserError extends Error {
 
 export type PublicUser = Omit<User, 'password'>;
 
-const isUniqueViolation = (err: unknown): boolean =>
+const hasUniqueViolationCode = (err: unknown): boolean =>
   typeof err === 'object' &&
   err !== null &&
   'code' in err &&
   (err as { code: unknown }).code === '23505';
+
+const isUniqueViolation = (err: unknown): boolean =>
+  hasUniqueViolationCode(err) ||
+  (err instanceof Error && hasUniqueViolationCode((err as { cause?: unknown }).cause));
 
 export const toPublicUser = (user: User): PublicUser => ({
   id: user.id,

@@ -9,11 +9,15 @@ export class DuplicateEntryError extends Error {
   }
 }
 
-const isUniqueViolation = (err: unknown): boolean =>
+const hasUniqueViolationCode = (err: unknown): boolean =>
   typeof err === 'object' &&
   err !== null &&
   'code' in err &&
   (err as { code: unknown }).code === '23505';
+
+const isUniqueViolation = (err: unknown): boolean =>
+  hasUniqueViolationCode(err) ||
+  (err instanceof Error && hasUniqueViolationCode((err as { cause?: unknown }).cause));
 
 export type NewEntryInput = Omit<NewEntry, 'id' | 'createdAt' | 'updatedAt'>;
 
