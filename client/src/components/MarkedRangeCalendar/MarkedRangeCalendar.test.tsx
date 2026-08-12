@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { MarkedRangeCalendar, computeNextRange, toIsoDate } from './MarkedRangeCalendar.tsx';
+
+const getByIso = (container: HTMLElement, iso: string): HTMLElement => {
+  const el = container.querySelector(`[data-iso="${iso}"]`);
+  if (!el) throw new Error(`No element with data-iso="${iso}"`);
+  return el as HTMLElement;
+};
 
 describe('computeNextRange', () => {
   it('starts a one-day range on the first click', () => {
@@ -39,7 +45,7 @@ describe('MarkedRangeCalendar', () => {
 
   it('only renders marked days as enabled, clickable buttons', () => {
     const markedDates = new Map([['2026-08-15', '#A8532F']]);
-    render(
+    const { container } = render(
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -49,14 +55,14 @@ describe('MarkedRangeCalendar', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: '2026-08-15' })).not.toBeDisabled();
-    expect(screen.getByRole('button', { name: '2026-08-16' })).toBeDisabled();
+    expect(getByIso(container, '2026-08-15')).not.toBeDisabled();
+    expect(getByIso(container, '2026-08-16')).toBeDisabled();
   });
 
   it('calls onRangeChange when a marked day is clicked', () => {
     const markedDates = new Map([['2026-08-15', '#A8532F']]);
     const handleRangeChange = vi.fn();
-    render(
+    const { container } = render(
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -66,7 +72,7 @@ describe('MarkedRangeCalendar', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '2026-08-15' }));
+    fireEvent.click(getByIso(container, '2026-08-15'));
 
     expect(handleRangeChange).toHaveBeenCalledWith({
       from: new Date(2026, 7, 15),
@@ -77,7 +83,7 @@ describe('MarkedRangeCalendar', () => {
   it('does not call onRangeChange when an unmarked day is clicked', () => {
     const markedDates = new Map([['2026-08-15', '#A8532F']]);
     const handleRangeChange = vi.fn();
-    render(
+    const { container } = render(
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -87,7 +93,7 @@ describe('MarkedRangeCalendar', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '2026-08-16' }));
+    fireEvent.click(getByIso(container, '2026-08-16'));
 
     expect(handleRangeChange).not.toHaveBeenCalled();
   });
@@ -97,7 +103,7 @@ describe('MarkedRangeCalendar', () => {
       ['2026-08-15', '#A8532F'],
       ['2026-09-01', '#55684A'],
     ]);
-    render(
+    const { container } = render(
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -107,8 +113,27 @@ describe('MarkedRangeCalendar', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: '2026-08-15' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2026-09-01' })).toBeInTheDocument();
+    expect(getByIso(container, '2026-08-15')).toBeInTheDocument();
+    expect(getByIso(container, '2026-09-01')).toBeInTheDocument();
+  });
+
+  it('renders single-letter weekday headers', () => {
+    const markedDates = new Map([['2026-08-15', '#A8532F']]);
+    const { container } = render(
+      <MarkedRangeCalendar
+        markedDates={markedDates}
+        visibleMonth={visibleMonth}
+        onVisibleMonthChange={vi.fn()}
+        selectedRange={{}}
+        onRangeChange={vi.fn()}
+      />,
+    );
+
+    const weekdayHeaders = container.querySelectorAll('th[scope="col"]');
+    expect(weekdayHeaders.length).toBeGreaterThan(0);
+    weekdayHeaders.forEach((header) => {
+      expect(header.textContent).toHaveLength(1);
+    });
   });
 });
 

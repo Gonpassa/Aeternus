@@ -16,6 +16,7 @@ import { MOOD_RING_COLOR } from '../../moodColors.ts';
 export interface JournalCalendarFilterProps {
   selectedRange: DateRangeValue;
   onRangeChange: (range: DateRangeValue) => void;
+  entryCount?: number;
 }
 
 const MONTH_LABELS = [
@@ -74,6 +75,7 @@ export function formatRangeLabel(range: DateRangeValue): string {
 export function JournalCalendarFilter({
   selectedRange,
   onRangeChange,
+  entryCount,
 }: JournalCalendarFilterProps) {
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => startOfMonth(new Date()));
 
@@ -117,9 +119,13 @@ export function JournalCalendarFilter({
             <SelectTrigger className="rounded-none border-line font-mono text-xs uppercase">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-none border-line bg-paper-card shadow-none">
               {MONTH_LABELS.map((label, index) => (
-                <SelectItem key={label} value={String(index)}>
+                <SelectItem
+                  key={label}
+                  value={String(index)}
+                  className="text-ink focus:bg-line/60 focus:text-ink"
+                >
                   {label}
                 </SelectItem>
               ))}
@@ -134,9 +140,13 @@ export function JournalCalendarFilter({
             <SelectTrigger className="rounded-none border-line font-mono text-xs uppercase">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-none border-line bg-paper-card shadow-none">
               {years.map((year) => (
-                <SelectItem key={year} value={String(year)}>
+                <SelectItem
+                  key={year}
+                  value={String(year)}
+                  className="text-ink focus:bg-line/60 focus:text-ink"
+                >
                   {year}
                 </SelectItem>
               ))}
@@ -171,7 +181,7 @@ export function JournalCalendarFilter({
       {hasFilter && (
         <p className="mt-3 font-mono text-xs uppercase text-ink-soft">
           {formatRangeLabel(selectedRange)}
-          {data ? ` · ${data.length} entries` : ''}
+          {entryCount !== undefined ? ` · ${entryCount} entries` : ''}
         </p>
       )}
     </div>

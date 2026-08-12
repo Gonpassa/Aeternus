@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiErrorResponse, CreateEntryRequest, UpdateEntryRequest } from '@nee3/shared-types';
+import {
+  ApiErrorResponse,
+  CreateEntryRequest,
+  EntryRangeQuery,
+  UpdateEntryRequest,
+} from '@nee3/shared-types';
 import {
   validateEntryInput,
   validateRangeQuery,
@@ -84,7 +89,7 @@ export const getEntriesByRange = async (
     res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
     return;
   }
-  const { start, end } = req.query as { start: string; end: string };
+  const { start, end } = req.query as unknown as EntryRangeQuery;
   try {
     const rangeEntries = await listEntriesByRange({ userId: getUserId(req), start, end });
     res.status(200).json(rangeEntries);

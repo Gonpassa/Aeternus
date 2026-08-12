@@ -36,9 +36,11 @@ describe('JournalCalendarFilter', () => {
       data: [fakeEntry(toIso(sampleDate))],
     } as ReturnType<typeof journalHooks.useEntriesByRange>);
 
-    render(<JournalCalendarFilter selectedRange={{}} onRangeChange={vi.fn()} />);
+    const { container } = render(
+      <JournalCalendarFilter selectedRange={{}} onRangeChange={vi.fn()} />,
+    );
 
-    expect(screen.getByRole('button', { name: toIso(sampleDate) })).not.toBeDisabled();
+    expect(container.querySelector(`[data-iso="${toIso(sampleDate)}"]`)).not.toBeDisabled();
   });
 
   it('shows a clear-filter link only when a range is active', () => {
@@ -56,6 +58,23 @@ describe('JournalCalendarFilter', () => {
       <JournalCalendarFilter selectedRange={{ from: day, to: day }} onRangeChange={vi.fn()} />,
     );
     expect(screen.getByText('Clear filter')).toBeInTheDocument();
+  });
+
+  it('shows the entry count from the selected range, not the two-month grid data', () => {
+    mockedUseEntriesByRange.mockReturnValue({
+      data: [fakeEntry('2026-08-01'), fakeEntry('2026-08-15'), fakeEntry('2026-09-01')],
+    } as ReturnType<typeof journalHooks.useEntriesByRange>);
+
+    const day = new Date(2026, 7, 15);
+    render(
+      <JournalCalendarFilter
+        selectedRange={{ from: day, to: day }}
+        onRangeChange={vi.fn()}
+        entryCount={1}
+      />,
+    );
+
+    expect(screen.getByText(/Showing entries Aug 15, 2026 · 1 entries/)).toBeInTheDocument();
   });
 });
 

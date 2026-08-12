@@ -3,7 +3,7 @@
    remaining day-button props (onBlur/onFocus/onKeyDown/onMouseEnter/
    onMouseLeave/tabIndex) via {...props}, mirroring the pattern used by
    shadcn/ui's own Calendar primitive (see ui/calendar.tsx). */
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import type { ComponentProps } from 'react';
 import type { DayButton } from 'react-day-picker';
 import { Calendar } from '../ui/calendar.tsx';
@@ -69,23 +69,29 @@ const MarkedRangeContext = createContext<MarkedRangeContextValue>(defaultContext
 function MarkedDayButton({
   className: _className,
   day,
-  modifiers: _modifiers,
+  modifiers,
   children,
   ...props
 }: ComponentProps<typeof DayButton>) {
   const { markedDates, selectedRange, onRangeChange } = useContext(MarkedRangeContext);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (modifiers.focused) ref.current?.focus();
+  }, [modifiers.focused]);
 
   const iso = toIsoDate(day.date);
   const ringColor = markedDates.get(iso);
-  const disabled = !ringColor;
+  const { disabled } = modifiers;
   const inRange = !disabled && isInRange(day.date, selectedRange);
   const endpoint = !disabled && isEndpoint(day.date, selectedRange);
 
   return (
     <button
       {...props}
+      ref={ref}
       type="button"
-      aria-label={iso}
+      data-iso={iso}
       disabled={disabled}
       onClick={() => {
         if (disabled) return;
@@ -129,6 +135,10 @@ export function MarkedRangeCalendar({
         disabled={isDisabled}
         showOutsideDays={false}
         onDayClick={() => {}}
+        formatters={{
+          formatWeekdayName: (date: Date) =>
+            date.toLocaleDateString('en-US', { weekday: 'narrow' }),
+        }}
         classNames={{
           root: 'w-fit',
           months: 'flex gap-6',

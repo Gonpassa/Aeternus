@@ -4,6 +4,7 @@ import type {
   CreateEntryRequest,
   Entry,
   EntryListResponse,
+  EntryRangeQuery,
   UpdateEntryRequest,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
@@ -56,7 +57,7 @@ export const useEntryByDate = (date: string | null) =>
     },
   });
 
-export const useEntriesByRange = ({ start, end }: { start: string; end: string }) =>
+export const useEntriesByRange = ({ start, end }: EntryRangeQuery) =>
   useQuery<Entry[]>({
     queryKey: journalKeys.byRange(start, end),
     enabled: Boolean(start) && Boolean(end),

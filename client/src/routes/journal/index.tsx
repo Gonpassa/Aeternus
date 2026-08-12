@@ -46,7 +46,11 @@ function JournalIndexPage() {
         </Link>
       </div>
       <div className="mb-4">
-        <JournalCalendarFilter selectedRange={selectedRange} onRangeChange={setSelectedRange} />
+        <JournalCalendarFilter
+          selectedRange={selectedRange}
+          onRangeChange={setSelectedRange}
+          entryCount={hasFilter ? filtered.data?.length : undefined}
+        />
       </div>
       <ul className="flex flex-col gap-3">
         {entries.map((entry) => (
