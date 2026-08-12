@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChakraProvider } from '@chakra-ui/react';
 import { routeTree } from './routeTree.gen';
 import { system } from './theme';
-import './styles.css';
 
 if (import.meta.env.DEV) {
   // eslint-disable-next-line import/no-extraneous-dependencies -- dev-only tool, never bundled in production
