@@ -1,6 +1,8 @@
 import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react-router';
 import { FormEvent, useState } from 'react';
+import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
 import { useAuth } from '../shell/AuthProvider.tsx';
+import { Button } from '../components/ui/button.tsx';
 
 export interface LoginSearch {
   redirect?: string;
@@ -28,39 +30,43 @@ function LoginPage() {
   };
 
   return (
-    <div className="mx-auto max-w-sm p-4">
-      <h1 className="mb-4 text-xl font-semibold">Log in</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1" htmlFor="login-username">
+    <Box mx="auto" maxW="sm" p="4">
+      <Heading as="h1" mb="4" fontSize="xl" fontWeight="semibold">
+        Log in
+      </Heading>
+      <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="3">
+        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="login-username">
           Username
-          <input
+          <Input
             id="login-username"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-        </label>
-        <label className="flex flex-col gap-1" htmlFor="login-password">
+        </chakra.label>
+        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="login-password">
           Password
-          <input
+          <Input
             id="login-password"
             type="password"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </label>
-        {error && <p className="text-red-600">{error}</p>}
-        <button type="submit" className="bg-black p-2 text-white">
+        </chakra.label>
+        {error && <Text color="red.600">{error}</Text>}
+        <Button type="submit" bg="black" p="2" color="white">
           Log in
-        </button>
-      </form>
-      <p className="mt-3 text-sm text-ink-soft">
+        </Button>
+      </chakra.form>
+      <Text mt="3" fontSize="sm" color="inkSoft">
         Don&apos;t have an account? <Link to="/register">Register</Link>
-      </p>
-    </div>
+      </Text>
+    </Box>
   );
 }
 

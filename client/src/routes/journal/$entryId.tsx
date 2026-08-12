@@ -1,10 +1,10 @@
 import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
-import { Button, buttonVariants } from '../../components/ui/button.tsx';
-import { cn } from '../../lib/utils.ts';
+import { Button } from '../../components/ui/button.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId');
 
@@ -21,19 +21,21 @@ function EntryDetailPage() {
   };
 
   if (isLoading || !entry) {
-    return <p className="p-4 text-ink-soft">Loading...</p>;
+    return (
+      <Text p="4" color="inkSoft">
+        Loading...
+      </Text>
+    );
   }
 
   return (
-    <div className="p-4">
-      <div className="mx-auto mb-4 flex max-w-2xl items-center gap-3">
-        <Link
-          to="/journal/$entryId/edit"
-          params={{ entryId }}
-          className={cn(buttonVariants({ variant: 'outline' }))}
-        >
-          Edit
-        </Link>
+    <Box p="4">
+      <Flex mx="auto" mb="4" maxW="2xl" align="center" gap="3">
+        <Button asChild variant="outline">
+          <Link to="/journal/$entryId/edit" params={{ entryId }}>
+            Edit
+          </Link>
+        </Button>
         {confirmingDelete ? (
           <Button type="button" variant="destructive" onClick={handleDelete}>
             Confirm delete
@@ -42,15 +44,17 @@ function EntryDetailPage() {
           <Button
             type="button"
             variant="outline"
-            className="border-rust text-rust hover:bg-rust/5"
+            borderColor="rust"
+            color="rust"
+            _hover={{ bg: 'rust/5' }}
             onClick={() => setConfirmingDelete(true)}
           >
             Delete
           </Button>
         )}
-      </div>
+      </Flex>
       <EntryView entry={entry} />
-    </div>
+    </Box>
   );
 }
 
