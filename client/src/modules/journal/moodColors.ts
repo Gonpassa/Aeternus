@@ -1,11 +1,11 @@
 import type { PrimaryMood } from '@nee3/shared-types';
 
-export const MOOD_DOT_CLASS: Record<PrimaryMood, string> = {
-  happy: 'bg-rust',
-  calm: 'bg-moss',
-  sad: 'bg-ink-blue',
-  anxious: 'bg-mood-anxious',
-  angry: 'bg-mood-angry',
+export const MOOD_DOT_COLOR: Record<PrimaryMood, string> = {
+  happy: 'rust',
+  calm: 'moss',
+  sad: 'inkBlue',
+  anxious: 'moodAnxious',
+  angry: 'moodAngry',
 };
 
 export const MOOD_LABEL: Record<PrimaryMood, string> = {

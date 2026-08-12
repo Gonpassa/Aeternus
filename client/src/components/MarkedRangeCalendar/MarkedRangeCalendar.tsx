@@ -6,7 +6,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import type { ComponentProps } from 'react';
 import type { DayButton } from 'react-day-picker';
+import { chakra } from '@chakra-ui/react';
 import { Calendar } from '../ui/calendar.tsx';
+import styles from './MarkedRangeCalendar.module.css';
 
 export interface DateRangeValue {
   from?: Date;
@@ -66,6 +68,8 @@ const defaultContextValue: MarkedRangeContextValue = {
 
 const MarkedRangeContext = createContext<MarkedRangeContextValue>(defaultContextValue);
 
+const DayCellButton = chakra('button');
+
 function MarkedDayButton({
   className: _className,
   day,
@@ -85,9 +89,16 @@ function MarkedDayButton({
   const { disabled } = modifiers;
   const inRange = !disabled && isInRange(day.date, selectedRange);
   const endpoint = !disabled && isEndpoint(day.date, selectedRange);
+  let textColor = 'ink';
+  if (endpoint) textColor = 'paper';
+  else if (disabled) textColor = 'inkSoft';
+
+  let bgColor: string | undefined;
+  if (endpoint) bgColor = 'moss';
+  else if (inRange) bgColor = 'moss/14';
 
   return (
-    <button
+    <DayCellButton
       {...props}
       ref={ref}
       type="button"
@@ -97,18 +108,21 @@ function MarkedDayButton({
         if (disabled) return;
         onRangeChange(computeNextRange(selectedRange, day.date));
       }}
-      className={[
-        'flex aspect-square size-full items-center justify-center font-mono text-xs',
-        disabled ? 'cursor-default text-ink-soft opacity-30' : 'cursor-pointer text-ink',
-        inRange && !endpoint ? 'bg-moss/[0.14]' : '',
-        endpoint ? 'bg-moss text-paper' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      display="flex"
+      aspectRatio="1"
+      boxSize="full"
+      alignItems="center"
+      justifyContent="center"
+      fontFamily="mono"
+      fontSize="xs"
+      cursor={disabled ? 'default' : 'pointer'}
+      color={textColor}
+      opacity={disabled ? 0.3 : 1}
+      bg={bgColor}
       style={ringColor && !endpoint ? { boxShadow: `inset 0 0 0 1.3px ${ringColor}` } : undefined}
     >
       {children ?? day.date.getDate()}
-    </button>
+    </DayCellButton>
   );
 }
 
@@ -140,17 +154,16 @@ export function MarkedRangeCalendar({
             date.toLocaleDateString('en-US', { weekday: 'narrow' }),
         }}
         classNames={{
-          root: 'w-fit',
-          months: 'flex gap-6',
-          month: 'flex flex-col gap-2',
+          root: styles.root,
+          months: styles.months,
+          month: styles.month,
           nav: 'hidden',
-          month_caption:
-            'flex items-center justify-center px-2 py-1 font-mono text-xs uppercase text-ink-soft',
-          month_grid: 'w-full border-collapse',
-          weekdays: 'flex',
-          weekday: 'flex-1 text-center font-mono text-[0.65rem] uppercase text-ink-soft',
-          week: 'flex w-full',
-          day: 'aspect-square w-9 p-0.5 text-center',
+          month_caption: styles.monthCaption,
+          month_grid: styles.monthGrid,
+          weekdays: styles.weekdays,
+          weekday: styles.weekday,
+          week: styles.week,
+          day: styles.day,
         }}
         components={{ DayButton: MarkedDayButton }}
       />

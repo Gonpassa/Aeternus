@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormEvent, useState } from 'react';
+import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
 import { useAuth } from '../shell/AuthProvider.tsx';
+import { Button } from '../components/ui/button.tsx';
 
 function RegisterPage() {
   const { register } = useAuth();
@@ -27,58 +29,69 @@ function RegisterPage() {
   };
 
   return (
-    <div className="mx-auto max-w-sm p-4">
-      <h1 className="mb-4 text-xl font-semibold">Register</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1" htmlFor="register-username">
+    <Box mx="auto" maxW="sm" p="4">
+      <Heading as="h1" mb="4" fontSize="xl" fontWeight="semibold">
+        Register
+      </Heading>
+      <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="3">
+        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-username">
           Username
-          <input
+          <Input
             id="register-username"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-        </label>
-        <label className="flex flex-col gap-1" htmlFor="register-email">
+        </chakra.label>
+        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-email">
           Email
-          <input
+          <Input
             id="register-email"
             type="email"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </label>
-        <label className="flex flex-col gap-1" htmlFor="register-password">
+        </chakra.label>
+        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-password">
           Password
-          <input
+          <Input
             id="register-password"
             type="password"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </label>
-        <label className="flex flex-col gap-1" htmlFor="register-confirm-password">
+        </chakra.label>
+        <chakra.label
+          display="flex"
+          flexDirection="column"
+          gap="1"
+          htmlFor="register-confirm-password"
+        >
           Confirm password
-          <input
+          <Input
             id="register-confirm-password"
             type="password"
-            className="border border-gray-300 p-2"
+            borderColor="gray.300"
+            p="2"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-        </label>
-        {error && <p className="text-red-600">{error}</p>}
-        <button type="submit" className="bg-black p-2 text-white">
+        </chakra.label>
+        {error && <Text color="red.600">{error}</Text>}
+        <Button type="submit" bg="black" p="2" color="white">
           Register
-        </button>
-      </form>
-    </div>
+        </Button>
+      </chakra.form>
+    </Box>
   );
 }
 

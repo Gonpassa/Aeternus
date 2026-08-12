@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { Box } from '@chakra-ui/react';
 
 export const Route = createFileRoute('/')({
-  component: () => <div className="p-4">Nee.3</div>,
+  component: () => <Box p="4">Nee.3</Box>,
 });

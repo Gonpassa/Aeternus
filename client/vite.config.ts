@@ -2,11 +2,17 @@
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import viteReact from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
-export default defineConfig({
-  plugins: [TanStackRouterVite(), viteReact(), tailwindcss()],
+export default defineConfig(({ command }) => ({
+  plugins: [
+    TanStackRouterVite(),
+    viteReact({
+      babel: {
+        plugins: command === 'serve' ? ['@locator/babel-jsx/dist/index.js'] : [],
+      },
+    }),
+  ],
   resolve: {
     preserveSymlinks: true,
     alias: {
@@ -23,7 +29,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./src/test/setup.tsx'],
     globals: false,
   },
-});
+}));

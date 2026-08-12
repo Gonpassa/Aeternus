@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { format, parse } from 'date-fns';
+import { chakra, Input, Text } from '@chakra-ui/react';
 import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
@@ -77,27 +78,41 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-4">
+    <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="4" maxW="2xl">
       {existingEntryId && !initialEntry && (
-        <p className="font-mono text-xs uppercase text-rust">
+        <Text fontFamily="mono" fontSize="xs" textTransform="uppercase" color="rust">
           An entry already exists for this date &mdash; editing it instead.
-        </p>
+        </Text>
       )}
-      <label className="flex flex-col gap-1 font-mono text-xs uppercase" htmlFor="entry-date">
+      <chakra.label
+        display="flex"
+        flexDirection="column"
+        gap="1"
+        fontFamily="mono"
+        fontSize="xs"
+        textTransform="uppercase"
+        htmlFor="entry-date"
+      >
         Date
-        <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+        <Popover
+          open={datePopoverOpen}
+          onOpenChange={(details) => setDatePopoverOpen(details.open)}
+        >
           <PopoverTrigger asChild>
             <Button
               id="entry-date"
               type="button"
               variant="outline"
-              className="w-fit justify-start font-sans normal-case"
+              justifyContent="flex-start"
+              fontFamily="body"
+              textTransform="none"
+              w="fit-content"
               disabled={Boolean(initialEntry)}
             >
               {format(parseIsoDate(date), 'MMM d, yyyy')}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto border-line bg-paper-card p-2" align="start">
+          <PopoverContent w="auto" borderColor="line" bg="paperCard" p="2">
             <Calendar
               mode="single"
               selected={parseIsoDate(date)}
@@ -109,17 +124,30 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
             />
           </PopoverContent>
         </Popover>
-      </label>
-      <label className="flex flex-col gap-1 font-mono text-xs uppercase" htmlFor="entry-title">
+      </chakra.label>
+      <chakra.label
+        display="flex"
+        flexDirection="column"
+        gap="1"
+        fontFamily="mono"
+        fontSize="xs"
+        textTransform="uppercase"
+        htmlFor="entry-title"
+      >
         Title
-        <input
+        <Input
           id="entry-title"
-          className="border border-line bg-paper-card p-2 font-sans normal-case"
+          borderWidth="1px"
+          borderColor="line"
+          bg="paperCard"
+          p="2"
+          fontFamily="body"
+          textTransform="none"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
         />
-      </label>
+      </chakra.label>
       <MoodPicker
         primaryMood={primaryMood}
         specificEmotion={specificEmotion}
@@ -129,8 +157,8 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
         }}
       />
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
-      {error && <p className="text-rust">{error}</p>}
+      {error && <Text color="rust">{error}</Text>}
       <Button type="submit">Save entry</Button>
-    </form>
+    </chakra.form>
   );
 }

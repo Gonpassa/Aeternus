@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { Box, chakra, Flex, Input, Text } from '@chakra-ui/react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
-import { MOOD_DOT_CLASS, MOOD_LABEL } from '../../moodColors.ts';
+import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
 
 export interface MoodPickerProps {
   primaryMood: PrimaryMood | null;
@@ -80,57 +81,78 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
   };
 
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="font-mono text-xs uppercase tracking-wide text-ink-soft">Mood</legend>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Primary mood">
+    <Box as="fieldset" display="flex" flexDirection="column" gap="2">
+      <Text
+        as="legend"
+        fontFamily="mono"
+        fontSize="xs"
+        textTransform="uppercase"
+        letterSpacing="wide"
+        color="inkSoft"
+      >
+        Mood
+      </Text>
+      <Flex wrap="wrap" gap="2" role="radiogroup" aria-label="Primary mood">
         {PRIMARY_MOODS.map((mood) => (
-          <button
+          <chakra.button
             key={mood}
             type="button"
             role="radio"
             aria-checked={primaryMood === mood}
             onClick={() => handlePrimaryMoodClick(mood)}
-            className={`flex items-center gap-1.5 border px-2 py-1 font-mono text-xs uppercase ${
-              primaryMood === mood ? 'border-ink-blue' : 'border-line'
-            }`}
+            display="flex"
+            alignItems="center"
+            gap="1.5"
+            borderWidth="1px"
+            borderColor={primaryMood === mood ? 'inkBlue' : 'line'}
+            px="2"
+            py="1"
+            fontFamily="mono"
+            fontSize="xs"
+            textTransform="uppercase"
           >
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${MOOD_DOT_CLASS[mood]}`}
-              aria-hidden="true"
-            />
+            <Box boxSize="2.5" borderRadius="full" bg={MOOD_DOT_COLOR[mood]} aria-hidden="true" />
             {MOOD_LABEL[mood]}
-          </button>
+          </chakra.button>
         ))}
-      </div>
+      </Flex>
       {primaryMood && (
-        <div
-          className="flex flex-wrap items-center gap-2"
-          role="radiogroup"
-          aria-label="Specific emotion"
-        >
+        <Flex wrap="wrap" align="center" gap="2" role="radiogroup" aria-label="Specific emotion">
           {MOOD_TAXONOMY[primaryMood].map((emotion) => (
-            <button
+            <chakra.button
               key={emotion}
               type="button"
               role="radio"
               aria-checked={selectedFixed === emotion}
               onClick={() => handleFixedEmotionClick(emotion)}
-              className={`border px-2 py-1 font-mono text-xs uppercase ${
-                selectedFixed === emotion ? 'border-moss text-moss' : 'border-line'
-              }`}
+              borderWidth="1px"
+              borderColor={selectedFixed === emotion ? 'moss' : 'line'}
+              color={selectedFixed === emotion ? 'moss' : undefined}
+              px="2"
+              py="1"
+              fontFamily="mono"
+              fontSize="xs"
+              textTransform="uppercase"
             >
               {emotion}
-            </button>
+            </chakra.button>
           ))}
-          <input
+          <Input
             type="text"
             placeholder="Custom"
             value={customText}
             onChange={(e) => handleCustomChange(e.target.value)}
-            className="border border-line bg-paper-card px-2 py-1 font-mono text-xs normal-case"
+            borderWidth="1px"
+            borderColor="line"
+            bg="paperCard"
+            px="2"
+            py="1"
+            fontFamily="mono"
+            fontSize="xs"
+            w="auto"
           />
-        </div>
+        </Flex>
       )}
-    </fieldset>
+    </Box>
   );
 }
