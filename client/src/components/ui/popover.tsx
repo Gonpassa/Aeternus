@@ -1,43 +1,43 @@
-/* eslint-disable react/jsx-props-no-spreading --
-   shadcn/ui's generated Popover primitive forwards remaining Radix props via
-   `{...props}`, matching the pattern used by ui/select.tsx. */
+/* eslint-disable prefer-arrow-callback, @typescript-eslint/no-shadow, react/jsx-props-no-spreading --
+   `React.forwardRef` is named `function PopoverContent` for React DevTools/component
+   stack display, which arrow functions can't provide and which necessarily
+   shadows the outer `PopoverContent` binding; remaining props are forwarded via
+   `{...props}` to the underlying Chakra primitives, which is the point of a
+   thin wrapper like this one. */
 import * as React from 'react';
-import { Popover as PopoverPrimitive } from 'radix-ui';
+import { Popover as ChakraPopover, Portal } from '@chakra-ui/react';
 
-import { cn } from '@/lib/utils';
-
-function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
+function Popover(props: ChakraPopover.RootProps) {
+  return <ChakraPopover.Root {...props} />;
 }
 
-function PopoverTrigger({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+function PopoverTrigger(props: ChakraPopover.TriggerProps) {
+  return <ChakraPopover.Trigger {...props} />;
 }
 
-function PopoverAnchor({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
+function PopoverAnchor(props: ChakraPopover.AnchorProps) {
+  return <ChakraPopover.Anchor {...props} />;
 }
 
-function PopoverContent({
-  className,
-  align = 'center',
-  sideOffset = 4,
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          'z-50 w-auto rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-          className,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Portal>
-  );
-}
+const PopoverContent = React.forwardRef<HTMLDivElement, ChakraPopover.ContentProps>(
+  function PopoverContent(props, ref) {
+    return (
+      <Portal>
+        <ChakraPopover.Positioner>
+          <ChakraPopover.Content
+            ref={ref}
+            bg="paperCard"
+            borderWidth="1px"
+            borderColor="line"
+            borderRadius="md"
+            p="4"
+            boxShadow="md"
+            {...props}
+          />
+        </ChakraPopover.Positioner>
+      </Portal>
+    );
+  },
+);
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor };
