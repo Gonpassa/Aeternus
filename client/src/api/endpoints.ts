@@ -10,5 +10,6 @@ export const endpoints = {
     entries: '/journal/entries',
     entry: (id: number) => `/journal/entries/${id}`,
     entryByDate: (date: string) => `/journal/entries/by-date/${date}`,
+    entriesByRange: '/journal/entries/by-range',
   },
 } as const;

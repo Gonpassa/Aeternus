@@ -14,6 +14,7 @@ export const journalKeys = {
   list: (page: number) => ['journal', 'entries', 'list', page] as const,
   detail: (id: number) => ['journal', 'entries', 'detail', id] as const,
   byDate: (date: string) => ['journal', 'entries', 'by-date', date] as const,
+  byRange: (start: string, end: string) => ['journal', 'entries', 'by-range', start, end] as const,
 };
 
 export const useEntries = (page: number) =>
@@ -52,6 +53,18 @@ export const useEntryByDate = (date: string | null) =>
         }
         throw err;
       }
+    },
+  });
+
+export const useEntriesByRange = ({ start, end }: { start: string; end: string }) =>
+  useQuery<Entry[]>({
+    queryKey: journalKeys.byRange(start, end),
+    enabled: Boolean(start) && Boolean(end),
+    queryFn: async () => {
+      const { data } = await apiClient.get<Entry[]>(endpoints.journal.entriesByRange, {
+        params: { start, end },
+      });
+      return data;
     },
   });
 
