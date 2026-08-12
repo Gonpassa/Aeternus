@@ -33,12 +33,29 @@ const MONTH_LABELS = [
   'December',
 ];
 
+const MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
 const toIsoDate = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+const formatShortDate = (date: Date): string => `${MONTH_ABBR[date.getMonth()]} ${date.getDate()}`;
 
 const startOfMonth = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), 1);
 const addMonths = (date: Date, count: number): Date =>
@@ -49,9 +66,9 @@ export function formatRangeLabel(range: DateRangeValue): string {
   if (!range.from) return '';
   const { from, to } = range;
   if (!to || toIsoDate(from) === toIsoDate(to)) {
-    return `Showing entries ${toIsoDate(from)}`;
+    return `Showing entries ${formatShortDate(from)}, ${from.getFullYear()}`;
   }
-  return `Showing entries ${toIsoDate(from)} – ${toIsoDate(to)}`;
+  return `Showing entries ${formatShortDate(from)} – ${formatShortDate(to)}, ${to.getFullYear()}`;
 }
 
 export function JournalCalendarFilter({
@@ -80,7 +97,7 @@ export function JournalCalendarFilter({
   const hasFilter = Boolean(selectedRange.from);
 
   return (
-    <div className="border border-line bg-paper-card p-4">
+    <div className="rounded border border-line bg-paper-card p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button

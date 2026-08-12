@@ -62,12 +62,12 @@ describe('JournalCalendarFilter', () => {
 describe('formatRangeLabel', () => {
   it('formats a single-day range', () => {
     const day = new Date(2026, 7, 15);
-    expect(formatRangeLabel({ from: day, to: day })).toBe('Showing entries 2026-08-15');
+    expect(formatRangeLabel({ from: day, to: day })).toBe('Showing entries Aug 15, 2026');
   });
 
   it('formats a multi-day range', () => {
     expect(formatRangeLabel({ from: new Date(2026, 7, 1), to: new Date(2026, 7, 5) })).toBe(
-      'Showing entries 2026-08-01 – 2026-08-05',
+      'Showing entries Aug 1 – Aug 5, 2026',
     );
   });
 
