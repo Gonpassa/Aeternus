@@ -63,3 +63,16 @@ export const parsePagination = (query: {
     pageSize: Number.isInteger(pageSize) && pageSize > 0 && pageSize <= 100 ? pageSize : 20,
   };
 };
+
+export const validateRangeQuery = (query: { start?: unknown; end?: unknown }): ValidationResult => {
+  if (!isValidDate(query.start)) {
+    return { valid: false, error: 'A valid start date is required.' };
+  }
+  if (!isValidDate(query.end)) {
+    return { valid: false, error: 'A valid end date is required.' };
+  }
+  if (query.start > query.end) {
+    return { valid: false, error: 'start must not be after end.' };
+  }
+  return { valid: true };
+};

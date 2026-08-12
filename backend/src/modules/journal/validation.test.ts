@@ -1,4 +1,9 @@
-import { validateEntryInput, parsePagination, normalizeSpecificEmotion } from './validation';
+import {
+  validateEntryInput,
+  validateRangeQuery,
+  parsePagination,
+  normalizeSpecificEmotion,
+} from './validation';
 
 const validInput = {
   date: '2026-08-01',
@@ -88,5 +93,40 @@ describe('parsePagination', () => {
 
   it('falls back to defaults for invalid values', () => {
     expect(parsePagination({ page: '-1', pageSize: '9999' })).toEqual({ page: 1, pageSize: 20 });
+  });
+});
+
+describe('validateRangeQuery', () => {
+  it('accepts a valid range', () => {
+    expect(validateRangeQuery({ start: '2026-08-01', end: '2026-08-31' })).toEqual({
+      valid: true,
+    });
+  });
+
+  it('accepts a single-day range', () => {
+    expect(validateRangeQuery({ start: '2026-08-01', end: '2026-08-01' })).toEqual({
+      valid: true,
+    });
+  });
+
+  it('rejects a missing start', () => {
+    expect(validateRangeQuery({ end: '2026-08-31' })).toEqual({
+      valid: false,
+      error: 'A valid start date is required.',
+    });
+  });
+
+  it('rejects a malformed end', () => {
+    expect(validateRangeQuery({ start: '2026-08-01', end: 'not-a-date' })).toEqual({
+      valid: false,
+      error: 'A valid end date is required.',
+    });
+  });
+
+  it('rejects start after end', () => {
+    expect(validateRangeQuery({ start: '2026-08-31', end: '2026-08-01' })).toEqual({
+      valid: false,
+      error: 'start must not be after end.',
+    });
   });
 });
