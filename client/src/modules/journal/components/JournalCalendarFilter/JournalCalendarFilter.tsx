@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button } from '../../../../components/ui/button.tsx';
 import {
   Select,
   SelectContent,
@@ -102,14 +103,15 @@ export function JournalCalendarFilter({
     <div className="rounded border border-line bg-paper-card p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon-sm"
             aria-label="Previous month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}
-            className="border border-ink-blue bg-transparent px-2 py-1 font-mono text-xs text-ink-blue"
           >
             &lsaquo;
-          </button>
+          </Button>
           <Select
             value={String(visibleMonth.getMonth())}
             onValueChange={(value) =>
@@ -152,23 +154,20 @@ export function JournalCalendarFilter({
               ))}
             </SelectContent>
           </Select>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon-sm"
             aria-label="Next month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, 1))}
-            className="border border-ink-blue bg-transparent px-2 py-1 font-mono text-xs text-ink-blue"
           >
             &rsaquo;
-          </button>
+          </Button>
         </div>
         {hasFilter && (
-          <button
-            type="button"
-            onClick={() => onRangeChange({})}
-            className="font-mono text-xs uppercase text-moss underline"
-          >
+          <Button type="button" variant="link" onClick={() => onRangeChange({})}>
             Clear filter
-          </button>
+          </Button>
         )}
       </div>
       <MarkedRangeCalendar
