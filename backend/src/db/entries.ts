@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, lte } from 'drizzle-orm';
 import { db } from './index';
 import { entries, Entry, NewEntry } from './schema';
 
@@ -120,3 +120,16 @@ export const deleteEntry = async ({
     .returning({ id: entries.id });
   return deleted.length > 0;
 };
+
+export type ListEntriesByRangeInput = { userId: number; start: string; end: string };
+
+export const listEntriesByRange = async ({
+  userId,
+  start,
+  end,
+}: ListEntriesByRangeInput): Promise<Entry[]> =>
+  db
+    .select()
+    .from(entries)
+    .where(and(eq(entries.userId, userId), gte(entries.date, start), lte(entries.date, end)))
+    .orderBy(asc(entries.date));
