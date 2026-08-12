@@ -50,16 +50,27 @@ const existingEntry: Entry = {
 // Calendar's own day buttons carry a `data-day` attribute set to
 // `date.toLocaleDateString()` (see ui/calendar.tsx's CalendarDayButton) - the
 // same query shape MarkedRangeCalendar.test.tsx uses via `data-iso`.
+// Chakra's Popover settles its floating-ui placement asynchronously after the
+// controlled `open` transition commits, which briefly re-renders (and
+// re-keys) the portalled Calendar's day cells. Caching the button returned by
+// an earlier, separately-awaited `waitFor` risks holding a reference to that
+// now-detached first-generation node. Querying and clicking inside the same
+// `waitFor` callback keeps the query and the click in the same synchronous
+// pass, so whichever generation is live when the callback runs is the one
+// that gets clicked - `clicked` guards against firing more than once across
+// retries.
 const selectDate = async (iso: string) => {
   fireEvent.click(screen.getByLabelText(/date/i));
   const parts = iso.split('-').map(Number);
   const target = new Date(parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1);
-  const dayButton = await waitFor(() => {
+  let clicked = false;
+  await waitFor(() => {
+    if (clicked) return;
     const el = document.body.querySelector(`[data-day="${target.toLocaleDateString()}"]`);
     if (!el) throw new Error(`No day button for ${iso}`);
-    return el as HTMLElement;
+    clicked = true;
+    fireEvent.click(el);
   });
-  fireEvent.click(dayButton);
 };
 
 describe('EntryForm date-collision', () => {

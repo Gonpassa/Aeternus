@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import { Button } from '../../../../components/ui/button.tsx';
 import {
+  createListCollection,
   Select,
   SelectContent,
   SelectItem,
@@ -97,12 +99,27 @@ export function JournalCalendarFilter({
     return Array.from({ length: 11 }, (_, i) => current - 5 + i);
   }, []);
 
+  const monthCollection = useMemo(
+    () =>
+      createListCollection({
+        items: MONTH_LABELS.map((label, index) => ({ value: String(index), label })),
+      }),
+    [],
+  );
+  const yearCollection = useMemo(
+    () =>
+      createListCollection({
+        items: years.map((year) => ({ value: String(year), label: String(year) })),
+      }),
+    [years],
+  );
+
   const hasFilter = Boolean(selectedRange.from);
 
   return (
-    <div className="rounded border border-line bg-paper-card p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+    <Box borderWidth="1px" borderColor="line" bg="paperCard" p="4">
+      <Flex mb="3" align="center" justify="space-between" gap="2">
+        <Flex align="center" gap="2">
           <Button
             type="button"
             variant="outline"
@@ -113,43 +130,37 @@ export function JournalCalendarFilter({
             &lsaquo;
           </Button>
           <Select
-            value={String(visibleMonth.getMonth())}
-            onValueChange={(value) =>
-              setVisibleMonth(new Date(visibleMonth.getFullYear(), Number(value), 1))
+            collection={monthCollection}
+            value={[String(visibleMonth.getMonth())]}
+            onValueChange={(details) =>
+              setVisibleMonth(new Date(visibleMonth.getFullYear(), Number(details.value[0]), 1))
             }
           >
-            <SelectTrigger className="rounded-none border-line font-mono text-xs uppercase">
+            <SelectTrigger borderRadius="0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="rounded-none border-line bg-paper-card shadow-none">
-              {MONTH_LABELS.map((label, index) => (
-                <SelectItem
-                  key={label}
-                  value={String(index)}
-                  className="text-ink focus:bg-line/60 focus:text-ink"
-                >
-                  {label}
+            <SelectContent borderRadius="0" boxShadow="none">
+              {monthCollection.items.map((item) => (
+                <SelectItem key={item.value} item={item}>
+                  {item.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select
-            value={String(visibleMonth.getFullYear())}
-            onValueChange={(value) =>
-              setVisibleMonth(new Date(Number(value), visibleMonth.getMonth(), 1))
+            collection={yearCollection}
+            value={[String(visibleMonth.getFullYear())]}
+            onValueChange={(details) =>
+              setVisibleMonth(new Date(Number(details.value[0]), visibleMonth.getMonth(), 1))
             }
           >
-            <SelectTrigger className="rounded-none border-line font-mono text-xs uppercase">
+            <SelectTrigger borderRadius="0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="rounded-none border-line bg-paper-card shadow-none">
-              {years.map((year) => (
-                <SelectItem
-                  key={year}
-                  value={String(year)}
-                  className="text-ink focus:bg-line/60 focus:text-ink"
-                >
-                  {year}
+            <SelectContent borderRadius="0" boxShadow="none">
+              {yearCollection.items.map((item) => (
+                <SelectItem key={item.value} item={item}>
+                  {item.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -163,13 +174,13 @@ export function JournalCalendarFilter({
           >
             &rsaquo;
           </Button>
-        </div>
+        </Flex>
         {hasFilter && (
           <Button type="button" variant="link" onClick={() => onRangeChange({})}>
             Clear filter
           </Button>
         )}
-      </div>
+      </Flex>
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -178,11 +189,11 @@ export function JournalCalendarFilter({
         onRangeChange={onRangeChange}
       />
       {hasFilter && (
-        <p className="mt-3 font-mono text-xs uppercase text-ink-soft">
+        <Text mt="3" fontFamily="mono" fontSize="xs" textTransform="uppercase" color="inkSoft">
           {formatRangeLabel(selectedRange)}
           {entryCount !== undefined ? ` · ${entryCount} entries` : ''}
-        </p>
+        </Text>
       )}
-    </div>
+    </Box>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Box } from '@chakra-ui/react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -30,12 +31,13 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [value, editor]);
 
   return (
-    <div className="border border-line bg-paper-card p-3">
+    <Box borderWidth="1px" borderColor="line" bg="paperCard" p="3" fontFamily="body" color="ink">
       <EditorContent
         editor={editor}
-        className="font-body min-h-40 text-ink"
+        className="entry-content"
+        style={{ minHeight: '10rem' }}
         data-placeholder={placeholder}
       />
-    </div>
+    </Box>
   );
 }
