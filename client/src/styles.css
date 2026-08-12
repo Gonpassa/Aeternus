@@ -12,6 +12,17 @@
   --color-mood-anxious: #B98A2E;
   --color-mood-angry: #7A2E1E;
 
+  --color-primary: var(--color-ink-blue);
+  --color-primary-foreground: var(--color-paper);
+  --color-secondary: transparent;
+  --color-secondary-foreground: var(--color-ink-blue);
+  --color-destructive: var(--color-rust);
+  --color-accent: var(--color-moss);
+  --color-accent-foreground: var(--color-paper);
+  --color-ring: var(--color-moss);
+  --color-background: var(--color-paper-card);
+  --color-border: var(--color-line);
+
   --font-display: 'Fraunces', ui-serif, serif;
   --font-body: 'Newsreader', ui-serif, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
