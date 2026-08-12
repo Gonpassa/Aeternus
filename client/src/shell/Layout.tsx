@@ -1,11 +1,14 @@
 import { PropsWithChildren } from 'react';
+import { Box } from '@chakra-ui/react';
 import { Nav } from './Nav.tsx';
 
 export function Layout({ children }: PropsWithChildren) {
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <Box minH="100vh" bg="paper" color="ink">
       <Nav />
-      <main className="p-4">{children}</main>
-    </div>
+      <Box as="main" p="4">
+        {children}
+      </Box>
+    </Box>
   );
 }
