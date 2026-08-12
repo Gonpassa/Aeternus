@@ -15,10 +15,28 @@ vi.mock('../../api/journalHooks.ts', () => ({
 
 const { EntryForm } = await import('./EntryForm.tsx');
 
+const toIso = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// The date-picker Calendar opens on the real current month and doesn't
+// auto-navigate on selection, so test dates must stay within it (mirrors the
+// same constraint/approach as JournalCalendarFilter.test.tsx's `toIso`).
+const today = new Date();
+const dateA = new Date(today.getFullYear(), today.getMonth(), 1);
+const dateB = new Date(today.getFullYear(), today.getMonth(), 5);
+const dateC = new Date(today.getFullYear(), today.getMonth(), 9);
+const isoA = toIso(dateA);
+const isoB = toIso(dateB);
+const isoC = toIso(dateC);
+
 const existingEntry: Entry = {
   id: 42,
   userId: 1,
-  date: '2026-08-01',
+  date: isoA,
   title: 'Existing title',
   primaryMood: 'calm',
   specificEmotion: 'peaceful',
@@ -27,15 +45,32 @@ const existingEntry: Entry = {
   updatedAt: '2026-08-01T00:00:00.000Z',
 };
 
+// Opens the date popover and clicks the day matching the given YYYY-MM-DD string.
+// The popover portals into document.body (outside the render container), and
+// Calendar's own day buttons carry a `data-day` attribute set to
+// `date.toLocaleDateString()` (see ui/calendar.tsx's CalendarDayButton) - the
+// same query shape MarkedRangeCalendar.test.tsx uses via `data-iso`.
+const selectDate = async (iso: string) => {
+  fireEvent.click(screen.getByLabelText(/date/i));
+  const parts = iso.split('-').map(Number);
+  const target = new Date(parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1);
+  const dayButton = await waitFor(() => {
+    const el = document.body.querySelector(`[data-day="${target.toLocaleDateString()}"]`);
+    if (!el) throw new Error(`No day button for ${iso}`);
+    return el as HTMLElement;
+  });
+  fireEvent.click(dayButton);
+};
+
 describe('EntryForm date-collision', () => {
   it('switches into edit mode and pre-fills the form when the chosen date already has an entry', async () => {
     mockUseEntryByDate.mockImplementation((date: string | null) => ({
-      data: date === '2026-08-01' ? existingEntry : null,
+      data: date === isoA ? existingEntry : null,
     }));
     const handleSubmit = vi.fn().mockResolvedValue(undefined);
     render(<EntryForm onSubmit={handleSubmit} />);
 
-    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-08-01' } });
+    await selectDate(isoA);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
@@ -48,7 +83,7 @@ describe('EntryForm date-collision', () => {
 
     await waitFor(() => {
       expect(handleSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ date: '2026-08-01', title: 'Existing title' }),
+        expect.objectContaining({ date: isoA, title: 'Existing title' }),
         42,
       );
     });
@@ -56,19 +91,19 @@ describe('EntryForm date-collision', () => {
 
   it('clears the pre-filled fields when the date changes away from a collision', async () => {
     mockUseEntryByDate.mockImplementation((date: string | null) => ({
-      data: date === '2026-08-01' ? existingEntry : null,
+      data: date === isoA ? existingEntry : null,
     }));
     const handleSubmit = vi.fn().mockResolvedValue(undefined);
     render(<EntryForm onSubmit={handleSubmit} />);
 
-    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-08-01' } });
+    await selectDate(isoA);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
     });
     expect(screen.getByRole('radio', { name: /calm/i })).toHaveAttribute('aria-checked', 'true');
 
-    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-08-05' } });
+    await selectDate(isoB);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/title/i)).toHaveValue('');
@@ -80,8 +115,6 @@ describe('EntryForm date-collision', () => {
   });
 
   it('does not clear a user-typed title while the collision lookup is still loading', async () => {
-    // Start with a resolved "no collision" response for the initial (today) date so the
-    // form isn't loading when the user starts typing.
     mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
     const handleSubmit = vi.fn().mockResolvedValue(undefined);
     const { rerender } = render(<EntryForm onSubmit={handleSubmit} />);
@@ -89,17 +122,12 @@ describe('EntryForm date-collision', () => {
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'My draft title' } });
     expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
 
-    // Now the user changes the date to a never-before-queried date. The query enters its
-    // loading transient: data is undefined, isLoading is true. The form must NOT wipe the
-    // user's typed title during this window.
     mockUseEntryByDate.mockImplementation(() => ({ data: undefined, isLoading: true }));
-    fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2026-09-09' } });
+    await selectDate(isoC);
     rerender(<EntryForm onSubmit={handleSubmit} />);
 
     expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
 
-    // The lookup resolves: no collision for this date either. Since it never collided,
-    // the title must still not be cleared.
     mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
     rerender(<EntryForm onSubmit={handleSubmit} />);
 
@@ -141,5 +169,12 @@ describe('EntryForm date-collision', () => {
         undefined,
       );
     });
+  });
+
+  it('disables the date trigger in edit mode', () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} />);
+
+    expect(screen.getByLabelText(/date/i)).toBeDisabled();
   });
 });

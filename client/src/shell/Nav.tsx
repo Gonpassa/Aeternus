@@ -1,5 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuth } from './AuthProvider.tsx';
+import { Button } from '../components/ui/button.tsx';
 
 export function Nav() {
   const { user, logout } = useAuth();
@@ -25,9 +26,14 @@ export function Nav() {
               Journal
             </Link>
             <span className="text-ink-soft">{user.username}</span>
-            <button type="button" onClick={handleLogout} className="text-ink-blue">
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto p-0 text-ink-blue no-underline hover:underline"
+              onClick={handleLogout}
+            >
               Log out
-            </button>
+            </Button>
           </>
         ) : (
           <>

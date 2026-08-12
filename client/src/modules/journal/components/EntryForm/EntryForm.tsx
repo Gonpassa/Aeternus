@@ -1,10 +1,15 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { format, parse } from 'date-fns';
 import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
+import { Button } from '../../../../components/ui/button.tsx';
+import { Calendar } from '../../../../components/ui/calendar.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover.tsx';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
+const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());
 
 export interface EntryFormProps {
   initialEntry?: Entry;
@@ -13,6 +18,7 @@ export interface EntryFormProps {
 
 export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
   const [date, setDate] = useState(initialEntry?.date ?? todayIsoDate());
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [title, setTitle] = useState(initialEntry?.title ?? '');
   const [primaryMood, setPrimaryMood] = useState<PrimaryMood | null>(
     initialEntry?.primaryMood ?? null,
@@ -79,15 +85,30 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
       )}
       <label className="flex flex-col gap-1 font-mono text-xs uppercase" htmlFor="entry-date">
         Date
-        <input
-          id="entry-date"
-          type="date"
-          className="border border-line bg-paper-card p-2 font-sans normal-case"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          disabled={Boolean(initialEntry)}
-          required
-        />
+        <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              id="entry-date"
+              type="button"
+              variant="outline"
+              className="w-fit justify-start font-sans normal-case"
+              disabled={Boolean(initialEntry)}
+            >
+              {format(parseIsoDate(date), 'MMM d, yyyy')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto border-line bg-paper-card p-2" align="start">
+            <Calendar
+              mode="single"
+              selected={parseIsoDate(date)}
+              onSelect={(selected) => {
+                if (!selected) return;
+                setDate(format(selected, 'yyyy-MM-dd'));
+                setDatePopoverOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
       </label>
       <label className="flex flex-col gap-1 font-mono text-xs uppercase" htmlFor="entry-title">
         Title
@@ -109,9 +130,7 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
       />
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
       {error && <p className="text-rust">{error}</p>}
-      <button type="submit" className="bg-ink-blue p-2 font-mono text-xs uppercase text-paper">
-        Save entry
-      </button>
+      <Button type="submit">Save entry</Button>
     </form>
   );
 }

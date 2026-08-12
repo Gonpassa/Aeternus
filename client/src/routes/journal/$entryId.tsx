@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
+import { Button, buttonVariants } from '../../components/ui/button.tsx';
+import { cn } from '../../lib/utils.ts';
 
 const routeApi = getRouteApi('/journal/$entryId');
 
@@ -28,26 +30,23 @@ function EntryDetailPage() {
         <Link
           to="/journal/$entryId/edit"
           params={{ entryId }}
-          className="border border-ink-blue px-3 py-2 font-mono text-xs uppercase text-ink-blue"
+          className={cn(buttonVariants({ variant: 'outline' }))}
         >
           Edit
         </Link>
         {confirmingDelete ? (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="bg-rust px-3 py-2 font-mono text-xs uppercase text-paper"
-          >
+          <Button type="button" variant="destructive" onClick={handleDelete}>
             Confirm delete
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            className="border-rust text-rust hover:bg-rust/5"
             onClick={() => setConfirmingDelete(true)}
-            className="border border-rust px-3 py-2 font-mono text-xs uppercase text-rust"
           >
             Delete
-          </button>
+          </Button>
         )}
       </div>
       <EntryView entry={entry} />
