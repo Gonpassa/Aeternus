@@ -1715,7 +1715,7 @@ git commit -m "feat(client): migrate journal module components to Chakra"
 - Consumes: `Button` (Task 2, now supports `asChild`), `EntryForm`/`EntryView`/`JournalCalendarFilter` (Task 5), `MOOD_DOT_COLOR`/`MOOD_LABEL` (Task 5), `MarkedRangeCalendar`'s `DateRangeValue` (Task 4). `buttonVariants` and `cn` are **no longer imported** anywhere in this task — `$entryId.tsx`'s "Edit" link switches from `cn(buttonVariants({variant:'outline'}))` on a bare `Link` to `<Button asChild variant="outline"><Link .../></Button>`.
 - `login.tsx`/`register.tsx` keep their pre-existing Tailwind-default palette (`gray-300`/`black`/`red-600`, not the app's `ink`/`moss`/`rust` design tokens) — this is intentional: the spec is a like-for-like styling swap, not a redesign, and those two routes were never styled to `design-system.md` in the first place. Map them to Chakra's built-in `gray`/`red`/`black` tokens (shipped by `defaultConfig`), not to custom design tokens.
 
-- [ ] **Step 1: Rewrite `routes/index.tsx`**
+- [x] **Step 1: Rewrite `routes/index.tsx`**
 
 ```typescript
 import { createFileRoute } from '@tanstack/react-router';
@@ -1726,7 +1726,7 @@ export const Route = createFileRoute('/')({
 });
 ```
 
-- [ ] **Step 2: Rewrite `routes/login.tsx`**
+- [x] **Step 2: Rewrite `routes/login.tsx`**
 
 ```typescript
 import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react-router';
@@ -1808,7 +1808,7 @@ export const Route = createFileRoute('/login')({
 });
 ```
 
-- [ ] **Step 3: Rewrite `routes/register.tsx`**
+- [x] **Step 3: Rewrite `routes/register.tsx`**
 
 ```typescript
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -1907,7 +1907,7 @@ export const Route = createFileRoute('/register')({
 });
 ```
 
-- [ ] **Step 4: Rewrite `routes/journal/new.tsx`**
+- [x] **Step 4: Rewrite `routes/journal/new.tsx`**
 
 ```typescript
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -1945,7 +1945,7 @@ export const Route = createFileRoute('/journal/new')({
 });
 ```
 
-- [ ] **Step 5: Rewrite `routes/journal/$entryId.edit.tsx`**
+- [x] **Step 5: Rewrite `routes/journal/$entryId.edit.tsx`**
 
 ```typescript
 import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
@@ -1992,7 +1992,7 @@ export const Route = createFileRoute('/journal/$entryId/edit')({
 });
 ```
 
-- [ ] **Step 6: Rewrite `routes/journal/$entryId.tsx`**
+- [x] **Step 6: Rewrite `routes/journal/$entryId.tsx`**
 
 ```typescript
 import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react-router';
@@ -2061,7 +2061,7 @@ export const Route = createFileRoute('/journal/$entryId')({
 });
 ```
 
-- [ ] **Step 7: Rewrite `routes/journal/index.tsx`**
+- [x] **Step 7: Rewrite `routes/journal/index.tsx`**
 
 ```typescript
 import { createFileRoute, getRouteApi, Link } from '@tanstack/react-router';
@@ -2152,7 +2152,7 @@ export const Route = createFileRoute('/journal/')({
 });
 ```
 
-- [ ] **Step 8: Run lint, typecheck, and the full test suite**
+- [x] **Step 8: Run lint, typecheck, and the full test suite**
 
 ```bash
 cd client
@@ -2163,7 +2163,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add client/src/routes
@@ -2181,7 +2181,7 @@ git commit -m "feat(client): migrate route components to Chakra"
 **Interfaces:**
 - Consumes: `Button` (Task 2, `variant="link"` + style-prop overrides in place of the old `className="h-auto p-0 text-ink-blue no-underline hover:underline"` string).
 
-- [ ] **Step 1: Rewrite `Nav.tsx`**
+- [x] **Step 1: Rewrite `Nav.tsx`**
 
 ```typescript
 import { Link, useNavigate } from '@tanstack/react-router';
@@ -2244,7 +2244,7 @@ export function Nav() {
 }
 ```
 
-- [ ] **Step 2: Rewrite `Layout.tsx`**
+- [x] **Step 2: Rewrite `Layout.tsx`**
 
 ```typescript
 import { PropsWithChildren } from 'react';
@@ -2263,7 +2263,7 @@ export function Layout({ children }: PropsWithChildren) {
 }
 ```
 
-- [ ] **Step 3: Verify build**
+- [x] **Step 3: Verify build**
 
 ```bash
 cd client
@@ -2274,7 +2274,7 @@ npm test
 
 Expected: PASS. After this task, `grep -rl "className=" client/src` should return empty except for the `className="entry-content"` interop hooks in `EntryView.tsx`/`RichTextEditor.tsx` (Task 5) — those are intentional (global CSS class for injected/editor HTML, not a Tailwind utility) and are not part of the cutover gate.
 
-- [ ] **Step 4: Confirm the cutover gate**
+- [x] **Step 4: Confirm the cutover gate**
 
 ```bash
 grep -rn "className=" client/src | grep -v 'className="entry-content"'
@@ -2282,7 +2282,7 @@ grep -rn "className=" client/src | grep -v 'className="entry-content"'
 
 Expected: empty output. If anything remains, it was missed in an earlier task — go back and convert it before starting Task 8.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add client/src/shell/Nav.tsx client/src/shell/Layout.tsx
@@ -2303,7 +2303,7 @@ git commit -m "feat(client): migrate shell Nav and Layout to Chakra"
 **Interfaces:**
 - Consumes: nothing new. This task only removes now-dead code/dependencies once the Task 7 cutover-gate grep confirmed no file still needs them.
 
-- [ ] **Step 1: Confirm nothing still imports `cn` or `lib/utils`**
+- [x] **Step 1: Confirm nothing still imports `cn` or `lib/utils`**
 
 ```bash
 cd client
@@ -2312,7 +2312,7 @@ grep -rn "lib/utils\|from '@/lib/utils'\|cva\|clsx\|tailwind-merge" src
 
 Expected: empty output (the last two `cn`/`cva` consumers, `components/ui/select.tsx` and `components/ui/popover.tsx`, were removed in Task 3; `button.tsx`/`calendar.tsx` in Task 2).
 
-- [ ] **Step 2: Remove the Tailwind Vite plugin**
+- [x] **Step 2: Remove the Tailwind Vite plugin**
 
 Edit `client/vite.config.ts`:
 
@@ -2354,7 +2354,7 @@ export default defineConfig(({ command }) => ({
 }));
 ```
 
-- [ ] **Step 3: Delete `styles.css` and `lib/utils.ts`, drop the import**
+- [x] **Step 3: Delete `styles.css` and `lib/utils.ts`, drop the import**
 
 ```bash
 cd client
@@ -2363,14 +2363,14 @@ rm src/styles.css src/lib/utils.ts
 
 Edit `client/src/main.tsx` — remove the `import './styles.css';` line (everything it provided now lives in `theme.ts`'s `globalCss`).
 
-- [ ] **Step 4: Remove the Tailwind/cva/clsx/tailwind-merge dependencies**
+- [x] **Step 4: Remove the Tailwind/cva/clsx/tailwind-merge dependencies**
 
 ```bash
 cd client
 npm uninstall tailwindcss @tailwindcss/vite class-variance-authority clsx tailwind-merge
 ```
 
-- [ ] **Step 5: Full verification suite**
+- [x] **Step 5: Full verification suite**
 
 ```bash
 cd client
@@ -2382,7 +2382,7 @@ npm run build
 
 Expected: all PASS.
 
-- [ ] **Step 6: Manual click-through**
+- [x] **Step 6: Manual click-through**
 
 Run `npm run dev` and visually check every route (`/`, `/login`, `/register`, `/journal`, `/journal/new`, `/journal/$entryId`, `/journal/$entryId/edit`) against `docs/design/demo.html`/`docs/design/design-system.md`. Check specifically:
 - Button variants (default/destructive/outline/ghost/link) render with the mono-uppercase label, 4px radius, no shadow.
@@ -2392,7 +2392,7 @@ Run `npm run dev` and visually check every route (`/`, `/login`, `/register`, `/
 
 Fix any visual regression found before proceeding — this is the last checkpoint the spec allows for cosmetic drift (Testing strategy: "Phase 3 ends with... a manual click-through of every route... fixing any visual regression before considering the migration complete").
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add client/vite.config.ts client/package.json client/package-lock.json client/src/main.tsx
