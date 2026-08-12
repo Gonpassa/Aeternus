@@ -65,3 +65,8 @@ export interface EntryListResponse {
   pageSize: number;
   total: number;
 }
+
+export interface EntryRangeQuery {
+  start: string;
+  end: string;
+}
