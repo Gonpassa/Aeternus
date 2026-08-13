@@ -92,27 +92,40 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
       >
         Mood
       </Text>
-      <Flex wrap="wrap" gap="2" role="radiogroup" aria-label="Primary mood">
+      <Flex wrap="wrap" gap="3" role="radiogroup" aria-label="Primary mood">
         {PRIMARY_MOODS.map((mood) => (
           <chakra.button
             key={mood}
             type="button"
             role="radio"
             aria-checked={primaryMood === mood}
+            title={MOOD_LABEL[mood]}
             onClick={() => handlePrimaryMoodClick(mood)}
-            display="flex"
-            alignItems="center"
-            gap="1.5"
-            borderWidth="1px"
-            borderColor={primaryMood === mood ? 'inkBlue' : 'line'}
-            px="2"
-            py="1"
-            fontFamily="mono"
-            fontSize="xs"
-            textTransform="uppercase"
+            position="relative"
+            boxSize="7"
+            p="0"
+            borderRadius="full"
+            borderWidth="1.5px"
+            borderColor={primaryMood === mood ? MOOD_DOT_COLOR[mood] : 'line'}
+            bg="paperCard"
           >
-            <Box boxSize="2.5" borderRadius="full" bg={MOOD_DOT_COLOR[mood]} aria-hidden="true" />
-            {MOOD_LABEL[mood]}
+            <Box
+              position="absolute"
+              inset="4px"
+              borderRadius="full"
+              bg={MOOD_DOT_COLOR[mood]}
+              opacity={primaryMood === mood ? 1 : 0.25}
+              aria-hidden="true"
+            />
+            <chakra.span
+              position="absolute"
+              w="1px"
+              h="1px"
+              overflow="hidden"
+              clipPath="inset(50%)"
+            >
+              {MOOD_LABEL[mood]}
+            </chakra.span>
           </chakra.button>
         ))}
       </Flex>

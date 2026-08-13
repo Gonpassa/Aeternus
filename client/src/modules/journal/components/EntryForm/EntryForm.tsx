@@ -15,9 +15,10 @@ const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date())
 export interface EntryFormProps {
   initialEntry?: Entry;
   onSubmit: (input: CreateEntryRequest, existingEntryId?: number) => Promise<void>;
+  onDiscard?: () => void;
 }
 
-export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
+export function EntryForm({ initialEntry, onSubmit, onDiscard }: EntryFormProps) {
   const [date, setDate] = useState(initialEntry?.date ?? todayIsoDate());
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [title, setTitle] = useState(initialEntry?.title ?? '');
@@ -63,6 +64,12 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
 
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 
+  const isDirty =
+    title !== (initialEntry?.title ?? '') ||
+    primaryMood !== (initialEntry?.primaryMood ?? null) ||
+    specificEmotion !== (initialEntry?.specificEmotion ?? null) ||
+    content !== (initialEntry?.content ?? '');
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -77,12 +84,49 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
     }
   };
 
+  const handleDiscard = () => {
+    // A blocking native confirm is the deliberate choice here: discarding is destructive and
+    // rare enough that a custom dialog component isn't warranted just for this one call site.
+    // eslint-disable-next-line no-alert
+    if (isDirty && !window.confirm('Discard this entry? Unsaved changes will be lost.')) {
+      return;
+    }
+    onDiscard?.();
+  };
+
   return (
-    <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="4" maxW="2xl">
+    <chakra.form
+      onSubmit={handleSubmit}
+      display="flex"
+      flexDirection="column"
+      gap="4"
+      maxW="2xl"
+      borderLeftWidth="2px"
+      borderLeftStyle="dashed"
+      borderColor="line"
+      pl="10"
+    >
       {existingEntryId && !initialEntry && (
-        <Text fontFamily="mono" fontSize="xs" textTransform="uppercase" color="rust">
-          An entry already exists for this date &mdash; editing it instead.
-        </Text>
+        <chakra.div position="relative" borderWidth="1px" borderColor="line" bg="paperCard">
+          <chakra.div
+            position="absolute"
+            insetY="0"
+            left="0"
+            w="2px"
+            bg="rust"
+            aria-hidden="true"
+          />
+          <Text
+            px="3"
+            py="2"
+            fontFamily="mono"
+            fontSize="xs"
+            textTransform="uppercase"
+            color="rust"
+          >
+            An entry already exists for this date &mdash; editing it instead.
+          </Text>
+        </chakra.div>
       )}
       <chakra.label
         display="flex"
@@ -125,24 +169,25 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
           </PopoverContent>
         </Popover>
       </chakra.label>
-      <chakra.label
-        display="flex"
-        flexDirection="column"
-        gap="1"
-        fontFamily="mono"
-        fontSize="xs"
-        textTransform="uppercase"
-        htmlFor="entry-title"
-      >
-        Title
+      <chakra.label position="relative" htmlFor="entry-title">
+        <chakra.span position="absolute" w="1px" h="1px" overflow="hidden" clipPath="inset(50%)">
+          Title
+        </chakra.span>
         <Input
           id="entry-title"
-          borderWidth="1px"
+          border="none"
+          borderBottomWidth="1px"
           borderColor="line"
-          bg="paperCard"
-          p="2"
-          fontFamily="body"
-          textTransform="none"
+          borderRadius="0"
+          bg="transparent"
+          px="0"
+          pb="2"
+          fontFamily="heading"
+          fontWeight="medium"
+          fontSize="2xl"
+          color="ink"
+          placeholder="Give the page a title"
+          _focusVisible={{ borderColor: 'moss', boxShadow: 'none' }}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
@@ -158,7 +203,12 @@ export function EntryForm({ initialEntry, onSubmit }: EntryFormProps) {
       />
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
       {error && <Text color="rust">{error}</Text>}
-      <Button type="submit">Save entry</Button>
+      <chakra.div display="flex" justifyContent="flex-end" gap="3" mt="2">
+        <Button type="button" variant="ghost" onClick={handleDiscard}>
+          Discard
+        </Button>
+        <Button type="submit">Save entry</Button>
+      </chakra.div>
     </chakra.form>
   );
 }

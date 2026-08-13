@@ -31,7 +31,11 @@ function EditEntryPage() {
       <Heading as="h1" mb="4" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
         Edit entry
       </Heading>
-      <EntryForm initialEntry={entry} onSubmit={handleSubmit} />
+      <EntryForm
+        initialEntry={entry}
+        onSubmit={handleSubmit}
+        onDiscard={() => navigate({ to: '/journal/$entryId', params: { entryId } })}
+      />
     </Box>
   );
 }

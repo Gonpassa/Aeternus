@@ -15,7 +15,7 @@ export function EntryView({ entry }: EntryViewProps) {
       borderLeftWidth="2px"
       borderLeftStyle="dashed"
       borderColor="line"
-      pl="6"
+      pl="10"
     >
       <Text
         fontFamily="mono"

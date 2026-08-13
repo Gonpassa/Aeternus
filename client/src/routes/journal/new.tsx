@@ -22,7 +22,10 @@ function NewEntryPage() {
       <Heading as="h1" mb="4" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
         New entry
       </Heading>
-      <EntryForm onSubmit={handleSubmit} />
+      <EntryForm
+        onSubmit={handleSubmit}
+        onDiscard={() => navigate({ to: '/journal', search: { page: 1 } })}
+      />
     </Box>
   );
 }
