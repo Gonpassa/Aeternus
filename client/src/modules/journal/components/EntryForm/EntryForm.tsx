@@ -8,6 +8,7 @@ import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../components/ui/button.tsx';
 import { Calendar } from '../../../../components/ui/calendar.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover.tsx';
+import { VisuallyHidden } from '../../../../components/ui/visually-hidden.tsx';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
 const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());
@@ -65,6 +66,7 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard }: EntryFormProps)
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 
   const isDirty =
+    date !== (initialEntry?.date ?? todayIsoDate()) ||
     title !== (initialEntry?.title ?? '') ||
     primaryMood !== (initialEntry?.primaryMood ?? null) ||
     specificEmotion !== (initialEntry?.specificEmotion ?? null) ||
@@ -170,9 +172,7 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard }: EntryFormProps)
         </Popover>
       </chakra.label>
       <chakra.label position="relative" htmlFor="entry-title">
-        <chakra.span position="absolute" w="1px" h="1px" overflow="hidden" clipPath="inset(50%)">
-          Title
-        </chakra.span>
+        <VisuallyHidden>Title</VisuallyHidden>
         <Input
           id="entry-title"
           border="none"

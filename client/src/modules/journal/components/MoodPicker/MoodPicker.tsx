@@ -3,6 +3,7 @@ import { Box, chakra, Flex, Input, Text } from '@chakra-ui/react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
+import { VisuallyHidden } from '../../../../components/ui/visually-hidden.tsx';
 
 export interface MoodPickerProps {
   primaryMood: PrimaryMood | null;
@@ -117,15 +118,7 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
               opacity={primaryMood === mood ? 1 : 0.25}
               aria-hidden="true"
             />
-            <chakra.span
-              position="absolute"
-              w="1px"
-              h="1px"
-              overflow="hidden"
-              clipPath="inset(50%)"
-            >
-              {MOOD_LABEL[mood]}
-            </chakra.span>
+            <VisuallyHidden>{MOOD_LABEL[mood]}</VisuallyHidden>
           </chakra.button>
         ))}
       </Flex>

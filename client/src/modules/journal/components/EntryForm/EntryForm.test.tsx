@@ -188,4 +188,31 @@ describe('EntryForm date-collision', () => {
 
     expect(screen.getByLabelText(/date/i)).toBeDisabled();
   });
+
+  it('discards without confirming when nothing changed', () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const onDiscard = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} onDiscard={onDiscard} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(onDiscard).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('confirms before discarding when only the date changed', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const onDiscard = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(<EntryForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
+
+    await selectDate(isoB);
+    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(onDiscard).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
 });
