@@ -1,4 +1,4 @@
-# Nee.3 Phase 2 — Account/Session Layer Design
+# Aeternus.3 Phase 2 — Account/Session Layer Design
 
 ## Context
 

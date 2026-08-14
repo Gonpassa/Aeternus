@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormEvent, useState } from 'react';
 import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
 import { useAuth } from '../shell/AuthProvider.tsx';
-import { Button } from '../components/ui/button.tsx';
+import { Button } from '../components/ui/Button/Button.tsx';
 
 function RegisterPage() {
   const { register } = useAuth();

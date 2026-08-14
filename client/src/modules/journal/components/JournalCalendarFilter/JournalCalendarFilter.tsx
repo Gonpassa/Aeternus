@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { Button } from '../../../../components/ui/button.tsx';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { Button } from '../../../../components/ui/Button/Button.tsx';
 import {
   createListCollection,
   Select,
@@ -8,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../components/ui/select.tsx';
+} from '../../../../components/ui/Select/Select.tsx';
 import {
   MarkedRangeCalendar,
   type DateRangeValue,
@@ -122,12 +123,14 @@ export function JournalCalendarFilter({
         <Flex align="center" gap="2">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="Previous month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}
+            borderRadius="full"
+            _hover={{ bg: 'moss/14', textDecoration: 'none' }}
           >
-            &lsaquo;
+            <ChevronLeftIcon size={16} />
           </Button>
           <Select
             collection={monthCollection}
@@ -167,12 +170,14 @@ export function JournalCalendarFilter({
           </Select>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="Next month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, 1))}
+            borderRadius="full"
+            _hover={{ bg: 'moss/14', textDecoration: 'none' }}
           >
-            &rsaquo;
+            <ChevronRightIcon size={16} />
           </Button>
         </Flex>
         {hasFilter && (

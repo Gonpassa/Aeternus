@@ -1,9 +1,9 @@
-# Nee.3 Phase 1 — Architecture Scaffold Design
+# Aeternus.3 Phase 1 — Architecture Scaffold Design
 
 ## Context
 
-Nee.3 is the planned rewrite of Harmonee as a modular personal hub (journal, structured writing, calendar, AI-assisted learning), documented in `README.md`.
-As of this design, Nee.3 contains only that README — no code, no repo.
+Aeternus.3 is the planned rewrite of Harmonee as a modular personal hub (journal, structured writing, calendar, AI-assisted learning), documented in `README.md`.
+As of this design, Aeternus.3 contains only that README — no code, no repo.
 This spec covers **Phase 1 only**: the project setup and shared architectural shell that every module (starting with the journal in Phase 4) will sit on top of.
 It does not design any module's internals — those get their own brainstorm/spec when their phase starts, per the README's "no premature abstraction" principle.
 
@@ -15,7 +15,7 @@ It does not design any module's internals — those get their own brainstorm/spe
 
 ## Repo & tooling
 
-- Nee.3 becomes its own git repository (`git init`, branch `main`, matching `harmonee/` and `Nee.2/`'s convention). No remote is configured yet.
+- Aeternus.3 becomes its own git repository (`git init`, branch `main`, matching `harmonee/` and `Nee.2/`'s convention). No remote is configured yet.
 - **npm workspaces** monorepo: a root `package.json` with `"workspaces": ["client", "backend", "packages/*"]`. One `npm install` at the root installs all three packages' dependencies.
 - Root-level shared config: `tsconfig.base.json` (shared strict compiler options), a shared ESLint/Prettier base, root `.gitignore`.
 - This is a deliberate departure from Nee.2, which kept `client/` and `backend/` as fully independent packages with no root tooling. The workspaces model removes config duplication (one root TS/lint base instead of two copies to keep in sync) without violating "no shared runtime code" — workspaces link dev tooling and installs, not application logic.
@@ -64,7 +64,7 @@ It does not design any module's internals — those get their own brainstorm/spe
 ## Folder structure (target end state of Phase 1)
 
 ```
-Nee.3/
+Aeternus.3/
 ├── package.json                    # root, workspaces: client, backend, packages/*
 ├── tsconfig.base.json
 ├── .eslintrc / .prettierrc

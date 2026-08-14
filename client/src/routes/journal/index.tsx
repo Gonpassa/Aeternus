@@ -7,7 +7,7 @@ import { stripHtml } from '../../modules/journal/textUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
 import type { DateRangeValue } from '../../components/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
-import { Button } from '../../components/ui/button.tsx';
+import { Button } from '../../components/ui/Button/Button.tsx';
 
 export interface JournalIndexSearch {
   page: number;

@@ -9,13 +9,13 @@ import { Select as ChakraSelect, Portal, createListCollection } from '@chakra-ui
 export { createListCollection };
 
 function Select(props: ChakraSelect.RootProps) {
-  return <ChakraSelect.Root {...props} />;
+  return <ChakraSelect.Root positioning={{ sameWidth: false }} {...props} />;
 }
 
 const SelectTrigger = React.forwardRef<HTMLDivElement, ChakraSelect.ControlProps>(
   function SelectTrigger({ children, ...props }, ref) {
     return (
-      <ChakraSelect.Control ref={ref} {...props}>
+      <ChakraSelect.Control ref={ref} minW="fit-content" {...props}>
         <ChakraSelect.Trigger
           borderWidth="1px"
           borderColor="line"
@@ -25,6 +25,7 @@ const SelectTrigger = React.forwardRef<HTMLDivElement, ChakraSelect.ControlProps
           fontFamily="mono"
           fontSize="xs"
           textTransform="uppercase"
+          whiteSpace="nowrap"
         >
           {children}
         </ChakraSelect.Trigger>
@@ -34,7 +35,7 @@ const SelectTrigger = React.forwardRef<HTMLDivElement, ChakraSelect.ControlProps
 );
 
 function SelectValue(props: ChakraSelect.ValueTextProps) {
-  return <ChakraSelect.ValueText {...props} />;
+  return <ChakraSelect.ValueText whiteSpace="nowrap" overflow="visible" {...props} />;
 }
 
 const SelectContent = React.forwardRef<HTMLDivElement, ChakraSelect.ContentProps>(
@@ -50,6 +51,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, ChakraSelect.ContentProps
             borderRadius="md"
             boxShadow="md"
             p="1"
+            css={{ scrollbarGutter: 'stable' }}
             {...props}
           />
         </ChakraSelect.Positioner>

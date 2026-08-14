@@ -48,7 +48,7 @@ const existingEntry: Entry = {
 // Opens the date popover and clicks the day matching the given YYYY-MM-DD string.
 // The popover portals into document.body (outside the render container), and
 // Calendar's own day buttons carry a `data-day` attribute set to
-// `date.toLocaleDateString()` (see ui/calendar.tsx's CalendarDayButton) - the
+// `date.toLocaleDateString()` (see ui/Calendar/Calendar.tsx's CalendarDayButton) - the
 // same query shape MarkedRangeCalendar.test.tsx uses via `data-iso`.
 // Chakra's Popover settles its floating-ui placement asynchronously after the
 // controlled `open` transition commits, which briefly re-renders (and

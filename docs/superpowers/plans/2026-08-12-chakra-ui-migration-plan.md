@@ -1722,7 +1722,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Box } from '@chakra-ui/react';
 
 export const Route = createFileRoute('/')({
-  component: () => <Box p="4">Nee.3</Box>,
+  component: () => <Box p="4">Aeternus.3</Box>,
 });
 ```
 
@@ -2204,7 +2204,7 @@ export function Nav() {
   return (
     <Flex as="nav" align="center" gap="4" borderBottomWidth="1px" borderColor="line" p="4">
       <Box asChild fontFamily="heading" fontWeight="medium" color="ink">
-        <Link to="/">Nee.3</Link>
+        <Link to="/">Aeternus.3</Link>
       </Box>
       <Flex ml="auto" align="center" gap="4" fontFamily="mono" fontSize="xs" textTransform="uppercase">
         {user ? (

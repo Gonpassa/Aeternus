@@ -4,7 +4,7 @@ import { Box, Flex, Text } from '@chakra-ui/react';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
-import { Button } from '../../components/ui/button.tsx';
+import { Button } from '../../components/ui/Button/Button.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId');
 

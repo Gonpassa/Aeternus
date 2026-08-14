@@ -1,8 +1,8 @@
-# Nee.3 Design System
+# Aeternus.3 Design System
 
 ## Concept
 
-Nee.3 is two things worn as one: a private journal and a research commonplace book.
+Aeternus.3 is two things worn as one: a private journal and a research commonplace book.
 The visual language treats both as the same physical object — a bound notebook whose pages are either written by hand (journal entries) or filed as index cards (research notes, cataloged by book/chapter).
 Nothing here should feel like generic "journaling app" cream-paper-and-terracotta.
 The paper tone is real (it's genuinely the right material for this subject), but the accent hierarchy leans ink-blue and moss, with rust held back for small, deliberate marks — mood, tags, active catalog tabs.

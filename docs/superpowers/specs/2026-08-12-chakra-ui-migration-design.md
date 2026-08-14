@@ -2,7 +2,7 @@
 
 ## Context
 
-Nee.3's client began a shadcn/ui migration (see `docs/superpowers/specs/2026-08-12-shadcn-ui-migration-plan.md` and its 8 completed commits: theme tokens, `Button` restyle, `Popover` scaffold, `EntryForm`/`JournalCalendarFilter`/`$entryId`/`Nav` call-site migrations).
+Aeternus.3's client began a shadcn/ui migration (see `docs/superpowers/specs/2026-08-12-shadcn-ui-migration-plan.md` and its 8 completed commits: theme tokens, `Button` restyle, `Popover` scaffold, `EntryForm`/`JournalCalendarFilter`/`$entryId`/`Nav` call-site migrations).
 That work produced four Radix-backed primitives under `client/src/components/ui/` (`button.tsx`, `calendar.tsx`, `popover.tsx`, `select.tsx`), each hand-styled against `docs/design/design-system.md` via Tailwind utility classes and `cva` variant strings.
 
 The user found this too unopinionated: every component's visual spec (radius, transitions, uppercase mono labels, variant colors) has to be manually re-derived and re-encoded per component in Tailwind/`cva`, rather than set once and inherited.

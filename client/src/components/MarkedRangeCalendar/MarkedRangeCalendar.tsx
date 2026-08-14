@@ -2,12 +2,12 @@
    MarkedRangeCalendar's DayButton override forwards react-day-picker's
    remaining day-button props (onBlur/onFocus/onKeyDown/onMouseEnter/
    onMouseLeave/tabIndex) via {...props}, mirroring the pattern used by
-   shadcn/ui's own Calendar primitive (see ui/calendar.tsx). */
+   shadcn/ui's own Calendar primitive (see ui/Calendar/Calendar.tsx). */
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import type { ComponentProps } from 'react';
 import type { DayButton } from 'react-day-picker';
-import { chakra } from '@chakra-ui/react';
-import { Calendar } from '../ui/calendar.tsx';
+import { Box, chakra } from '@chakra-ui/react';
+import { Calendar } from '../ui/Calendar/Calendar.tsx';
 import styles from './MarkedRangeCalendar.module.css';
 
 export interface DateRangeValue {
@@ -85,17 +85,16 @@ function MarkedDayButton({
   }, [modifiers.focused]);
 
   const iso = toIsoDate(day.date);
-  const ringColor = markedDates.get(iso);
-  const { disabled } = modifiers;
-  const inRange = !disabled && isInRange(day.date, selectedRange);
-  const endpoint = !disabled && isEndpoint(day.date, selectedRange);
-  let textColor = 'ink';
-  if (endpoint) textColor = 'paper';
-  else if (disabled) textColor = 'inkSoft';
+  const moodColor = markedDates.get(iso);
+  const inRange = isInRange(day.date, selectedRange);
+  const endpoint = isEndpoint(day.date, selectedRange);
+  const textColor = endpoint ? 'paper' : 'ink';
 
   let bgColor: string | undefined;
   if (endpoint) bgColor = 'moss';
   else if (inRange) bgColor = 'moss/14';
+
+  const marked = Boolean(moodColor) && !endpoint;
 
   return (
     <DayCellButton
@@ -103,25 +102,41 @@ function MarkedDayButton({
       ref={ref}
       type="button"
       data-iso={iso}
-      disabled={disabled}
-      onClick={() => {
-        if (disabled) return;
-        onRangeChange(computeNextRange(selectedRange, day.date));
-      }}
+      onClick={() => onRangeChange(computeNextRange(selectedRange, day.date))}
       display="flex"
+      position="relative"
       aspectRatio="1"
       boxSize="full"
       alignItems="center"
       justifyContent="center"
+      borderRadius="md"
       fontFamily="mono"
       fontSize="xs"
-      cursor={disabled ? 'default' : 'pointer'}
+      fontWeight={marked ? 'semibold' : 'normal'}
+      cursor="pointer"
       color={textColor}
-      opacity={disabled ? 0.3 : 1}
       bg={bgColor}
-      style={ringColor && !endpoint ? { boxShadow: `inset 0 0 0 1.3px ${ringColor}` } : undefined}
+      style={
+        marked
+          ? {
+              backgroundColor: `${moodColor}29`,
+            }
+          : undefined
+      }
     >
       {children ?? day.date.getDate()}
+      {marked && (
+        <Box
+          position="absolute"
+          left="50%"
+          bottom="3px"
+          transform="translateX(-50%)"
+          boxSize="4px"
+          borderRadius="full"
+          bg={moodColor}
+          aria-hidden="true"
+        />
+      )}
     </DayCellButton>
   );
 }
@@ -133,8 +148,6 @@ export function MarkedRangeCalendar({
   selectedRange,
   onRangeChange,
 }: MarkedRangeCalendarProps) {
-  const isDisabled = (date: Date): boolean => !markedDates.has(toIsoDate(date));
-
   const contextValue = useMemo<MarkedRangeContextValue>(
     () => ({ markedDates, selectedRange, onRangeChange }),
     [markedDates, selectedRange, onRangeChange],
@@ -146,7 +159,6 @@ export function MarkedRangeCalendar({
         numberOfMonths={2}
         month={visibleMonth}
         onMonthChange={onVisibleMonthChange}
-        disabled={isDisabled}
         showOutsideDays={false}
         onDayClick={() => {}}
         formatters={{
@@ -157,7 +169,7 @@ export function MarkedRangeCalendar({
           root: styles.root,
           months: styles.months,
           month: styles.month,
-          nav: 'hidden',
+          nav: styles.navHidden,
           month_caption: styles.monthCaption,
           month_grid: styles.monthGrid,
           weekdays: styles.weekdays,

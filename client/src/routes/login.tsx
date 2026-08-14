@@ -2,7 +2,7 @@ import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react
 import { FormEvent, useState } from 'react';
 import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
 import { useAuth } from '../shell/AuthProvider.tsx';
-import { Button } from '../components/ui/button.tsx';
+import { Button } from '../components/ui/Button/Button.tsx';
 
 export interface LoginSearch {
   redirect?: string;

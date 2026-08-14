@@ -134,7 +134,7 @@ Edit `backend/.env`'s `SESSION_SECRET` to an actual random value (e.g. `openssl 
 
 - [ ] **Step 5: Document local Postgres setup in the README**
 
-Add a new subsection under Nee.3's `## Commands` section in `README.md` (repo root), after the existing command blocks:
+Add a new subsection under Aeternus.3's `## Commands` section in `README.md` (repo root), after the existing command blocks:
 
 ```markdown
 ### Local Postgres setup

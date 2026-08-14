@@ -1228,7 +1228,7 @@ export function Nav() {
   return (
     <nav className="flex items-center gap-4 border-b border-gray-200 p-4">
       <Link to="/" className="font-medium">
-        Nee.3
+        Aeternus.3
       </Link>
       <div className="ml-auto flex items-center gap-4">
         {user ? (

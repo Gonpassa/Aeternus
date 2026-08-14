@@ -5,10 +5,14 @@ import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@n
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
-import { Button } from '../../../../components/ui/button.tsx';
-import { Calendar } from '../../../../components/ui/calendar.tsx';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover.tsx';
-import { VisuallyHidden } from '../../../../components/ui/visually-hidden.tsx';
+import { Button } from '../../../../components/ui/Button/Button.tsx';
+import { Calendar } from '../../../../components/ui/Calendar/Calendar.tsx';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../../../components/ui/Popover/Popover.tsx';
+import { VisuallyHidden } from '../../../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
 const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());

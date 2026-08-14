@@ -43,7 +43,7 @@ describe('computeNextRange', () => {
 describe('MarkedRangeCalendar', () => {
   const visibleMonth = new Date(2026, 7, 1);
 
-  it('only renders marked days as enabled, clickable buttons', () => {
+  it('renders both marked and unmarked days as enabled, clickable buttons', () => {
     const markedDates = new Map([['2026-08-15', '#A8532F']]);
     const { container } = render(
       <MarkedRangeCalendar
@@ -56,7 +56,7 @@ describe('MarkedRangeCalendar', () => {
     );
 
     expect(getByIso(container, '2026-08-15')).not.toBeDisabled();
-    expect(getByIso(container, '2026-08-16')).toBeDisabled();
+    expect(getByIso(container, '2026-08-16')).not.toBeDisabled();
   });
 
   it('calls onRangeChange when a marked day is clicked', () => {
@@ -80,7 +80,7 @@ describe('MarkedRangeCalendar', () => {
     });
   });
 
-  it('does not call onRangeChange when an unmarked day is clicked', () => {
+  it('calls onRangeChange when an unmarked day is clicked', () => {
     const markedDates = new Map([['2026-08-15', '#A8532F']]);
     const handleRangeChange = vi.fn();
     const { container } = render(
@@ -95,7 +95,10 @@ describe('MarkedRangeCalendar', () => {
 
     fireEvent.click(getByIso(container, '2026-08-16'));
 
-    expect(handleRangeChange).not.toHaveBeenCalled();
+    expect(handleRangeChange).toHaveBeenCalledWith({
+      from: new Date(2026, 7, 16),
+      to: new Date(2026, 7, 16),
+    });
   });
 
   it('renders both the visible month and the next month', () => {

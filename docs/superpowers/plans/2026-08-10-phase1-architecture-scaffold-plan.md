@@ -1,4 +1,4 @@
-# Nee.3 Phase 1 — Architecture Scaffold Implementation Plan
+# Aeternus.3 Phase 1 — Architecture Scaffold Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -26,7 +26,7 @@
 ## File Structure
 
 ```
-Nee.3/
+Aeternus.3/
 ├── package.json                    # root workspaces manifest
 ├── tsconfig.base.json
 ├── .prettierrc
@@ -151,7 +151,7 @@ build/
 
 - [ ] **Step 5: Verify root install works with no workspace packages yet**
 
-Run: `npm install` (from `Nee.3/`)
+Run: `npm install` (from `Aeternus.3/`)
 Expected: succeeds, creates root `node_modules/` and `package-lock.json`. npm silently skips the `client`, `backend`, `packages/*` workspace globs since no matching directories exist yet — this is expected, not an error.
 
 - [ ] **Step 6: Commit**
@@ -235,7 +235,7 @@ export {};
 
 - [ ] **Step 5: Install and build**
 
-Run: `npm install` (from `Nee.3/`)
+Run: `npm install` (from `Aeternus.3/`)
 Expected: `packages/shared-types` is now linked as a workspace; `node_modules/@nee3/shared-types` symlinks to `packages/shared-types`.
 
 Run: `npm run build --workspace=packages/shared-types`
@@ -658,7 +658,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nee.3</title>
+    <title>Aeternus.3</title>
   </head>
   <body>
     <div id="root"></div>
@@ -695,7 +695,7 @@ export const Route = createRootRoute({
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
-  component: () => <div className="p-4">Nee.3</div>,
+  component: () => <div className="p-4">Aeternus.3</div>,
 });
 ```
 
@@ -733,7 +733,7 @@ if (!rootElement.innerHTML) {
 
 - [ ] **Step 11: Install dependencies**
 
-Run: `npm install` (from `Nee.3/`)
+Run: `npm install` (from `Aeternus.3/`)
 Expected: succeeds, links `client` as a workspace and resolves `@nee3/shared-types`.
 
 - [ ] **Step 12: Generate `routeTree.gen.ts` by starting the dev server**
@@ -787,7 +787,7 @@ export function Nav() {
   return (
     <nav className="flex gap-4 border-b border-gray-200 p-4">
       <Link to="/" className="font-medium">
-        Nee.3
+        Aeternus.3
       </Link>
     </nav>
   );

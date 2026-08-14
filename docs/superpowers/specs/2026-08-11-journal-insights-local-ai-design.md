@@ -9,12 +9,12 @@ Not yet scheduled against the phase plan's exact number — see "Phase placement
 
 Journal entries are personal.
 Any AI feature that reads them must never send their content to a third-party cloud AI provider.
-At the same time, the Nee.3 web app itself may be deployed remotely (e.g. Fly.io), so "local" cannot simply mean "runs on the server."
+At the same time, the Aeternus.3 web app itself may be deployed remotely (e.g. Fly.io), so "local" cannot simply mean "runs on the server."
 This design covers a journal feature that lets the user get AI-generated insights about their entries, and have an AI conversation across a set of entries, while guaranteeing entry content only ever reaches two places: the user's own backend/database, and a model process running on the user's own machine.
 
 ## Key insight
 
-The AI call is made **client-side**, from the browser tab, not from the Nee.3 backend.
+The AI call is made **client-side**, from the browser tab, not from the Aeternus.3 backend.
 A browser tab always runs on the user's own machine regardless of where the web app is hosted, so it can call `http://localhost:11434` (a locally-running Ollama server) directly.
 This resolves the apparent tension between "the app is a hosted web app" and "the model must be local" — no separate script or desktop app is needed.
 
@@ -31,15 +31,15 @@ Both are ephemeral: results and chat history live only in browser memory for the
 
 ```
 Browser (client)
- ├─ Journal API calls  → Nee.3 backend → MongoDB   (existing, unchanged)
+ ├─ Journal API calls  → Aeternus.3 backend → MongoDB   (existing, unchanged)
  └─ AI calls           → http://localhost:11434    (new, direct, client-only)
 ```
 
 - Journal entries are fetched exactly as they already are for the Journal module (Phase 4), via the existing Journal API and TanStack Query hooks.
-- The AI call is a separate, parallel path: the browser calls a locally-running Ollama server directly over `fetch`, bypassing the Nee.3 backend entirely.
-- The Nee.3 backend requires **no changes** to support this feature. It never sees the prompt, the model's response, or that an AI call happened at all.
+- The AI call is a separate, parallel path: the browser calls a locally-running Ollama server directly over `fetch`, bypassing the Aeternus.3 backend entirely.
+- The Aeternus.3 backend requires **no changes** to support this feature. It never sees the prompt, the model's response, or that an AI call happened at all.
 
-This split keeps the trust boundary simple: entry content goes to the user's own DB (already trusted) and to a process the user runs on their own machine. It never goes to the Nee.3 backend for AI purposes, and never to a third-party API.
+This split keeps the trust boundary simple: entry content goes to the user's own DB (already trusted) and to a process the user runs on their own machine. It never goes to the Aeternus.3 backend for AI purposes, and never to a third-party API.
 
 ## Module structure
 
@@ -56,7 +56,7 @@ No backend work is required beyond what the Journal module (Phase 4) already pro
 
 The user must:
 1. Have Ollama installed and running locally (`ollama serve`).
-2. Set `OLLAMA_ORIGINS` to include the Nee.3 app's origin, since the browser's calls to `localhost:11434` are cross-origin from the app's own origin.
+2. Set `OLLAMA_ORIGINS` to include the Aeternus.3 app's origin, since the browser's calls to `localhost:11434` are cross-origin from the app's own origin.
 
 This gets a short setup note in the README, alongside the existing local Postgres setup note.
 

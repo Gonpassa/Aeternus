@@ -91,7 +91,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nee.3</title>
+    <title>Aeternus.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -2470,7 +2470,7 @@ export function Nav() {
   return (
     <nav className="flex items-center gap-4 border-b border-line p-4">
       <Link to="/" className="font-display font-medium text-ink">
-        Nee.3
+        Aeternus.3
       </Link>
       <div className="ml-auto flex items-center gap-4 font-mono text-xs uppercase">
         {user ? (

@@ -1,4 +1,4 @@
-# Nee.3 — Personal Hub
+# Aeternus.3 — Personal Hub
 
 A personal hub application for journaling, structured writing, and life organization.
 Journaling carries over from [Harmonee](https://harmonee.fly.dev/), but it is now one module among several, not the whole app.
@@ -68,7 +68,7 @@ AI woven into the writing/notes flow rather than bolted on as a chat sidebar. Fi
 npm workspaces monorepo — one root install, shared root-level TypeScript/lint config, but still zero shared runtime code between client and backend (the one exception is `packages/shared-types`, which ships types only, no runtime logic).
 
 ```
-Nee.3/
+Aeternus.3/
 ├── client/              # React SPA
 ├── backend/             # Express REST API
 ├── packages/
@@ -104,7 +104,7 @@ Google Calendar sync, distinct from the journal's own date view.
 Question generation from notes/writing for self-testing, integrated into the writing module's flow.
 
 ### Phase 8 — Deployment
-Set up a deployment pipeline for both packages. Evaluate whether to migrate the existing Fly.io app or deploy Nee.3 as a separate service alongside it.
+Set up a deployment pipeline for both packages. Evaluate whether to migrate the existing Fly.io app or deploy Aeternus.3 as a separate service alongside it.
 
 ---
 

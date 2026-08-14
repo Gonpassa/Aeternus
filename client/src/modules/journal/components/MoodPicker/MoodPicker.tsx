@@ -3,7 +3,8 @@ import { Box, chakra, Flex, Input, Text } from '@chakra-ui/react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
-import { VisuallyHidden } from '../../../../components/ui/visually-hidden.tsx';
+import { VisuallyHidden } from '../../../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
+import { Tooltip } from '../../../../components/ui/Tooltip/Tooltip.tsx';
 
 export interface MoodPickerProps {
   primaryMood: PrimaryMood | null;
@@ -95,31 +96,31 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
       </Text>
       <Flex wrap="wrap" gap="3" role="radiogroup" aria-label="Primary mood">
         {PRIMARY_MOODS.map((mood) => (
-          <chakra.button
-            key={mood}
-            type="button"
-            role="radio"
-            aria-checked={primaryMood === mood}
-            title={MOOD_LABEL[mood]}
-            onClick={() => handlePrimaryMoodClick(mood)}
-            position="relative"
-            boxSize="7"
-            p="0"
-            borderRadius="full"
-            borderWidth="1.5px"
-            borderColor={primaryMood === mood ? MOOD_DOT_COLOR[mood] : 'line'}
-            bg="paperCard"
-          >
-            <Box
-              position="absolute"
-              inset="4px"
+          <Tooltip key={mood} content={MOOD_LABEL[mood]}>
+            <chakra.button
+              type="button"
+              role="radio"
+              aria-checked={primaryMood === mood}
+              onClick={() => handlePrimaryMoodClick(mood)}
+              position="relative"
+              boxSize="7"
+              p="0"
               borderRadius="full"
-              bg={MOOD_DOT_COLOR[mood]}
-              opacity={primaryMood === mood ? 1 : 0.25}
-              aria-hidden="true"
-            />
-            <VisuallyHidden>{MOOD_LABEL[mood]}</VisuallyHidden>
-          </chakra.button>
+              borderWidth="1.5px"
+              borderColor={primaryMood === mood ? MOOD_DOT_COLOR[mood] : 'line'}
+              bg="paperCard"
+            >
+              <Box
+                position="absolute"
+                inset="4px"
+                borderRadius="full"
+                bg={MOOD_DOT_COLOR[mood]}
+                opacity={primaryMood === mood ? 1 : 0.25}
+                aria-hidden="true"
+              />
+              <VisuallyHidden>{MOOD_LABEL[mood]}</VisuallyHidden>
+            </chakra.button>
+          </Tooltip>
         ))}
       </Flex>
       {primaryMood && (
@@ -131,11 +132,13 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
               role="radio"
               aria-checked={selectedFixed === emotion}
               onClick={() => handleFixedEmotionClick(emotion)}
+              display="inline-flex"
+              alignItems="center"
+              h="7"
               borderWidth="1px"
               borderColor={selectedFixed === emotion ? 'moss' : 'line'}
               color={selectedFixed === emotion ? 'moss' : undefined}
               px="2"
-              py="1"
               fontFamily="mono"
               fontSize="xs"
               textTransform="uppercase"
@@ -148,11 +151,11 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
             placeholder="Custom"
             value={customText}
             onChange={(e) => handleCustomChange(e.target.value)}
+            h="7"
             borderWidth="1px"
             borderColor="line"
             bg="paperCard"
             px="2"
-            py="1"
             fontFamily="mono"
             fontSize="xs"
             w="auto"
