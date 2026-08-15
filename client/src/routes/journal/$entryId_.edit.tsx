@@ -2,16 +2,21 @@ import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-route
 import type { CreateEntryRequest } from '@nee3/shared-types';
 import { Box, Heading, Text } from '@chakra-ui/react';
 import { EntryForm } from '../../modules/journal/components/EntryForm/EntryForm.tsx';
-import { useEntry, useUpdateEntry } from '../../modules/journal/api/journalHooks.ts';
+import {
+  useDeleteEntry,
+  useEntry,
+  useUpdateEntry,
+} from '../../modules/journal/api/journalHooks.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 
-const routeApi = getRouteApi('/journal/$entryId/edit');
+const routeApi = getRouteApi('/journal/$entryId_/edit');
 
 function EditEntryPage() {
   const { entryId } = routeApi.useParams();
   const navigate = useNavigate();
   const { data: entry, isLoading } = useEntry(Number(entryId));
   const updateEntry = useUpdateEntry();
+  const deleteEntry = useDeleteEntry();
 
   if (isLoading || !entry) {
     return (
@@ -26,21 +31,22 @@ function EditEntryPage() {
     navigate({ to: '/journal/$entryId', params: { entryId } });
   };
 
+  const handleDelete = async () => {
+    await deleteEntry.mutateAsync(entry.id);
+    navigate({ to: '/journal', search: { page: 1 } });
+  };
+
   return (
     <Box mx="auto" maxW="2xl" p="4">
       <Heading as="h1" mb="4" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
         Edit entry
       </Heading>
-      <EntryForm
-        initialEntry={entry}
-        onSubmit={handleSubmit}
-        onDiscard={() => navigate({ to: '/journal/$entryId', params: { entryId } })}
-      />
+      <EntryForm initialEntry={entry} onSubmit={handleSubmit} onDelete={handleDelete} />
     </Box>
   );
 }
 
-export const Route = createFileRoute('/journal/$entryId/edit')({
+export const Route = createFileRoute('/journal/$entryId_/edit')({
   component: EditEntryPage,
   beforeLoad: ({ context, location }) => requireAuth(context.queryClient)({ location }),
 });

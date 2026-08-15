@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { Entry } from '@nee3/shared-types';
 
 vi.mock('../RichTextEditor/RichTextEditor.tsx', () => ({
@@ -189,17 +189,22 @@ describe('EntryForm date-collision', () => {
     expect(screen.getByLabelText(/date/i)).toBeDisabled();
   });
 
-  it('discards without confirming when nothing changed', () => {
+  it('shows a delete button with a confirm dialog in edit mode instead of discard', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    const onDiscard = vi.fn();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} onDiscard={onDiscard} />);
+    const onDelete = vi.fn();
+    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} onDelete={onDelete} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+    expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
 
-    expect(confirmSpy).not.toHaveBeenCalled();
-    expect(onDiscard).toHaveBeenCalled();
-    confirmSpy.mockRestore();
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+    expect(onDelete).not.toHaveBeenCalled();
+
+    const dialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /^delete$/i }));
+
+    await waitFor(() => {
+      expect(onDelete).toHaveBeenCalled();
+    });
   });
 
   it('confirms before discarding when only the date changed', async () => {

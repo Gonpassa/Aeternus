@@ -67,7 +67,6 @@ function Calendar({
         range_start: [styles.rangeStart, defaultClassNames.range_start].join(' '),
         range_middle: [styles.rangeMiddle, defaultClassNames.range_middle].join(' '),
         range_end: [styles.rangeEnd, defaultClassNames.range_end].join(' '),
-        today: [styles.today, defaultClassNames.today].join(' '),
         outside: [styles.outside, defaultClassNames.outside].join(' '),
         disabled: [styles.disabled, defaultClassNames.disabled].join(' '),
         hidden: [styles.hidden, defaultClassNames.hidden].join(' '),

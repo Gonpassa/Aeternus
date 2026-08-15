@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Box } from '@chakra-ui/react';
 import { EditorContent, useEditor } from '@tiptap/react';
+import { CharacterCount } from '@tiptap/extensions';
 import StarterKit from '@tiptap/starter-kit';
 
 export interface RichTextEditorProps {
@@ -19,6 +20,9 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         blockquote: false,
         horizontalRule: false,
       }),
+      CharacterCount.configure({
+        limit: 10,
+      }),
     ],
     content: value,
     onUpdate: ({ editor: activeEditor }) => onChange(activeEditor.getHTML()),
@@ -35,7 +39,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       <EditorContent
         editor={editor}
         className="entry-content"
-        style={{ minHeight: '10rem' }}
+        style={{ minHeight: '15rem' }}
         data-placeholder={placeholder}
       />
     </Box>

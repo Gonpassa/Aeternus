@@ -7,6 +7,7 @@ import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../components/ui/Button/Button.tsx';
 import { Calendar } from '../../../../components/ui/Calendar/Calendar.tsx';
+import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
 import {
   Popover,
   PopoverContent,
@@ -21,9 +22,10 @@ export interface EntryFormProps {
   initialEntry?: Entry;
   onSubmit: (input: CreateEntryRequest, existingEntryId?: number) => Promise<void>;
   onDiscard?: () => void;
+  onDelete?: () => void | Promise<void>;
 }
 
-export function EntryForm({ initialEntry, onSubmit, onDiscard }: EntryFormProps) {
+export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: EntryFormProps) {
   const [date, setDate] = useState(initialEntry?.date ?? todayIsoDate());
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [title, setTitle] = useState(initialEntry?.title ?? '');
@@ -208,9 +210,30 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard }: EntryFormProps)
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
       {error && <Text color="rust">{error}</Text>}
       <chakra.div display="flex" justifyContent="flex-end" gap="3" mt="2">
-        <Button type="button" variant="ghost" onClick={handleDiscard}>
-          Discard
-        </Button>
+        {initialEntry ? (
+          <ConfirmDialog
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                borderColor="rust"
+                color="rust"
+                _hover={{ bg: 'rust/5' }}
+              >
+                Delete
+              </Button>
+            }
+            title="Delete this entry?"
+            description="This action cannot be undone."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={() => onDelete?.()}
+          />
+        ) : (
+          <Button type="button" variant="ghost" onClick={handleDiscard}>
+            Discard
+          </Button>
+        )}
         <Button type="submit">Save entry</Button>
       </chakra.div>
     </chakra.form>

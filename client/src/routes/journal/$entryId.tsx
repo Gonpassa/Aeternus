@@ -1,10 +1,10 @@
 import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 import { Box, Flex, Text } from '@chakra-ui/react';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { Button } from '../../components/ui/Button/Button.tsx';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId');
 
@@ -13,7 +13,6 @@ function EntryDetailPage() {
   const navigate = useNavigate();
   const { data: entry, isLoading } = useEntry(Number(entryId));
   const deleteEntry = useDeleteEntry();
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const handleDelete = async () => {
     await deleteEntry.mutateAsync(Number(entryId));
@@ -36,22 +35,24 @@ function EntryDetailPage() {
             Edit
           </Link>
         </Button>
-        {confirmingDelete ? (
-          <Button type="button" variant="destructive" onClick={handleDelete}>
-            Confirm delete
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            borderColor="rust"
-            color="rust"
-            _hover={{ bg: 'rust/5' }}
-            onClick={() => setConfirmingDelete(true)}
-          >
-            Delete
-          </Button>
-        )}
+        <ConfirmDialog
+          trigger={
+            <Button
+              type="button"
+              variant="outline"
+              borderColor="rust"
+              color="rust"
+              _hover={{ bg: 'rust/5' }}
+            >
+              Delete
+            </Button>
+          }
+          title="Delete this entry?"
+          description="This action cannot be undone."
+          confirmLabel="Delete"
+          destructive
+          onConfirm={handleDelete}
+        />
       </Flex>
       <EntryView entry={entry} />
     </Box>
