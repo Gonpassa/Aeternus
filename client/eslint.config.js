@@ -82,4 +82,27 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Chakra encapsulation boundary: `components/ui/` is the only layer allowed to import
+    // `@chakra-ui/react` directly (see docs/superpowers/specs/2026-08-19-chakra-encapsulation-design.md).
+    // Everywhere else should compose the shared components/ui/ atoms instead.
+    files: ['**/*.{ts,tsx}'],
+    // components/ui/ is the boundary itself; theme.ts defines the design system's Chakra
+    // recipes/system; main.tsx and test/setup.tsx wire up the app- and test-level
+    // ChakraProvider, which necessarily happens outside the components/ui/ boundary.
+    ignores: ['src/components/ui/**', 'src/theme.ts', 'src/main.tsx', 'src/test/setup.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@chakra-ui/react',
+              message: 'Import from components/ui/ instead of @chakra-ui/react directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

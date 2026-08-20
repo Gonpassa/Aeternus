@@ -1,5 +1,10 @@
-import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import type { Entry } from '@nee3/shared-types';
+import { Card } from '../../../../components/ui/Card/Card.tsx';
+import { Text } from '../../../../components/ui/Text/Text.tsx';
+import { Heading } from '../../../../components/ui/Heading/Heading.tsx';
+import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
+import { Dot } from '../../../../components/ui/Dot/Dot.tsx';
+import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
 
 export interface EntryViewProps {
@@ -8,27 +13,14 @@ export interface EntryViewProps {
 
 export function EntryView({ entry }: EntryViewProps) {
   return (
-    <Box
-      as="article"
-      maxW="2xl"
-      borderLeftWidth="2px"
-      borderLeftStyle="dashed"
-      borderColor="line"
-      pl="10"
-    >
-      <Text
-        fontFamily="mono"
-        fontSize="xs"
-        textTransform="uppercase"
-        letterSpacing="wide"
-        color="inkSoft"
-      >
+    <Card as="article" variant="railed" maxW="2xl">
+      <Text variant="eyebrow" letterSpacing="wide" color="inkSoft">
         {entry.date}
       </Text>
-      <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
+      <Heading as="h1" variant="page">
         {entry.title}
       </Heading>
-      <Flex
+      <Stack
         mt="1"
         align="center"
         gap="1.5"
@@ -37,17 +29,11 @@ export function EntryView({ entry }: EntryViewProps) {
         textTransform="uppercase"
         color="inkSoft"
       >
-        <Box
-          boxSize="2.5"
-          borderRadius="full"
-          bg={MOOD_DOT_COLOR[entry.primaryMood]}
-          aria-hidden="true"
-        />
+        <Dot size="2.5" color={MOOD_DOT_COLOR[entry.primaryMood]} />
         {MOOD_LABEL[entry.primaryMood]}
         {entry.specificEmotion && <> &middot; {entry.specificEmotion}</>}
-      </Flex>
-      <Box
-        className="entry-content"
+      </Stack>
+      <Prose
         mt="6"
         fontFamily="body"
         fontSize="17px"
@@ -57,6 +43,6 @@ export function EntryView({ entry }: EntryViewProps) {
         // backend/src/modules/journal/sanitize.ts) before it was ever written to the database.
         dangerouslySetInnerHTML={{ __html: entry.content }}
       />
-    </Box>
+    </Card>
   );
 }

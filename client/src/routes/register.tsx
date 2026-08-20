@@ -1,8 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { FormEvent, useState } from 'react';
-import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
+import { FormEvent, FormEventHandler, useState } from 'react';
 import { useAuth } from '../shell/AuthProvider.tsx';
 import { Button } from '../components/ui/Button/Button.tsx';
+import { PageContainer } from '../components/ui/PageContainer/PageContainer.tsx';
+import { Heading } from '../components/ui/Heading/Heading.tsx';
+import { Stack } from '../components/ui/Stack/Stack.tsx';
+import { FieldLabel } from '../components/ui/FieldLabel/FieldLabel.tsx';
+import { Input } from '../components/ui/Input/Input.tsx';
+import { Text } from '../components/ui/Text/Text.tsx';
 
 function RegisterPage() {
   const { register } = useAuth();
@@ -29,12 +34,19 @@ function RegisterPage() {
   };
 
   return (
-    <Box mx="auto" maxW="sm" p="4">
+    <PageContainer maxW="sm" centered>
       <Heading as="h1" mb="4" fontSize="xl" fontWeight="semibold">
         Register
       </Heading>
-      <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="3">
-        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-username">
+      <Stack
+        as="form"
+        direction="column"
+        gap="3"
+        // Stack's props are typed against its div-rendering default; `as="form"` changes the
+        // rendered element at runtime but not the typed handler signature, hence the cast.
+        onSubmit={handleSubmit as unknown as FormEventHandler<HTMLDivElement>}
+      >
+        <FieldLabel htmlFor="register-username">
           Username
           <Input
             id="register-username"
@@ -44,8 +56,8 @@ function RegisterPage() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-        </chakra.label>
-        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-email">
+        </FieldLabel>
+        <FieldLabel htmlFor="register-email">
           Email
           <Input
             id="register-email"
@@ -56,8 +68,8 @@ function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </chakra.label>
-        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="register-password">
+        </FieldLabel>
+        <FieldLabel htmlFor="register-password">
           Password
           <Input
             id="register-password"
@@ -68,13 +80,8 @@ function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </chakra.label>
-        <chakra.label
-          display="flex"
-          flexDirection="column"
-          gap="1"
-          htmlFor="register-confirm-password"
-        >
+        </FieldLabel>
+        <FieldLabel htmlFor="register-confirm-password">
           Confirm password
           <Input
             id="register-confirm-password"
@@ -85,13 +92,13 @@ function RegisterPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-        </chakra.label>
-        {error && <Text color="red.600">{error}</Text>}
+        </FieldLabel>
+        {error && <Text variant="formError">{error}</Text>}
         <Button type="submit" bg="black" p="2" color="white">
           Register
         </Button>
-      </chakra.form>
-    </Box>
+      </Stack>
+    </PageContainer>
   );
 }
 

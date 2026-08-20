@@ -1,6 +1,5 @@
 import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
 import type { CreateEntryRequest } from '@nee3/shared-types';
-import { Box, Heading, Text } from '@chakra-ui/react';
 import { EntryForm } from '../../modules/journal/components/EntryForm/EntryForm.tsx';
 import {
   useDeleteEntry,
@@ -8,6 +7,9 @@ import {
   useUpdateEntry,
 } from '../../modules/journal/api/journalHooks.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
+import { PageContainer } from '../../components/ui/PageContainer/PageContainer.tsx';
+import { Heading } from '../../components/ui/Heading/Heading.tsx';
+import { Text } from '../../components/ui/Text/Text.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId_/edit');
 
@@ -20,7 +22,7 @@ function EditEntryPage() {
 
   if (isLoading || !entry) {
     return (
-      <Text p="4" color="inkSoft">
+      <Text p="4" variant="muted">
         Loading...
       </Text>
     );
@@ -37,12 +39,12 @@ function EditEntryPage() {
   };
 
   return (
-    <Box maxW="2xl" p="4">
-      <Heading as="h1" mb="4" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
+    <PageContainer>
+      <Heading as="h1" mb="4" variant="page">
         Edit entry
       </Heading>
       <EntryForm initialEntry={entry} onSubmit={handleSubmit} onDelete={handleDelete} />
-    </Box>
+    </PageContainer>
   );
 }
 

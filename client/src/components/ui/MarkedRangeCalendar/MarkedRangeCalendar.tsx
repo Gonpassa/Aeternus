@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import type { ComponentProps } from 'react';
 import type { DayButton } from 'react-day-picker';
 import { Box, chakra } from '@chakra-ui/react';
-import { Calendar } from '../ui/Calendar/Calendar.tsx';
+import { Calendar } from '../Calendar/Calendar.tsx';
 import styles from './MarkedRangeCalendar.module.css';
 
 export interface DateRangeValue {

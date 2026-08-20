@@ -1,8 +1,13 @@
 import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react-router';
-import { FormEvent, useState } from 'react';
-import { Box, chakra, Heading, Input, Text } from '@chakra-ui/react';
+import { FormEvent, FormEventHandler, useState } from 'react';
 import { useAuth } from '../shell/AuthProvider.tsx';
 import { Button } from '../components/ui/Button/Button.tsx';
+import { PageContainer } from '../components/ui/PageContainer/PageContainer.tsx';
+import { Heading } from '../components/ui/Heading/Heading.tsx';
+import { Stack } from '../components/ui/Stack/Stack.tsx';
+import { FieldLabel } from '../components/ui/FieldLabel/FieldLabel.tsx';
+import { Input } from '../components/ui/Input/Input.tsx';
+import { Text } from '../components/ui/Text/Text.tsx';
 
 export interface LoginSearch {
   redirect?: string;
@@ -30,12 +35,19 @@ function LoginPage() {
   };
 
   return (
-    <Box mx="auto" maxW="sm" p="4">
+    <PageContainer maxW="sm" centered>
       <Heading as="h1" mb="4" fontSize="xl" fontWeight="semibold">
         Log in
       </Heading>
-      <chakra.form onSubmit={handleSubmit} display="flex" flexDirection="column" gap="3">
-        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="login-username">
+      <Stack
+        as="form"
+        direction="column"
+        gap="3"
+        // Stack's props are typed against its div-rendering default; `as="form"` changes the
+        // rendered element at runtime but not the typed handler signature, hence the cast.
+        onSubmit={handleSubmit as unknown as FormEventHandler<HTMLDivElement>}
+      >
+        <FieldLabel htmlFor="login-username">
           Username
           <Input
             id="login-username"
@@ -45,8 +57,8 @@ function LoginPage() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-        </chakra.label>
-        <chakra.label display="flex" flexDirection="column" gap="1" htmlFor="login-password">
+        </FieldLabel>
+        <FieldLabel htmlFor="login-password">
           Password
           <Input
             id="login-password"
@@ -57,16 +69,16 @@ function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </chakra.label>
-        {error && <Text color="red.600">{error}</Text>}
+        </FieldLabel>
+        {error && <Text variant="formError">{error}</Text>}
         <Button type="submit" bg="black" p="2" color="white">
           Log in
         </Button>
-      </chakra.form>
-      <Text mt="3" fontSize="sm" color="inkSoft">
+      </Stack>
+      <Text mt="3" variant="muted" fontSize="sm">
         Don&apos;t have an account? <Link to="/register">Register</Link>
       </Text>
-    </Box>
+    </PageContainer>
   );
 }
 

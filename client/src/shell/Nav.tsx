@@ -1,16 +1,16 @@
 import { Link, useMatchRoute, useNavigate } from '@tanstack/react-router';
-import { Box, Flex, Text } from '@chakra-ui/react';
 import { useAuth } from './AuthProvider.tsx';
 import { Button } from '../components/ui/Button/Button.tsx';
+import { Stack } from '../components/ui/Stack/Stack.tsx';
+import { Text } from '../components/ui/Text/Text.tsx';
 
 function RailLink({ to, children }: { to: string; children: string }) {
   const matchRoute = useMatchRoute();
   const isActive = Boolean(matchRoute({ to, fuzzy: true }));
 
   return (
-    <Box
+    <Stack
       asChild
-      display="flex"
       alignItems="center"
       fontFamily="mono"
       fontSize="13px"
@@ -27,7 +27,7 @@ function RailLink({ to, children }: { to: string; children: string }) {
       <Link to={to} search={to === '/journal' ? { page: 1 } : undefined}>
         {children}
       </Link>
-    </Box>
+    </Stack>
   );
 }
 
@@ -44,7 +44,7 @@ export function Nav() {
   };
 
   return (
-    <Flex
+    <Stack
       as="nav"
       aria-label="Aeternus.3 sections"
       direction="column"
@@ -56,40 +56,45 @@ export function Nav() {
       px={{ base: '5', md: '6' }}
       py={{ base: '4', md: '7' }}
     >
-      <Box asChild fontFamily="heading" fontWeight="semibold" fontSize="22px">
+      <Stack asChild direction="column" fontFamily="heading" fontWeight="semibold" fontSize="22px">
         <Link to="/">
           Aeternus
-          <Box
+          <Text
             as="small"
             display="block"
-            fontFamily="mono"
+            variant="eyebrow"
             fontSize="11px"
             fontWeight="normal"
-            letterSpacing="wide"
-            textTransform="uppercase"
             color="paper/60"
             mt="1.5"
           >
             Journal &amp; commonplace book
-          </Box>
+          </Text>
         </Link>
-      </Box>
+      </Stack>
 
       {user && (
-        <Flex direction="column" gap="1">
+        <Stack direction="column" gap="1">
           <RailLink to="/journal">Journal</RailLink>
-        </Flex>
+        </Stack>
       )}
 
       {import.meta.env.DEV && (
-        <Flex direction="column" gap="1">
+        <Stack direction="column" gap="1">
           <RailLink to="/dev/components">UI components</RailLink>
-        </Flex>
+        </Stack>
       )}
 
-      <Box mt="auto" fontFamily="mono" fontSize="11px" color="paper/45" lineHeight="tall">
+      <Stack
+        direction="column"
+        mt="auto"
+        fontFamily="mono"
+        fontSize="11px"
+        color="paper/45"
+        lineHeight="tall"
+      >
         {user ? (
-          <Flex direction="column" align="flex-start" gap="2">
+          <Stack direction="column" align="flex-start" gap="2">
             <Text color="paper/70" textTransform="uppercase" letterSpacing="wide">
               {user.username}
             </Text>
@@ -109,18 +114,18 @@ export function Nav() {
             >
               Log out
             </Button>
-          </Flex>
+          </Stack>
         ) : (
-          <Flex gap="3">
-            <Box asChild color="paper" textTransform="uppercase" letterSpacing="wide">
+          <Stack gap="3">
+            <Stack asChild color="paper" textTransform="uppercase" letterSpacing="wide">
               <Link to="/login">Log in</Link>
-            </Box>
-            <Box asChild color="paper" textTransform="uppercase" letterSpacing="wide">
+            </Stack>
+            <Stack asChild color="paper" textTransform="uppercase" letterSpacing="wide">
               <Link to="/register">Register</Link>
-            </Box>
-          </Flex>
+            </Stack>
+          </Stack>
         )}
-      </Box>
-    </Flex>
+      </Stack>
+    </Stack>
   );
 }

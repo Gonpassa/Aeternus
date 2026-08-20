@@ -1,10 +1,11 @@
 import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react-router';
-import { Box, Flex, Text } from '@chakra-ui/react';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { Button } from '../../components/ui/Button/Button.tsx';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
+import { Stack } from '../../components/ui/Stack/Stack.tsx';
+import { Text } from '../../components/ui/Text/Text.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId');
 
@@ -21,15 +22,15 @@ function EntryDetailPage() {
 
   if (isLoading || !entry) {
     return (
-      <Text p="4" color="inkSoft">
+      <Text p="4" variant="muted">
         Loading...
       </Text>
     );
   }
 
   return (
-    <Box p="4">
-      <Flex mb="4" maxW="2xl" align="center" gap="3">
+    <Stack direction="column" p="4">
+      <Stack mb="4" maxW="2xl" align="center" gap="3">
         <Button asChild variant="outline">
           <Link to="/journal/$entryId/edit" params={{ entryId }}>
             Edit
@@ -53,9 +54,9 @@ function EntryDetailPage() {
           destructive
           onConfirm={handleDelete}
         />
-      </Flex>
+      </Stack>
       <EntryView entry={entry} />
-    </Box>
+    </Stack>
   );
 }
 

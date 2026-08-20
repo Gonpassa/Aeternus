@@ -1,6 +1,9 @@
 import { PropsWithChildren, useState } from 'react';
-import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { Button, type ButtonSize, type ButtonVariant } from '../../components/ui/Button/Button.tsx';
+import { Stack } from '../../components/ui/Stack/Stack.tsx';
+import { Heading } from '../../components/ui/Heading/Heading.tsx';
+import { Text } from '../../components/ui/Text/Text.tsx';
+import { Card } from '../../components/ui/Card/Card.tsx';
 import { Calendar } from '../../components/ui/Calendar/Calendar.tsx';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/Popover/Popover.tsx';
@@ -51,7 +54,7 @@ function Section({
   description?: string;
 }>) {
   return (
-    <Box as="section" mb="12">
+    <Stack as="section" direction="column" mb="12">
       <Heading as="h2" fontFamily="heading" fontSize="xl" fontWeight="semibold" color="ink" mb="1">
         {title}
       </Heading>
@@ -61,7 +64,7 @@ function Section({
         </Text>
       )}
       {children}
-    </Box>
+    </Stack>
   );
 }
 
@@ -71,7 +74,7 @@ export function ComponentsShowcase() {
   const [selectValue, setSelectValue] = useState<string[]>(['content']);
 
   return (
-    <Box maxW="4xl">
+    <Stack direction="column" maxW="4xl">
       <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink" mb="2">
         UI components
       </Heading>
@@ -82,9 +85,9 @@ export function ComponentsShowcase() {
       </Text>
 
       <Section title="Button" description="every variant × size, from components/ui/Button">
-        <Flex direction="column" gap="4">
+        <Stack direction="column" gap="4">
           {BUTTON_VARIANTS.map((variant) => (
-            <Flex key={variant} align="center" gap="3" wrap="wrap">
+            <Stack key={variant} align="center" gap="3" wrap="wrap">
               <Text
                 fontFamily="mono"
                 fontSize="xs"
@@ -100,9 +103,9 @@ export function ComponentsShowcase() {
                   {size.startsWith('icon') ? '★' : 'Button'}
                 </Button>
               ))}
-            </Flex>
+            </Stack>
           ))}
-        </Flex>
+        </Stack>
       </Section>
 
       <Section title="Tooltip" description="hover or focus the trigger to reveal content">
@@ -144,13 +147,13 @@ export function ComponentsShowcase() {
       </Section>
 
       <Section title="Calendar" description="react-day-picker, single-select mode">
-        <Box borderWidth="1px" borderColor="line" bg="paperCard" p="2" w="fit-content">
+        <Card p="2" w="fit-content">
           <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} />
-        </Box>
+        </Card>
       </Section>
 
       <Section title="ConfirmDialog" description="alert-dialog wrapper; confirmations tally below">
-        <Flex align="center" gap="3">
+        <Stack align="center" gap="3">
           <ConfirmDialog
             trigger={<Button variant="outline">Delete something</Button>}
             title="Delete this thing?"
@@ -162,7 +165,7 @@ export function ComponentsShowcase() {
           <Text fontFamily="mono" fontSize="xs" color="inkSoft">
             Confirmed {confirmCount} time{confirmCount === 1 ? '' : 's'}
           </Text>
-        </Flex>
+        </Stack>
       </Section>
 
       <Section
@@ -174,6 +177,6 @@ export function ComponentsShowcase() {
           <span aria-hidden="true">&#9733;</span>
         </Button>
       </Section>
-    </Box>
+    </Stack>
   );
 }

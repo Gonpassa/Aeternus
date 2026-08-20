@@ -1,13 +1,18 @@
 import { createFileRoute, getRouteApi, Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import { useEntries, useEntriesByRange } from '../../modules/journal/api/journalHooks.ts';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../modules/journal/moodColors.ts';
 import { stripHtml } from '../../modules/journal/textUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
-import type { DateRangeValue } from '../../components/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
+import type { DateRangeValue } from '../../components/ui/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 import { Button } from '../../components/ui/Button/Button.tsx';
+import { PageContainer } from '../../components/ui/PageContainer/PageContainer.tsx';
+import { Stack } from '../../components/ui/Stack/Stack.tsx';
+import { Heading } from '../../components/ui/Heading/Heading.tsx';
+import { Text } from '../../components/ui/Text/Text.tsx';
+import { Card } from '../../components/ui/Card/Card.tsx';
+import { Dot } from '../../components/ui/Dot/Dot.tsx';
 
 export interface JournalIndexSearch {
   page: number;
@@ -37,9 +42,9 @@ function JournalIndexPage() {
   const dataLoaded = hasFilter ? filtered.data !== undefined : paginated.data !== undefined;
 
   return (
-    <Box maxW="2xl" p="4">
-      <Flex mb="4" align="center" justify="space-between">
-        <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
+    <PageContainer>
+      <Stack mb="4" align="center" justify="space-between">
+        <Heading as="h1" variant="page">
           Journal
         </Heading>
         <Button
@@ -54,20 +59,20 @@ function JournalIndexPage() {
         >
           <Link to="/journal/new">New entry</Link>
         </Button>
-      </Flex>
-      <Box mb="4">
+      </Stack>
+      <Stack direction="column" mb="4">
         <JournalCalendarFilter
           selectedRange={selectedRange}
           onRangeChange={setSelectedRange}
           entryCount={hasFilter ? filtered.data?.length : undefined}
         />
-      </Box>
-      <Box as="ul" display="flex" flexDirection="column" gap="3">
+      </Stack>
+      <Stack as="ul" direction="column" gap="3">
         {entries.map((entry) => (
-          <Box as="li" key={entry.id} borderWidth="1px" borderColor="line" bg="paperCard" p="4">
-            <Box asChild display="block">
+          <Card as="li" key={entry.id}>
+            <Stack asChild direction="column">
               <Link to="/journal/$entryId" params={{ entryId: String(entry.id) }}>
-                <Flex
+                <Stack
                   align="center"
                   gap="2"
                   fontFamily="mono"
@@ -75,14 +80,9 @@ function JournalIndexPage() {
                   textTransform="uppercase"
                   color="inkSoft"
                 >
-                  <Box
-                    boxSize="2"
-                    borderRadius="full"
-                    bg={MOOD_DOT_COLOR[entry.primaryMood]}
-                    aria-hidden="true"
-                  />
+                  <Dot size="2" color={MOOD_DOT_COLOR[entry.primaryMood]} />
                   {entry.date} &middot; {MOOD_LABEL[entry.primaryMood]}
-                </Flex>
+                </Stack>
                 <Heading as="h2" fontFamily="heading" fontSize="lg" fontWeight="medium" color="ink">
                   {entry.title}
                 </Heading>
@@ -90,12 +90,12 @@ function JournalIndexPage() {
                   {stripHtml(entry.content).slice(0, 140)}
                 </Text>
               </Link>
-            </Box>
-          </Box>
+            </Stack>
+          </Card>
         ))}
-      </Box>
-      {dataLoaded && entries.length === 0 && <Text color="inkSoft">No entries yet.</Text>}
-    </Box>
+      </Stack>
+      {dataLoaded && entries.length === 0 && <Text variant="muted">No entries yet.</Text>}
+    </PageContainer>
   );
 }
 

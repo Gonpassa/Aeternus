@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Box, Flex, Text } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '../../../../components/ui/Button/Button.tsx';
+import { Card } from '../../../../components/ui/Card/Card.tsx';
+import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
+import { Text } from '../../../../components/ui/Text/Text.tsx';
 import {
   createListCollection,
   Select,
@@ -13,7 +15,7 @@ import {
 import {
   MarkedRangeCalendar,
   type DateRangeValue,
-} from '../../../../components/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
+} from '../../../../components/ui/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 import { useEntriesByRange } from '../../api/journalHooks.ts';
 import { MOOD_RING_COLOR } from '../../moodColors.ts';
 
@@ -118,9 +120,9 @@ export function JournalCalendarFilter({
   const hasFilter = Boolean(selectedRange.from);
 
   return (
-    <Box borderWidth="1px" borderColor="line" bg="paperCard" p="4">
-      <Flex mb="3" align="center" justify="space-between" gap="2">
-        <Flex align="center" gap="2">
+    <Card>
+      <Stack mb="3" align="center" justify="space-between" gap="2">
+        <Stack align="center" gap="2">
           <Button
             type="button"
             variant="ghost"
@@ -179,13 +181,13 @@ export function JournalCalendarFilter({
           >
             <ChevronRightIcon size={16} />
           </Button>
-        </Flex>
+        </Stack>
         {hasFilter && (
           <Button type="button" variant="link" onClick={() => onRangeChange({})}>
             Clear filter
           </Button>
         )}
-      </Flex>
+      </Stack>
       <MarkedRangeCalendar
         markedDates={markedDates}
         visibleMonth={visibleMonth}
@@ -194,11 +196,11 @@ export function JournalCalendarFilter({
         onRangeChange={onRangeChange}
       />
       {hasFilter && (
-        <Text mt="3" fontFamily="mono" fontSize="xs" textTransform="uppercase" color="inkSoft">
+        <Text mt="3" variant="eyebrow" color="inkSoft">
           {formatRangeLabel(selectedRange)}
           {entryCount !== undefined ? ` · ${entryCount} entries` : ''}
         </Text>
       )}
-    </Box>
+    </Card>
   );
 }

@@ -1,19 +1,24 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, FormEventHandler, useEffect, useRef, useState } from 'react';
 import { format, parse } from 'date-fns';
-import { chakra, Input, Text } from '@chakra-ui/react';
 import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../components/ui/Button/Button.tsx';
 import { Calendar } from '../../../../components/ui/Calendar/Calendar.tsx';
+import { Card } from '../../../../components/ui/Card/Card.tsx';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
+import { FieldLabel } from '../../../../components/ui/FieldLabel/FieldLabel.tsx';
+import { Input } from '../../../../components/ui/Input/Input.tsx';
+import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
+import { Text } from '../../../../components/ui/Text/Text.tsx';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '../../../../components/ui/Popover/Popover.tsx';
 import { VisuallyHidden } from '../../../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
+import styles from './EntryForm.module.css';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
 const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());
@@ -103,48 +108,26 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
   };
 
   return (
-    <chakra.form
-      onSubmit={handleSubmit}
+    <Card
+      as="form"
+      variant="railed"
+      // Card's props are typed against its div-rendering default; `as="form"` changes the
+      // rendered element at runtime but not the typed handler signature, hence the cast.
+      onSubmit={handleSubmit as unknown as FormEventHandler<HTMLDivElement>}
       display="flex"
       flexDirection="column"
       gap="4"
       maxW="2xl"
-      borderLeftWidth="2px"
-      borderLeftStyle="dashed"
-      borderColor="line"
-      pl="10"
     >
       {existingEntryId && !initialEntry && (
-        <chakra.div position="relative" borderWidth="1px" borderColor="line" bg="paperCard">
-          <chakra.div
-            position="absolute"
-            insetY="0"
-            left="0"
-            w="2px"
-            bg="rust"
-            aria-hidden="true"
-          />
-          <Text
-            px="3"
-            py="2"
-            fontFamily="mono"
-            fontSize="xs"
-            textTransform="uppercase"
-            color="rust"
-          >
+        <Card variant="default" padding="none" position="relative">
+          <div className={styles.collisionRail} aria-hidden="true" />
+          <Text px="3" py="2" variant="eyebrow" color="rust">
             An entry already exists for this date &mdash; editing it instead.
           </Text>
-        </chakra.div>
+        </Card>
       )}
-      <chakra.label
-        display="flex"
-        flexDirection="column"
-        gap="1"
-        fontFamily="mono"
-        fontSize="xs"
-        textTransform="uppercase"
-        htmlFor="entry-date"
-      >
+      <FieldLabel eyebrow htmlFor="entry-date">
         Date
         <Popover
           open={datePopoverOpen}
@@ -176,29 +159,18 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
             />
           </PopoverContent>
         </Popover>
-      </chakra.label>
-      <chakra.label position="relative" htmlFor="entry-title">
+      </FieldLabel>
+      <FieldLabel display="block" position="relative" htmlFor="entry-title">
         <VisuallyHidden>Title</VisuallyHidden>
         <Input
           id="entry-title"
-          border="none"
-          borderBottomWidth="1px"
-          borderColor="line"
-          borderRadius="0"
-          bg="transparent"
-          px="0"
-          pb="2"
-          fontFamily="heading"
-          fontWeight="medium"
-          fontSize="2xl"
-          color="ink"
+          variant="title"
           placeholder="Give the page a title"
-          _focusVisible={{ borderColor: 'moss', boxShadow: 'none' }}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
         />
-      </chakra.label>
+      </FieldLabel>
       <MoodPicker
         primaryMood={primaryMood}
         specificEmotion={specificEmotion}
@@ -210,9 +182,9 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
 
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
 
-      {error && <Text color="rust">{error}</Text>}
-      
-      <chakra.div display="flex" justifyContent="flex-end" gap="3" mt="2">
+      {error && <Text variant="error">{error}</Text>}
+
+      <Stack justify="flex-end" gap="3" mt="2">
         {initialEntry ? (
           <ConfirmDialog
             trigger={
@@ -238,7 +210,7 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
           </Button>
         )}
         <Button type="submit">Save entry</Button>
-      </chakra.div>
-    </chakra.form>
+      </Stack>
+    </Card>
   );
 }
