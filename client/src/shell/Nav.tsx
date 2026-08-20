@@ -33,7 +33,6 @@ function RailLink({ to, children }: { to: string; children: string }) {
 
 export function Nav() {
   const { user, logout } = useAuth();
-  console.log('🚀 ~ Nav ~user:', user);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -79,6 +78,12 @@ export function Nav() {
       {user && (
         <Flex direction="column" gap="1">
           <RailLink to="/journal">Journal</RailLink>
+        </Flex>
+      )}
+
+      {import.meta.env.DEV && (
+        <Flex direction="column" gap="1">
+          <RailLink to="/dev/components">UI components</RailLink>
         </Flex>
       )}
 

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as DevComponentsRouteImport } from './routes/dev/components'
 import { Route as JournalIndexRouteImport } from './routes/journal/index'
 import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
@@ -30,6 +31,11 @@ const LoginRoute = LoginRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevComponentsRoute = DevComponentsRouteImport.update({
+  id: '/dev/components',
+  path: '/dev/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JournalIndexRoute = JournalIndexRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dev/components': typeof DevComponentsRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/journal/': typeof JournalIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dev/components': typeof DevComponentsRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/journal': typeof JournalIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dev/components': typeof DevComponentsRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/journal/': typeof JournalIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/dev/components'
     | '/journal/$entryId'
     | '/journal/new'
     | '/journal/'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/dev/components'
     | '/journal/$entryId'
     | '/journal/new'
     | '/journal'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/dev/components'
     | '/journal/$entryId'
     | '/journal/new'
     | '/journal/'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  DevComponentsRoute: typeof DevComponentsRoute
   JournalEntryIdRoute: typeof JournalEntryIdRoute
   JournalNewRoute: typeof JournalNewRoute
   JournalIndexRoute: typeof JournalIndexRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/components': {
+      id: '/dev/components'
+      path: '/dev/components'
+      fullPath: '/dev/components'
+      preLoaderRoute: typeof DevComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journal/': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  DevComponentsRoute: DevComponentsRoute,
   JournalEntryIdRoute: JournalEntryIdRoute,
   JournalNewRoute: JournalNewRoute,
   JournalIndexRoute: JournalIndexRoute,
