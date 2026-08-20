@@ -10,7 +10,8 @@
     "test": "jest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node src/db/migrate.ts",
-    "seed:test-entries": "ts-node src/scripts/seedTestEntries.ts"
+    "seed:test-entries": "ts-node src/scripts/seedTestEntries.ts",
+    "migrate:mongo": "ts-node src/scripts/migrateMongoJournal.ts"
   },
   "dependencies": {
     "@nee3/shared-types": "^1.0.0",
@@ -46,6 +47,7 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "jest": "^29.7.0",
+    "mongodb": "^7.5.0",
     "nodemon": "^3.1.4",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.4",

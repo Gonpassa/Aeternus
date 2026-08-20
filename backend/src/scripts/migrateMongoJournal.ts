@@ -1,0 +1,187 @@
+import { MongoClient, ObjectId } from 'mongodb';
+import { eq, or } from 'drizzle-orm';
+import { PrimaryMood } from '@nee3/shared-types';
+import { db, pool } from '../db/index';
+import { users, NewUser } from '../db/schema';
+import { createEntry, DuplicateEntryError } from '../db/entries';
+
+type MongoUser = {
+  _id: ObjectId;
+  username: string;
+  email: string;
+  password: string;
+};
+
+type MongoEntry = {
+  _id: ObjectId;
+  title?: string;
+  month: string | number;
+  day: string | number;
+  year: string | number;
+  time?: string;
+  mood?: string;
+  entry?: string;
+  userId: string;
+};
+
+const MOOD_MAP: Record<string, { primaryMood: PrimaryMood; specificEmotion: string | null }> = {
+  sad: { primaryMood: 'sad', specificEmotion: null },
+  happy: { primaryMood: 'happy', specificEmotion: null },
+  neutral: { primaryMood: 'calm', specificEmotion: 'neutral' },
+};
+
+const escapeHtml = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const toParagraphHtml = (text: string): string =>
+  text
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
+    .join('') || '<p></p>';
+
+const toIsoDate = (year: string | number, month: string | number, day: string | number): string => {
+  const y = String(year).padStart(4, '0');
+  const m = String(month).padStart(2, '0');
+  const d = String(day).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const migrateUsers = async (mongoUsers: MongoUser[]): Promise<Map<string, number>> => {
+  const idMap = new Map<string, number>();
+
+  for (const mongoUser of mongoUsers) {
+    const username = mongoUser.username.toLowerCase();
+    const email = mongoUser.email.toLowerCase();
+
+    // eslint-disable-next-line no-await-in-loop
+    const [existing] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(or(eq(users.username, username), eq(users.email, email)));
+
+    if (existing) {
+      idMap.set(mongoUser._id.toString(), existing.id);
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const newUser: NewUser = {
+      username,
+      email,
+      // The Mongo password is already a bcrypt hash - preserved as-is so migrated
+      // users can log in with their existing password unchanged.
+      password: mongoUser.password,
+    };
+    // eslint-disable-next-line no-await-in-loop
+    const [created] = await db.insert(users).values(newUser).returning({ id: users.id });
+    if (!created) {
+      throw new Error(`Failed to insert migrated user "${username}"`);
+    }
+    idMap.set(mongoUser._id.toString(), created.id);
+  }
+
+  return idMap;
+};
+
+const migrateEntries = async (
+  mongoEntries: MongoEntry[],
+  userIdMap: Map<string, number>,
+): Promise<{ created: number; skippedDuplicate: number; skippedNoUser: number }> => {
+  let created = 0;
+  let skippedDuplicate = 0;
+  let skippedNoUser = 0;
+
+  for (const mongoEntry of mongoEntries) {
+    const userId = userIdMap.get(mongoEntry.userId);
+    if (!userId) {
+      skippedNoUser += 1;
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Skipping entry "${mongoEntry._id.toString()}": unknown userId ${mongoEntry.userId}`,
+      );
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const mood = MOOD_MAP[mongoEntry.mood ?? ''] ?? {
+      primaryMood: 'calm' as const,
+      specificEmotion: mongoEntry.mood ?? null,
+    };
+
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await createEntry({
+        userId,
+        date: toIsoDate(mongoEntry.year, mongoEntry.month, mongoEntry.day),
+        title: mongoEntry.title?.trim() || 'Untitled entry',
+        primaryMood: mood.primaryMood,
+        specificEmotion: mood.specificEmotion,
+        content: toParagraphHtml(mongoEntry.entry ?? ''),
+      });
+      created += 1;
+    } catch (err) {
+      if (err instanceof DuplicateEntryError) {
+        skippedDuplicate += 1;
+        // eslint-disable-next-line no-console
+        console.warn(
+          `Skipping entry "${mongoEntry._id.toString()}": an entry already exists for user ${userId} on ${toIsoDate(
+            mongoEntry.year,
+            mongoEntry.month,
+            mongoEntry.day,
+          )}`,
+        );
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  return { created, skippedDuplicate, skippedNoUser };
+};
+
+const run = async (): Promise<void> => {
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    throw new Error(
+      'MONGO_URI environment variable is required (points at the Harmonee Mongo database)',
+    );
+  }
+
+  const client = new MongoClient(mongoUri);
+  await client.connect();
+  const mongoDb = client.db();
+
+  try {
+    const mongoUsers = await mongoDb.collection<MongoUser>('users').find().toArray();
+    const mongoEntries = await mongoDb.collection<MongoEntry>('entries').find().toArray();
+
+    const userIdMap = await migrateUsers(mongoUsers);
+    const { created, skippedDuplicate, skippedNoUser } = await migrateEntries(
+      mongoEntries,
+      userIdMap,
+    );
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `Migrated ${userIdMap.size} user(s). Entries: ${created} created, ${skippedDuplicate} skipped (duplicate date), ${skippedNoUser} skipped (unknown user).`,
+    );
+  } finally {
+    await client.close();
+  }
+};
+
+if (require.main === module) {
+  run()
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      process.exitCode = 1;
+    })
+    .finally(() => {
+      void pool.end();
+    });
+}
+
+export { run as migrateMongoJournal };
