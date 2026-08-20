@@ -26,7 +26,7 @@ function deriveLocalState(
   specificEmotion: SpecificEmotion | null,
 ): LocalMoodState {
   const isFixed =
-    primaryMood !== null && MOOD_TAXONOMY[primaryMood].includes(specificEmotion ?? '');
+    primaryMood !== null && (MOOD_TAXONOMY[primaryMood]?.includes(specificEmotion ?? '') ?? false);
   return {
     selectedFixed: isFixed ? specificEmotion : null,
     customText: !isFixed && specificEmotion ? specificEmotion : '',
@@ -83,6 +83,8 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
     const trimmed = raw.trim();
     emit(primaryMood, trimmed.length > 0 ? raw : null);
   };
+    console.log("🚀 ~ deriveLocalState ~ MOOD_TAXONOMY:", MOOD_TAXONOMY)
+
 
   return (
     <Stack as="fieldset" flexDirection="column" gap="2">
@@ -102,7 +104,7 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
       </Stack>
       {primaryMood && (
         <Stack wrap="wrap" align="center" gap="2" role="radiogroup" aria-label="Specific emotion">
-          {MOOD_TAXONOMY[primaryMood].map((emotion) => (
+          {(MOOD_TAXONOMY[primaryMood] ?? []).map((emotion) => (
             <EmotionPillButton
               key={emotion}
               label={emotion}

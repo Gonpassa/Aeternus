@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
-import { CharacterCount } from '@tiptap/extensions';
 import StarterKit from '@tiptap/starter-kit';
 import { Card } from '../../../../components/ui/Card/Card.tsx';
 import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
@@ -20,9 +19,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         codeBlock: false,
         blockquote: false,
         horizontalRule: false,
-      }),
-      CharacterCount.configure({
-        limit: 10,
       }),
     ],
     content: value,

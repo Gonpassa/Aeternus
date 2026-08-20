@@ -48,6 +48,14 @@ npm test         # vitest run
 
 There is no top-level dev script that runs client and backend together; run each separately.
 
+## Data privacy
+
+`backend/.env`'s `DATABASE_URL` (`nee3`) holds real, personal journal data migrated from Mongo via `backend/src/scripts/migrateMongoJournal.ts`. Treat it as off-limits to the agent:
+
+- Never start the backend/dev server against the `nee3` database for agent-driven browser verification (e.g. `claude-in-chrome`) or any other automated feature check. Use the seeded test database instead — `backend/.env.test` (`nee3_test`), populated via `backend/src/scripts/seedTestEntries.ts`. If no `.env.test`-pointed server is running, start one rather than falling back to `.env`.
+- Never read, quote, or paste output from a server/process that was run against the `nee3` database — dev server stdout, request logs, stack traces, error messages — since it may contain real entry content. If something needs debugging against real data, ask the user to check it themselves rather than reading logs directly.
+- These rules apply regardless of how mundane the task looks ("just confirming the button works") — default to the seeded DB unless the user explicitly says otherwise for a specific, scoped reason.
+
 ## Architecture
 
 **npm workspaces monorepo**, a deliberate departure from Nee.2 (which kept client/backend fully independent). All three packages (`client/`, `backend/`, `packages/shared-types/`) extend the root `tsconfig.base.json` (strict mode, `noUncheckedIndexedAccess`, `noUnusedLocals`/`Parameters`, etc.). `packages/shared-types` is the **only** shared runtime dependency between client and backend, and it ships types only (erased at build) — no shared runtime logic otherwise. Both client and backend depend on it as `@nee3/shared-types`.

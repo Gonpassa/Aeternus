@@ -86,7 +86,7 @@ function JournalIndexPage() {
                 <Heading as="h2" fontFamily="heading" fontSize="lg" fontWeight="medium" color="ink">
                   {entry.title}
                 </Heading>
-                <Text fontFamily="body" color="inkSoft">
+                <Text fontFamily="body" color="ink">
                   {stripHtml(entry.content).slice(0, 140)}
                 </Text>
               </Link>
