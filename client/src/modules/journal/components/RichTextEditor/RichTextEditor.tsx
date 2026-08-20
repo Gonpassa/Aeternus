@@ -35,13 +35,17 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [value, editor]);
 
   return (
-    <Box borderWidth="1px" borderColor="line" bg="paperCard" p="3" fontFamily="body" color="ink">
-      <EditorContent
-        editor={editor}
-        className="entry-content"
-        style={{ minHeight: '15rem' }}
-        data-placeholder={placeholder}
-      />
+    <Box
+      borderWidth="1px"
+      borderColor="line"
+      bg="paperCard"
+      p="3"
+      fontFamily="body"
+      color="ink"
+      minH="15rem"
+      onClick={() => editor?.commands.focus()}
+    >
+      <EditorContent editor={editor} className="entry-content" data-placeholder={placeholder} />
     </Box>
   );
 }

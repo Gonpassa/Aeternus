@@ -26,7 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         <Outlet />
       </Layout>
       <Suspense fallback={null}>
-        {/* <TanStackRouterDevtools /> */}
+        <TanStackRouterDevtools />
       </Suspense>
     </AuthProvider>
   ),

@@ -37,7 +37,7 @@ function EditEntryPage() {
   };
 
   return (
-    <Box mx="auto" maxW="2xl" p="4">
+    <Box maxW="2xl" p="4">
       <Heading as="h1" mb="4" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
         Edit entry
       </Heading>

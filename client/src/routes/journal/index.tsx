@@ -37,7 +37,7 @@ function JournalIndexPage() {
   const dataLoaded = hasFilter ? filtered.data !== undefined : paginated.data !== undefined;
 
   return (
-    <Box mx="auto" maxW="2xl" p="4">
+    <Box maxW="2xl" p="4">
       <Flex mb="4" align="center" justify="space-between">
         <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
           Journal

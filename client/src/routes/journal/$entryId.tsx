@@ -29,7 +29,7 @@ function EntryDetailPage() {
 
   return (
     <Box p="4">
-      <Flex mx="auto" mb="4" maxW="2xl" align="center" gap="3">
+      <Flex mb="4" maxW="2xl" align="center" gap="3">
         <Button asChild variant="outline">
           <Link to="/journal/$entryId/edit" params={{ entryId }}>
             Edit

@@ -10,7 +10,6 @@ export function EntryView({ entry }: EntryViewProps) {
   return (
     <Box
       as="article"
-      mx="auto"
       maxW="2xl"
       borderLeftWidth="2px"
       borderLeftStyle="dashed"
