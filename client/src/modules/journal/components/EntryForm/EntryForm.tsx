@@ -207,8 +207,11 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
           setSpecificEmotion(s);
         }}
       />
+
       <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
+
       {error && <Text color="rust">{error}</Text>}
+      
       <chakra.div display="flex" justifyContent="flex-end" gap="3" mt="2">
         {initialEntry ? (
           <ConfirmDialog

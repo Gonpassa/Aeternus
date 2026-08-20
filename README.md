@@ -45,16 +45,15 @@ AI woven into the writing/notes flow rather than bolted on as a chat sidebar. Fi
 - **Vite** — dev server and bundler
 - **TanStack Router** — file-based, type-safe routing
 - **TanStack Query** — server-state management and data fetching
-- **Tailwind CSS v4** — utility-first styling, via `@tailwindcss/vite`
-- **shadcn/ui** — accessible component primitives (Radix-based), copied into the codebase and styled with Tailwind
+- **Chakra UI v3** — component primitives and theming, styled from the design-system tokens
 - **Axios** — HTTP client
 
 ### Backend (`/backend`)
 - **Node.js + Express** — REST API server
 - **TypeScript** — shared type definitions with client where applicable
-- **Mongoose** — MongoDB ODM
+- **PostgreSQL + Drizzle ORM** — data layer, migrations via `drizzle-kit`
 - **Passport.js** — authentication (local strategy)
-- **express-session + connect-mongo** — session persistence
+- **express-session + connect-pg-simple** — session persistence
 
 ### Tooling (both packages)
 - **ESLint** — linting (Airbnb config + TypeScript rules)
@@ -82,17 +81,17 @@ Within `client/` and `backend/`, modules (journal, writing, calendar, learning) 
 
 ## Build Plan
 
-### Phase 1 — Project Setup
+### Phase 1 — Project Setup ✅
 Scaffold `/client` and `/backend` with TypeScript, ESLint, Prettier, and tooling configs. Establish shared conventions and the modular folder structure before any feature work begins.
 
-### Phase 2 — Backend API core
-Set up the account/session layer (Mongoose models, Passport session auth) that every module will sit on top of. Define and document API contracts as modules are added, rather than up front for features that don't exist yet.
+### Phase 2 — Backend API core ✅
+Set up the account/session layer (Postgres via Drizzle, Passport session auth) that every module will sit on top of. Define and document API contracts as modules are added, rather than up front for features that don't exist yet.
 
-### Phase 3 — Authentication
+### Phase 3 — Authentication ✅
 Wire login, registration, and session handling through the API. Implement protected-route middleware on the backend and an auth context on the client.
 
-### Phase 4 — Journal module
-Rebuild the journal: entry list, detail view, create/edit/delete, mood tagging, calendar view, insights/overview. This is the module with the clearest prior art and establishes the data-layer and UI-shell patterns other modules will follow.
+### Phase 4 — Journal module (mostly done)
+Rebuild the journal: entry list, detail view, create/edit/delete, mood tagging, calendar view are built and tested on both sides. Insights/overview is deferred to a later pass. Next up: migrating existing entries from the old Harmonee MongoDB into Postgres.
 
 ### Phase 5 — Structured writing module
 Essay/blog-style pieces with reflection prompts, references, and links between pieces (backlinks).
@@ -131,4 +130,4 @@ Copy `backend/.env.example` to `backend/.env` and `backend/.env.test.example` to
 - **Separation of concerns** — client and backend are independent packages; no shared runtime code.
 - **Type safety end-to-end** — API response shapes are typed on both sides.
 - **No premature abstraction** — build for what exists today; extend later. Don't design the writing/calendar/AI data models before their phase starts.
-- **Tailwind + shadcn/ui for all styles** — no hand-rolled CSS-in-JS; utility classes in JSX, one global stylesheet for the Tailwind entrypoint and theme tokens.
+- **Chakra UI, encapsulated in `src/components/ui/`** — no Tailwind. Custom styling (including CSS modules) lives inside a reusable UI/block component, not as one-off style-prop overrides at call sites. Call sites consume a component's props/variants only; they don't reach in with outside style props except through an explicit `className` escape hatch for genuinely rare cases. Theme tokens live in `client/src/theme.ts`, sourced from `docs/design/design-system.md`.
