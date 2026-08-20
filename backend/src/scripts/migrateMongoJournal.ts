@@ -41,17 +41,37 @@ const toParagraphHtml = (text: string): string =>
     .map((block) => `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
     .join('') || '<p></p>';
 
-const toIsoDate = (year: string | number, month: string | number, day: string | number): string => {
-  const y = String(year).padStart(4, '0');
-  const m = String(month).padStart(2, '0');
-  const d = String(day).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+const toIsoDate = (
+  year: string | number,
+  month: string | number,
+  day: string | number,
+): string | null => {
+  const y = Number(year);
+  const m = Number(month);
+  const d = Number(day);
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) {
+    return null;
+  }
+  if (y < 1000 || y > 9999 || m < 1 || m > 12 || d < 1 || d > 31) {
+    return null;
+  }
+  const iso = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  // Reject dates that overflow into the next month (e.g. Feb 30), which Date would
+  // otherwise silently roll forward instead of flagging as invalid.
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime()) || parsed.getUTCDate() !== d) {
+    return null;
+  }
+  return iso;
 };
 
 const migrateUsers = async (mongoUsers: MongoUser[]): Promise<Map<string, number>> => {
   const idMap = new Map<string, number>();
 
   for (const mongoUser of mongoUsers) {
+    if (!mongoUser.username || !mongoUser.email) {
+      continue;
+    }
     const username = mongoUser.username.toLowerCase();
     const email = mongoUser.email.toLowerCase();
 
@@ -88,10 +108,16 @@ const migrateUsers = async (mongoUsers: MongoUser[]): Promise<Map<string, number
 const migrateEntries = async (
   mongoEntries: MongoEntry[],
   userIdMap: Map<string, number>,
-): Promise<{ created: number; skippedDuplicate: number; skippedNoUser: number }> => {
+): Promise<{
+  created: number;
+  skippedDuplicate: number;
+  skippedNoUser: number;
+  skippedInvalidDate: number;
+}> => {
   let created = 0;
   let skippedDuplicate = 0;
   let skippedNoUser = 0;
+  let skippedInvalidDate = 0;
 
   for (const mongoEntry of mongoEntries) {
     const userId = userIdMap.get(mongoEntry.userId);
@@ -100,6 +126,17 @@ const migrateEntries = async (
       // eslint-disable-next-line no-console
       console.warn(
         `Skipping entry "${mongoEntry._id.toString()}": unknown userId ${mongoEntry.userId}`,
+      );
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const date = toIsoDate(mongoEntry.year, mongoEntry.month, mongoEntry.day);
+    if (!date) {
+      skippedInvalidDate += 1;
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Skipping entry "${mongoEntry._id.toString()}": invalid date (year=${mongoEntry.year}, month=${mongoEntry.month}, day=${mongoEntry.day})`,
       );
       // eslint-disable-next-line no-continue
       continue;
@@ -114,7 +151,7 @@ const migrateEntries = async (
       // eslint-disable-next-line no-await-in-loop
       await createEntry({
         userId,
-        date: toIsoDate(mongoEntry.year, mongoEntry.month, mongoEntry.day),
+        date,
         title: mongoEntry.title?.trim() || 'Untitled entry',
         primaryMood: mood.primaryMood,
         specificEmotion: mood.specificEmotion,
@@ -126,11 +163,7 @@ const migrateEntries = async (
         skippedDuplicate += 1;
         // eslint-disable-next-line no-console
         console.warn(
-          `Skipping entry "${mongoEntry._id.toString()}": an entry already exists for user ${userId} on ${toIsoDate(
-            mongoEntry.year,
-            mongoEntry.month,
-            mongoEntry.day,
-          )}`,
+          `Skipping entry "${mongoEntry._id.toString()}": an entry already exists for user ${userId} on ${date}`,
         );
       } else {
         throw err;
@@ -138,7 +171,7 @@ const migrateEntries = async (
     }
   }
 
-  return { created, skippedDuplicate, skippedNoUser };
+  return { created, skippedDuplicate, skippedNoUser, skippedInvalidDate };
 };
 
 const run = async (): Promise<void> => {
@@ -157,15 +190,30 @@ const run = async (): Promise<void> => {
     const mongoUsers = await mongoDb.collection<MongoUser>('users').find().toArray();
     const mongoEntries = await mongoDb.collection<MongoEntry>('entries').find().toArray();
 
+    const invalidDateEntries = mongoEntries.filter(
+      (entry) => !toIsoDate(entry.year, entry.month, entry.day),
+    );
+
+    // eslint-disable-next-line no-console
+    console.log(
+      `Dry run: found ${mongoUsers.length} user(s) and ${mongoEntries.length} entry(ies) in Mongo. ${invalidDateEntries.length} entry(ies) have an invalid date and will be skipped.`,
+    );
+    invalidDateEntries.forEach((entry) => {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `  invalid date on entry "${entry._id.toString()}": year=${entry.year}, month=${entry.month}, day=${entry.day}`,
+      );
+    });
+
     const userIdMap = await migrateUsers(mongoUsers);
-    const { created, skippedDuplicate, skippedNoUser } = await migrateEntries(
+    const { created, skippedDuplicate, skippedNoUser, skippedInvalidDate } = await migrateEntries(
       mongoEntries,
       userIdMap,
     );
 
     // eslint-disable-next-line no-console
     console.log(
-      `Migrated ${userIdMap.size} user(s). Entries: ${created} created, ${skippedDuplicate} skipped (duplicate date), ${skippedNoUser} skipped (unknown user).`,
+      `Migrated ${userIdMap.size} user(s). Entries: ${created} created, ${skippedDuplicate} skipped (duplicate date), ${skippedNoUser} skipped (unknown user), ${skippedInvalidDate} skipped (invalid date).`,
     );
   } finally {
     await client.close();

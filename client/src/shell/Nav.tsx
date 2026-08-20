@@ -51,6 +51,8 @@ export function Nav() {
       gap="10"
       w={{ base: '100%', md: '15rem' }}
       flexShrink="0"
+      h={{ base: 'auto', md: '100vh' }}
+      overflowY={{ base: 'visible', md: 'auto' }}
       bg="inkBlue"
       color="paper"
       px={{ base: '5', md: '6' }}
