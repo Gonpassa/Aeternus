@@ -22,7 +22,7 @@ The paper tone is real (it's genuinely the right material for this subject), but
 | `--mood-anxious` | `#B98A2E` | Mood mark — anxious (Phase 4a taxonomy) |
 | `--mood-angry` | `#7A2E1E` | Mood mark — angry (Phase 4a taxonomy) |
 | `--mood-calm` | `#C9743A` | Mood mark - calm (Phase 4a taxonomy) |
-| `--mood-steady` | `#8A7D5C` | Mood mark - steady (Phase 4a taxonomy) |
+| `--mood-steady` | `#B8860B` | Mood mark - steady (Phase 4a taxonomy) |
 
 Rust is a spice, not a base. It should never cover more than a tag, a dot, or a 2px underline at a time.
 
@@ -98,7 +98,7 @@ Phase 4a's two-tier feelings-wheel taxonomy needs six distinct primary-mood colo
 | sad | `--ink-blue` | #2C3E52 |
 | anxious | `--mood-anxious` | #B98A2E |
 | angry | `--mood-angry` | #7A2E1E |
-| steady | `--mood-steady` | #8A7D5C |
+| steady | `--mood-steady` | #B8860B |
 
 Mood marks still carry a text label on hover/focus per the accessibility floor below, so mood pairs never rely on color alone to stay distinguishable.
 

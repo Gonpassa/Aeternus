@@ -148,7 +148,7 @@ const config = defineConfig({
         moodAnxious: { value: '#B98A2E' },
         moodAngry: { value: '#7A2E1E' },
         moodCalm: { value: '#C9743A' },
-        moodSteady: { value: '#8A7D5C' },
+        moodSteady: { value: '#B8860B' },
       },
       fonts: {
         heading: { value: "'Fraunces', ui-serif, serif" },

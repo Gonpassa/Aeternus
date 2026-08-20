@@ -24,5 +24,5 @@ export const MOOD_RING_COLOR: Record<PrimaryMood, string> = {
   sad: '#2C3E52',
   anxious: '#B98A2E',
   angry: '#7A2E1E',
-  steady: '#8A7D5C',
+  steady: '#B8860B',
 };
