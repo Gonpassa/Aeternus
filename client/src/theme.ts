@@ -62,6 +62,77 @@ const buttonRecipe = defineRecipe({
   },
 });
 
+export const textRecipe = defineRecipe({
+  base: {},
+  variants: {
+    variant: {
+      default: {},
+      eyebrow: {
+        fontFamily: 'mono',
+        fontSize: 'xs',
+        textTransform: 'uppercase',
+        letterSpacing: 'wide',
+      },
+      muted: {
+        color: 'inkSoft',
+      },
+      error: {
+        color: 'rust',
+      },
+      formError: {
+        color: 'red.600',
+      },
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+export const headingRecipe = defineRecipe({
+  base: {},
+  variants: {
+    variant: {
+      default: {},
+      page: {
+        fontFamily: 'heading',
+        fontSize: '3xl',
+        fontWeight: 'semibold',
+        color: 'ink',
+      },
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+export const inputRecipe = defineRecipe({
+  base: {},
+  variants: {
+    variant: {
+      default: {},
+      title: {
+        border: 'none',
+        borderBottomWidth: '1px',
+        borderColor: 'line',
+        borderRadius: '0',
+        bg: 'transparent',
+        px: '0',
+        pb: '2',
+        fontFamily: 'heading',
+        fontWeight: 'medium',
+        fontSize: '2xl',
+        color: 'ink',
+        _focusVisible: { borderColor: 'moss', boxShadow: 'none' },
+      },
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
 const config = defineConfig({
   theme: {
     tokens: {
