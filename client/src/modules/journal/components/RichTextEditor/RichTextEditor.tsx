@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Box } from '@chakra-ui/react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { CharacterCount } from '@tiptap/extensions';
 import StarterKit from '@tiptap/starter-kit';
+import { Card } from '../../../../components/ui/Card/Card.tsx';
+import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
 
 export interface RichTextEditorProps {
   value: string;
@@ -35,17 +36,16 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [value, editor]);
 
   return (
-    <Box
-      borderWidth="1px"
-      borderColor="line"
-      bg="paperCard"
-      p="3"
+    <Card
+      padding="sm"
       fontFamily="body"
       color="ink"
       minH="15rem"
       onClick={() => editor?.commands.focus()}
     >
-      <EditorContent editor={editor} className="entry-content" data-placeholder={placeholder} />
-    </Box>
+      <Prose>
+        <EditorContent editor={editor} data-placeholder={placeholder} />
+      </Prose>
+    </Card>
   );
 }

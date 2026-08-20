@@ -1,0 +1,49 @@
+.swatchButton {
+  position: relative;
+  box-sizing: border-box;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: #d8cfb8;
+  background: #eae2cc;
+  cursor: pointer;
+}
+
+.swatchButtonSelected {
+  border-color: var(--swatch-color);
+}
+
+.swatchDot {
+  position: absolute;
+  inset: 4px;
+  border-radius: 9999px;
+  background: var(--swatch-color);
+  opacity: 0.25;
+}
+
+.swatchDotSelected {
+  opacity: 1;
+}
+
+.pillButton {
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d8cfb8;
+  padding-inline: 0.5rem;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pillButtonSelected {
+  border-color: #55684a;
+  color: #55684a;
+}

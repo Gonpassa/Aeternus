@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, chakra, Flex, Input, Text } from '@chakra-ui/react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
-import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
-import { VisuallyHidden } from '../../../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
-import { Tooltip } from '../../../../components/ui/Tooltip/Tooltip.tsx';
+import { MOOD_LABEL, MOOD_RING_COLOR } from '../../moodColors.ts';
+import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
+import { Text } from '../../../../components/ui/Text/Text.tsx';
+import { Input } from '../../../../components/ui/Input/Input.tsx';
+import { MoodSwatchButton } from './MoodSwatchButton.tsx';
+import { EmotionPillButton } from './EmotionPillButton.tsx';
 
 export interface MoodPickerProps {
   primaryMood: PrimaryMood | null;
@@ -83,68 +85,30 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
   };
 
   return (
-    <Box as="fieldset" display="flex" flexDirection="column" gap="2">
-      <Text
-        as="legend"
-        fontFamily="mono"
-        fontSize="xs"
-        textTransform="uppercase"
-        letterSpacing="wide"
-        color="inkSoft"
-      >
+    <Stack as="fieldset" flexDirection="column" gap="2">
+      <Text as="legend" variant="eyebrow" color="inkSoft">
         Mood
       </Text>
-      <Flex wrap="wrap" gap="3" role="radiogroup" aria-label="Primary mood">
+      <Stack wrap="wrap" gap="3" role="radiogroup" aria-label="Primary mood">
         {PRIMARY_MOODS.map((mood) => (
-          <Tooltip key={mood} content={MOOD_LABEL[mood]}>
-            <chakra.button
-              type="button"
-              role="radio"
-              aria-checked={primaryMood === mood}
-              onClick={() => handlePrimaryMoodClick(mood)}
-              position="relative"
-              boxSize="7"
-              p="0"
-              borderRadius="full"
-              borderWidth="1.5px"
-              borderColor={primaryMood === mood ? MOOD_DOT_COLOR[mood] : 'line'}
-              bg="paperCard"
-            >
-              <Box
-                position="absolute"
-                inset="4px"
-                borderRadius="full"
-                bg={MOOD_DOT_COLOR[mood]}
-                opacity={primaryMood === mood ? 1 : 0.25}
-                aria-hidden="true"
-              />
-              <VisuallyHidden>{MOOD_LABEL[mood]}</VisuallyHidden>
-            </chakra.button>
-          </Tooltip>
+          <MoodSwatchButton
+            key={mood}
+            label={MOOD_LABEL[mood]}
+            color={MOOD_RING_COLOR[mood]}
+            selected={primaryMood === mood}
+            onClick={() => handlePrimaryMoodClick(mood)}
+          />
         ))}
-      </Flex>
+      </Stack>
       {primaryMood && (
-        <Flex wrap="wrap" align="center" gap="2" role="radiogroup" aria-label="Specific emotion">
+        <Stack wrap="wrap" align="center" gap="2" role="radiogroup" aria-label="Specific emotion">
           {MOOD_TAXONOMY[primaryMood].map((emotion) => (
-            <chakra.button
+            <EmotionPillButton
               key={emotion}
-              type="button"
-              role="radio"
-              aria-checked={selectedFixed === emotion}
+              label={emotion}
+              selected={selectedFixed === emotion}
               onClick={() => handleFixedEmotionClick(emotion)}
-              display="inline-flex"
-              alignItems="center"
-              h="7"
-              borderWidth="1px"
-              borderColor={selectedFixed === emotion ? 'moss' : 'line'}
-              color={selectedFixed === emotion ? 'moss' : undefined}
-              px="2"
-              fontFamily="mono"
-              fontSize="xs"
-              textTransform="uppercase"
-            >
-              {emotion}
-            </chakra.button>
+            />
           ))}
           <Input
             type="text"
@@ -160,8 +124,8 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
             fontSize="xs"
             w="auto"
           />
-        </Flex>
+        </Stack>
       )}
-    </Box>
+    </Stack>
   );
 }
