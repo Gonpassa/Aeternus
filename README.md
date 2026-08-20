@@ -35,6 +35,9 @@ Distinct from the journal's own date-based entry view, though the two should fee
 AI woven into the writing/notes flow rather than bolted on as a chat sidebar. First concrete case:
 - When writing notes on a topic, generate quiz-style questions from that material to self-test retention.
 
+### Dream Journal
+Recording and working through dreams using Jungian dream-analysis method - see `CONTEXT.md` for the full glossary. Distinct from Journal: a dream has no title, and its analysis accumulates over multiple revisits rather than being written once. Manual only for now; AI-assisted analysis is a separate, later module.
+
 ---
 
 ## Tech Stack
@@ -75,7 +78,7 @@ Aeternus.3/
 └── README.md
 ```
 
-Within `client/` and `backend/`, modules (journal, writing, calendar, learning) live as separate feature folders (`src/modules/<module>/`) rather than intermixed, so a module can be extended or reworked without disturbing the others. The client also has a `src/shell/` layer (layout, nav, auth context) that all modules render inside.
+Within `client/` and `backend/`, modules (journal, writing, calendar, learning, dream) live as separate feature folders (`src/modules/<module>/`) rather than intermixed, so a module can be extended or reworked without disturbing the others. The client also has a `src/shell/` layer (layout, nav, auth context) that all modules render inside.
 
 ---
 
@@ -93,17 +96,20 @@ Wire login, registration, and session handling through the API. Implement protec
 ### Phase 4 — Journal module (mostly done)
 Rebuild the journal: entry list, detail view, create/edit/delete, mood tagging, calendar view are built and tested on both sides. Insights/overview is deferred to a later pass. Next up: migrating existing entries from the old Harmonee MongoDB into Postgres.
 
-### Phase 5 — Structured writing module
+### Phase 5 — Deployment
+Set up a deployment pipeline for both packages. Evaluate whether to migrate the existing Fly.io app or deploy Aeternus.3 as a separate service alongside it. Moved up ahead of the remaining modules so what's built so far (through Journal) ships before more feature work piles up.
+
+### Phase 6 — Dream Journal
+Standalone module for recording dreams and working through them using Jungian dream-analysis method (see `CONTEXT.md` for the full glossary: Dream, Anchor, Emotional beat, Symbol, Analytic/Synthetic analysis, Association). A dream has a date and a rich-text narrative, no title. Users highlight passages as anchors to attach freeform emotional beats, tag recurring symbols, and record associations to those symbols. Analytic (reductive) and synthetic (constructive) analysis passes can be added at any time - analytic optionally per-anchor, synthetic always whole-dream - and passes accumulate rather than overwrite, so a dream can be reread as understanding deepens. AI-assisted analysis (symbol surfacing, suggested readings) is deliberately out of scope here and planned as a later, separate phase - this one is manual only.
+
+### Phase 7 — Structured writing module
 Essay/blog-style pieces with reflection prompts, references, and links between pieces (backlinks).
 
-### Phase 6 — Calendar integration
+### Phase 8 — Calendar integration
 Google Calendar sync, distinct from the journal's own date view.
 
-### Phase 7 — AI-assisted learning
+### Phase 9 — AI-assisted learning
 Question generation from notes/writing for self-testing, integrated into the writing module's flow.
-
-### Phase 8 — Deployment
-Set up a deployment pipeline for both packages. Evaluate whether to migrate the existing Fly.io app or deploy Aeternus.3 as a separate service alongside it.
 
 ---
 
