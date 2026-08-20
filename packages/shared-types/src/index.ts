@@ -25,7 +25,7 @@ export interface ApiErrorResponse {
   error: string;
 }
 
-export type PrimaryMood = 'happy' | 'calm' | 'sad' | 'anxious' | 'angry';
+export type PrimaryMood = 'happy' | 'calm' | 'sad' | 'anxious' | 'angry' | 'steady';
 
 export type SpecificEmotion = string;
 
@@ -35,6 +35,7 @@ export const MOOD_TAXONOMY: Record<PrimaryMood, string[]> = {
   sad: ['lonely', 'disappointed', 'hurt', 'grieving'],
   anxious: ['nervous', 'overwhelmed', 'insecure', 'worried'],
   angry: ['frustrated', 'irritated', 'resentful', 'jealous'],
+  steady: ['ordinary', 'settled', 'unremarkable', 'quiet'],
 };
 
 export interface Entry {

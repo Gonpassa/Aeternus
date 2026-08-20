@@ -10,7 +10,14 @@ const isValidDate = (value: unknown): value is string =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   !Number.isNaN(Date.parse(value));
 
-const PRIMARY_MOODS: readonly PrimaryMood[] = ['happy', 'calm', 'sad', 'anxious', 'angry'];
+const PRIMARY_MOODS: readonly PrimaryMood[] = [
+  'happy',
+  'calm',
+  'sad',
+  'anxious',
+  'angry',
+  'steady',
+];
 
 const isPrimaryMood = (value: unknown): value is PrimaryMood =>
   typeof value === 'string' && (PRIMARY_MOODS as readonly string[]).includes(value);

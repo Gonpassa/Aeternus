@@ -27,8 +27,16 @@ type MongoEntry = {
 const MOOD_MAP: Record<string, { primaryMood: PrimaryMood; specificEmotion: string | null }> = {
   sad: { primaryMood: 'sad', specificEmotion: null },
   happy: { primaryMood: 'happy', specificEmotion: null },
-  neutral: { primaryMood: 'calm', specificEmotion: 'neutral' },
+  neutral: { primaryMood: 'steady', specificEmotion: null },
 };
+
+export const resolveMood = (
+  mongoMood: string | undefined,
+): { primaryMood: PrimaryMood; specificEmotion: string | null } =>
+  MOOD_MAP[mongoMood ?? ''] ?? {
+    primaryMood: 'steady' as const,
+    specificEmotion: mongoMood ?? null,
+  };
 
 const escapeHtml = (text: string): string =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -142,10 +150,7 @@ const migrateEntries = async (
       continue;
     }
 
-    const mood = MOOD_MAP[mongoEntry.mood ?? ''] ?? {
-      primaryMood: 'calm' as const,
-      specificEmotion: mongoEntry.mood ?? null,
-    };
+    const mood = resolveMood(mongoEntry.mood);
 
     try {
       // eslint-disable-next-line no-await-in-loop

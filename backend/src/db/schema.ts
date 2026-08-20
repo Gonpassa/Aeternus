@@ -21,7 +21,14 @@ export const users = pgTable('users', {
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export const primaryMoodEnum = pgEnum('primary_mood', ['happy', 'calm', 'sad', 'anxious', 'angry']);
+export const primaryMoodEnum = pgEnum('primary_mood', [
+  'happy',
+  'calm',
+  'sad',
+  'anxious',
+  'angry',
+  'steady',
+]);
 
 export const entries = pgTable(
   'entries',

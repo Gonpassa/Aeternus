@@ -32,6 +32,15 @@ describe('MoodPicker', () => {
     expect(handleChange).toHaveBeenCalledWith({ primaryMood: 'happy', specificEmotion: 'content' });
   });
 
+  it('renders a steady swatch that is selectable alongside the other primary moods', () => {
+    const handleChange = vi.fn();
+    render(<MoodPicker primaryMood={null} specificEmotion={null} onChange={handleChange} />);
+
+    fireEvent.click(screen.getByRole('radio', { name: /steady/i }));
+
+    expect(handleChange).toHaveBeenLastCalledWith({ primaryMood: 'steady', specificEmotion: null });
+  });
+
   it('renders a custom emotion text input alongside the fixed buttons', () => {
     render(<MoodPicker primaryMood="happy" specificEmotion={null} onChange={vi.fn()} />);
     expect(screen.getByPlaceholderText('Custom')).toBeInTheDocument();

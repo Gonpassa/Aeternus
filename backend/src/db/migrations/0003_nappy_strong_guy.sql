@@ -1,0 +1,1 @@
+ALTER TYPE "public"."primary_mood" ADD VALUE 'steady';

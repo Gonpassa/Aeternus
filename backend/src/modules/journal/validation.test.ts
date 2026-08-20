@@ -32,6 +32,12 @@ describe('validateEntryInput', () => {
     });
   });
 
+  it('accepts steady as a valid primary mood', () => {
+    expect(
+      validateEntryInput({ ...validInput, primaryMood: 'steady', specificEmotion: null }),
+    ).toEqual({ valid: true });
+  });
+
   it('rejects an unknown primary mood', () => {
     expect(validateEntryInput({ ...validInput, primaryMood: 'bored' })).toEqual({
       valid: false,
