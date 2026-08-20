@@ -42,6 +42,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       color="ink"
       minH="15rem"
       onClick={() => editor?.commands.focus()}
+      _focusWithin={{ outline: 'none' }}
     >
       <Prose>
         <EditorContent editor={editor} data-placeholder={placeholder} />
