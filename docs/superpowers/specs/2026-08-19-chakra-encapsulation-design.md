@@ -33,13 +33,19 @@ The user's concern: this lets every call site independently reinvent spacing, bo
 - One-off structural wrappers that exist only to apply the `.entry-content` prose styling (`EntryView`, `RichTextEditor`) become a single `components/ui/Prose/Prose.tsx` component.
 - Truly module-specific composites (`EntryForm`, `MoodPicker`, `JournalCalendarFilter`) stay where they are under `modules/journal/components/`, but are rewritten to compose only `components/ui/*` atoms instead of raw Chakra elements + style props.
 
-**Escape hatch.** A `components/ui/*` component may accept an optional `className` prop (not arbitrary style props) for the rare case a call site needs a one-off tweak no existing variant covers. This is intentionally narrow: it doesn't reopen the door to arbitrary Chakra style props at call sites, and reaching for it repeatedly for the same shape is a signal that shape belongs as a new variant instead, not a component to introduce lightly.
+**Escape hatch.** A `components/ui/*` component may accept an optional `className` prop (not arbitrary style props) for the rare case a call site needs a one-off tweak no existing variant covers. The value passed must come from a CSS Module (`ComponentName.module.css`) colocated with the call site, not an arbitrary global class string — this keeps the override declarative and scoped, rather than reopening a smaller version of the "restyle anywhere" problem this spec closes. This is intentionally narrow: it doesn't reopen the door to arbitrary Chakra style props at call sites, and reaching for it repeatedly for the same shape is a signal that shape belongs as a new variant instead, not a component to introduce lightly.
+
+**Icons are out of scope.** Third-party icon imports (e.g. `lucide-react`, as already used directly in `JournalCalendarFilter.tsx`) are not `@chakra-ui/react` imports and carry no style props to reinvent, so they're exempt from this boundary — no `components/ui/Icon` wrapper is required by this spec.
 
 **Enforcement.** Once the retrofit (see Migration plan) is complete, add an ESLint restriction — likely `no-restricted-imports` scoped via `eslint.config.js` overrides — that forbids importing `@chakra-ui/react` from any file under `client/src/**` except `client/src/components/ui/**`, `client/src/main.tsx`, and `client/src/theme.ts`. This turns the rule from a convention into something the linter catches, consistent with how this repo already encodes several Airbnb-rule overrides explicitly (see the `eslint-config` skill).
 
 ## Migration plan (phased, incremental)
 
-**Phase 1 — Inventory and variant design.** For each of the 14 non-`ui/` files, catalog every distinct Chakra style-prop pattern in use. Group patterns that recur across files (e.g. the "mono uppercase label" pattern appears in `EntryForm`, `EntryView`, `JournalCalendarFilter`) into a shortlist of new `components/ui/` components/variants before writing any code, so the same shape doesn't get re-invented twice under different names.
+Each phase below lands as its own PR, independently reviewable. Phase 3's file-by-file commits (see its numbered list) still land inside that single Phase 3 PR.
+
+**Phase 1 — Inventory and variant design.** For each of the 14 non-`ui/` files, catalog every distinct Chakra style-prop pattern in use. Group patterns that recur across files (e.g. the "mono uppercase label" pattern appears in `EntryForm`, `EntryView`, `JournalCalendarFilter`) into a shortlist of new `components/ui/` components/variants before writing any code, so the same shape doesn't get re-invented twice under different names. A pattern recurring across **2 or more** of the 14 files is promoted to a shared variant; a shape seen in only one file stays local and uses the `className`/CSS-Module escape hatch instead of a new variant.
+
+This phase concludes with a separate implementation plan document under `docs/superpowers/plans/` (variant shortlist, file-by-file task breakdown, effort estimate), reviewed before Phase 2 starts — this resolves the sizing/estimate gap noted in Risks below.
 
 **Phase 2 — Build the new primitives.** Add the shortlisted components/variants to `components/ui/` (and corresponding recipes to `theme.ts` where the pattern is closer to "a text/box style" than "a distinct component"). No call sites change yet in this phase; existing tests continue to pass unmodified.
 
@@ -63,6 +69,5 @@ No new tests are added purely for the encapsulation move — like the Chakra mig
 
 ## Risks / open questions
 
-- Variant granularity is a judgment call during Phase 1: too few variants forces awkward reuse of a shape that doesn't quite fit; too many recreates the same "restyle per call site" problem one level down. Err toward fewer, more general variants and use the `className` escape hatch for genuine one-offs rather than adding a variant for a single call site.
+- Variant granularity is a judgment call during Phase 1, though the 2+ files threshold (see Phase 1) gives a concrete default: too few variants forces awkward reuse of a shape that doesn't quite fit; too many recreates the same "restyle per call site" problem one level down. Err toward fewer, more general variants and use the `className`/CSS-Module escape hatch for genuine one-offs rather than adding a variant for a single call site.
 - The `no-restricted-imports` rule needs to exempt `components/ui/**` itself but still catch `components/ui/SomeNewFile.tsx` importing from `@chakra-ui/react` incorrectly if it's not actually meant to be a design-system atom (unlikely in practice, since everything in that folder is expected to touch Chakra) — worth a quick lint-config sanity check during Phase 4 with a deliberately-placed bad import.
-- This spec doesn't cover a plan doc or effort estimate yet — Phase 1's inventory should inform how big Phase 2/3 actually are before scheduling the work.
