@@ -32,10 +32,10 @@ export type SpecificEmotion = string;
 export const MOOD_TAXONOMY: Record<PrimaryMood, string[]> = {
   happy: ['content', 'proud', 'excited', 'grateful'],
   calm: ['peaceful', 'relaxed', 'relieved', 'secure'],
+  steady: ['ordinary', 'settled', 'unremarkable', 'quiet'],
   sad: ['lonely', 'disappointed', 'hurt', 'grieving'],
   anxious: ['nervous', 'overwhelmed', 'insecure', 'worried'],
   angry: ['frustrated', 'irritated', 'resentful', 'jealous'],
-  steady: ['ordinary', 'settled', 'unremarkable', 'quiet'],
 };
 
 export interface Entry {

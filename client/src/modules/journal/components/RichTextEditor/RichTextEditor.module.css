@@ -1,0 +1,3 @@
+.overrideFocus :global(.ProseMirror-focused) {
+  outline: none;
+}

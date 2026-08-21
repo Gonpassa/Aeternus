@@ -19,7 +19,7 @@ The paper tone is real (it's genuinely the right material for this subject), but
 | `--moss` | `#55684A` | Secondary accent — links, secondary buttons, focus ring |
 | `--rust` | `#A8532F` | Tertiary accent — tags, mood mark, active tab, error state |
 | `--line` | `#D8CFB8` | Hairlines, ruled paper lines, card borders |
-| `--mood-anxious` | `#B98A2E` | Mood mark — anxious (Phase 4a taxonomy) |
+| `--mood-anxious` | `#5C4A72` | Mood mark — anxious (Phase 4a taxonomy) |
 | `--mood-angry` | `#7A2E1E` | Mood mark — angry (Phase 4a taxonomy) |
 | `--mood-calm` | `#C9743A` | Mood mark - calm (Phase 4a taxonomy) |
 | `--mood-steady` | `#B8860B` | Mood mark - steady (Phase 4a taxonomy) |
@@ -96,7 +96,7 @@ Phase 4a's two-tier feelings-wheel taxonomy needs six distinct primary-mood colo
 | happy | `--moss` | #55684A |
 | calm | `--mood-calm` | #C9743A |
 | sad | `--ink-blue` | #2C3E52 |
-| anxious | `--mood-anxious` | #B98A2E |
+| anxious | `--mood-anxious` | #5C4A72 |
 | angry | `--mood-angry` | #7A2E1E |
 | steady | `--mood-steady` | #B8860B |
 

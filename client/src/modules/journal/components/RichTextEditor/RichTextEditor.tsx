@@ -3,6 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Card } from '../../../../components/ui/Card/Card.tsx';
 import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
+import styles from './RichTextEditor.module.css';
 
 export interface RichTextEditorProps {
   value: string;
@@ -38,10 +39,13 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       color="ink"
       minH="15rem"
       onClick={() => editor?.commands.focus()}
-      _focusWithin={{ outline: 'none' }}
     >
       <Prose>
-        <EditorContent editor={editor} data-placeholder={placeholder} />
+        <EditorContent
+          editor={editor}
+          data-placeholder={placeholder}
+          className={styles.overrideFocus}
+        />
       </Prose>
     </Card>
   );

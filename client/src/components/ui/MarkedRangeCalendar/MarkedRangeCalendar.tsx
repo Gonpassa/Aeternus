@@ -119,7 +119,7 @@ function MarkedDayButton({
       style={
         marked
           ? {
-              backgroundColor: `${moodColor}29`,
+              backgroundColor: `${moodColor}48`,
             }
           : undefined
       }
@@ -131,7 +131,7 @@ function MarkedDayButton({
           left="50%"
           bottom="3px"
           transform="translateX(-50%)"
-          boxSize="4px"
+          boxSize="7px"
           borderRadius="full"
           bg={moodColor}
           aria-hidden="true"

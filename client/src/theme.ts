@@ -145,7 +145,7 @@ const config = defineConfig({
         moss: { value: '#55684A' },
         rust: { value: '#A8532F' },
         line: { value: '#D8CFB8' },
-        moodAnxious: { value: '#B98A2E' },
+        moodAnxious: { value: '#5C4A72' },
         moodAngry: { value: '#7A2E1E' },
         moodCalm: { value: '#C9743A' },
         moodSteady: { value: '#B8860B' },
