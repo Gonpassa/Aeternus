@@ -7,7 +7,8 @@ import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../components/ui/Button/Button.tsx';
 import { Calendar } from '../../../../components/ui/Calendar/Calendar.tsx';
 import { Card } from '../../../../components/ui/Card/Card.tsx';
-import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
+import { Dialog } from '../../../../components/ui/Dialog/Dialog.tsx';
+import { useDialogState } from '../../../../components/ui/Dialog/useDialogState.ts';
 import { FieldLabel } from '../../../../components/ui/FieldLabel/FieldLabel.tsx';
 import { Input } from '../../../../components/ui/Input/Input.tsx';
 import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
@@ -42,6 +43,7 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
   );
   const [content, setContent] = useState(initialEntry?.content ?? '');
   const [error, setError] = useState<string | null>(null);
+  const deleteDialog = useDialogState();
 
   // Only look up by-date collisions in create mode; an edit route already has its entry.
   const collisionLookupDate = initialEntry ? null : date;
@@ -105,6 +107,11 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
       return;
     }
     onDiscard?.();
+  };
+
+  const handleDelete = async () => {
+    await onDelete?.();
+    deleteDialog.closeDialog();
   };
 
   return (
@@ -186,24 +193,33 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
 
       <Stack justify="flex-end" gap="3" mt="2">
         {initialEntry ? (
-          <ConfirmDialog
-            trigger={
-              <Button
-                type="button"
-                variant="outline"
-                borderColor="rust"
-                color="rust"
-                _hover={{ bg: 'rust/5' }}
-              >
-                Delete
-              </Button>
-            }
-            title="Delete this entry?"
-            description="This action cannot be undone."
-            confirmLabel="Delete"
-            destructive
-            onConfirm={() => onDelete?.()}
-          />
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              borderColor="rust"
+              color="rust"
+              _hover={{ bg: 'rust/5' }}
+              onClick={deleteDialog.openDialog}
+            >
+              Delete
+            </Button>
+            <Dialog
+              open={deleteDialog.open}
+              onClose={deleteDialog.closeDialog}
+              variant="small"
+              role="alertdialog"
+              header={{ title: 'Delete this entry?' }}
+              footer={{
+                secondary: { label: 'Cancel', onClick: deleteDialog.closeDialog },
+                primary: { label: 'Delete', variant: 'destructive', onClick: handleDelete },
+              }}
+            >
+              <Text fontFamily="body" color="inkSoft">
+                This action cannot be undone.
+              </Text>
+            </Dialog>
+          </>
         ) : (
           <Button type="button" variant="ghost" onClick={handleDiscard}>
             Discard

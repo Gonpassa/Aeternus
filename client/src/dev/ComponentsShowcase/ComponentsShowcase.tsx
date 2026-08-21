@@ -5,7 +5,8 @@ import { Heading } from '../../components/ui/Heading/Heading.tsx';
 import { Text } from '../../components/ui/Text/Text.tsx';
 import { Card } from '../../components/ui/Card/Card.tsx';
 import { Calendar } from '../../components/ui/Calendar/Calendar.tsx';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
+import { Dialog } from '../../components/ui/Dialog/Dialog.tsx';
+import { useDialogState } from '../../components/ui/Dialog/useDialogState.ts';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/Popover/Popover.tsx';
 import {
   createListCollection,
@@ -70,6 +71,7 @@ function Section({
 
 export function ComponentsShowcase() {
   const [confirmCount, setConfirmCount] = useState(0);
+  const confirmDialog = useDialogState();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectValue, setSelectValue] = useState<string[]>(['content']);
 
@@ -152,16 +154,33 @@ export function ComponentsShowcase() {
         </Card>
       </Section>
 
-      <Section title="ConfirmDialog" description="alert-dialog wrapper; confirmations tally below">
+      <Section title="Dialog" description="controlled dialog primitive; confirmations tally below">
         <Stack align="center" gap="3">
-          <ConfirmDialog
-            trigger={<Button variant="outline">Delete something</Button>}
-            title="Delete this thing?"
-            description="This action cannot be undone."
-            confirmLabel="Delete"
-            destructive
-            onConfirm={() => setConfirmCount((count) => count + 1)}
-          />
+          <Button variant="outline" onClick={confirmDialog.openDialog}>
+            Delete something
+          </Button>
+          <Dialog
+            open={confirmDialog.open}
+            onClose={confirmDialog.closeDialog}
+            variant="small"
+            role="alertdialog"
+            header={{ title: 'Delete this thing?' }}
+            footer={{
+              secondary: { label: 'Cancel', onClick: confirmDialog.closeDialog },
+              primary: {
+                label: 'Delete',
+                variant: 'destructive',
+                onClick: () => {
+                  setConfirmCount((count) => count + 1);
+                  confirmDialog.closeDialog();
+                },
+              },
+            }}
+          >
+            <Text fontFamily="body" color="inkSoft">
+              This action cannot be undone.
+            </Text>
+          </Dialog>
           <Text fontFamily="mono" fontSize="xs" color="inkSoft">
             Confirmed {confirmCount} time{confirmCount === 1 ? '' : 's'}
           </Text>

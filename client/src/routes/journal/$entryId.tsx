@@ -3,7 +3,8 @@ import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { Button } from '../../components/ui/Button/Button.tsx';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog/ConfirmDialog.tsx';
+import { Dialog } from '../../components/ui/Dialog/Dialog.tsx';
+import { useDialogState } from '../../components/ui/Dialog/useDialogState.ts';
 import { Stack } from '../../components/ui/Stack/Stack.tsx';
 import { Text } from '../../components/ui/Text/Text.tsx';
 
@@ -14,9 +15,11 @@ function EntryDetailPage() {
   const navigate = useNavigate();
   const { data: entry, isLoading } = useEntry(Number(entryId));
   const deleteEntry = useDeleteEntry();
+  const deleteDialog = useDialogState();
 
   const handleDelete = async () => {
     await deleteEntry.mutateAsync(Number(entryId));
+    deleteDialog.closeDialog();
     navigate({ to: '/journal', search: { page: 1 } });
   };
 
@@ -36,24 +39,31 @@ function EntryDetailPage() {
             Edit
           </Link>
         </Button>
-        <ConfirmDialog
-          trigger={
-            <Button
-              type="button"
-              variant="outline"
-              borderColor="rust"
-              color="rust"
-              _hover={{ bg: 'rust/5' }}
-            >
-              Delete
-            </Button>
-          }
-          title="Delete this entry?"
-          description="This action cannot be undone."
-          confirmLabel="Delete"
-          destructive
-          onConfirm={handleDelete}
-        />
+        <Button
+          type="button"
+          variant="outline"
+          borderColor="rust"
+          color="rust"
+          _hover={{ bg: 'rust/5' }}
+          onClick={deleteDialog.openDialog}
+        >
+          Delete
+        </Button>
+        <Dialog
+          open={deleteDialog.open}
+          onClose={deleteDialog.closeDialog}
+          variant="small"
+          role="alertdialog"
+          header={{ title: 'Delete this entry?' }}
+          footer={{
+            secondary: { label: 'Cancel', onClick: deleteDialog.closeDialog },
+            primary: { label: 'Delete', variant: 'destructive', onClick: handleDelete },
+          }}
+        >
+          <Text fontFamily="body" color="inkSoft">
+            This action cannot be undone.
+          </Text>
+        </Dialog>
       </Stack>
       <EntryView entry={entry} />
     </Stack>
