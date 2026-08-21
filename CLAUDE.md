@@ -8,7 +8,7 @@ Aeternus.3 is a personal hub application (journaling, structured writing, calend
 
 **Phases 1-4 are complete.** The npm-workspaces monorepo skeleton, backend API core (Postgres/Drizzle, sessions), authentication (Passport session auth, protected routes, client `AuthProvider`), and the journal module (entries CRUD, mood tagging, calendar filter, rich text editor) are all built and covered by tests on both sides. Journal insights/overview is deferred to a later pass. `backend/src/modules/` and `client/src/modules/` currently hold only the `journal` module — `writing`, `calendar`, and `learning` (Phases 5-7) haven't started. Don't design those later-phase data models before their phase starts.
 
-See `docs/superpowers/specs/2026-08-10-phase1-architecture-scaffold-design.md` and `docs/superpowers/plans/2026-08-10-phase1-architecture-scaffold-plan.md` for the Phase 1 design rationale, and `README.md` for the full module descriptions and 8-phase build plan (Setup → Backend API core → Auth → Journal → Structured Writing → Calendar → AI learning → Deployment). Follow that phase order rather than jumping ahead.
+See `docs/adr/0001-npm-workspaces-monorepo.md` for the Phase 1 architecture rationale, and `README.md` for the full module descriptions and 8-phase build plan (Setup → Backend API core → Auth → Journal → Structured Writing → Calendar → AI learning → Deployment). Follow that phase order rather than jumping ahead.
 
 ## Commands
 

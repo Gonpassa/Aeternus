@@ -11,10 +11,9 @@ Is Aeternus.3's Phase 4a mood model - a two-tier taxonomy with exactly five prim
 
 ## Why this file lives here
 
-`docs/adr/` does not exist in this repo, and `docs/agents/domain.md` explicitly says not to create those files pre-emptively - they get created lazily when a decision is actually resolved.
-`docs/superpowers/specs/` is reserved for the spec-workflow's feature designs, which this is not.
+This note isn't itself a resolved decision, so it doesn't belong in `docs/adr/` yet - ADRs record decisions already made, not open research questions.
 `docs/design/` already owns the mood vocabulary's visual half (`design-system.md` lines 86-100 define the five mood-mark colors), so the conceptual half belongs next to it.
-If a decision comes out of this note, that decision should be recorded as `docs/adr/0001-mood-taxonomy.md` and this file should become its background reference.
+If a decision comes out of this note, that decision should be recorded as the next sequential `docs/adr/NNNN-mood-taxonomy.md` and this file should become its background reference.
 
 ## What the repo actually does today
 
@@ -31,9 +30,9 @@ If a decision comes out of this note, that decision should be recorded as `docs/
 Two behaviours matter for the evaluation below.
 
 1. **Mood is mandatory.** There is no `neutral` value, no "skip", and `MoodPicker` has no way to deselect once a swatch is clicked (`handlePrimaryMoodClick` only ever emits a mood, never `null`). `CONTEXT.md:16` states this as intent: "required on every entry".
-2. **The second tier is already open.** The `optional-custom-mood` change (`docs/superpowers/specs/2026-08-11-optional-custom-mood-design.md:15,24`) demoted `SpecificEmotion` to `string` and dropped taxonomy validation, so tier two is suggestions plus free text. Only tier one is a closed set.
+2. **The second tier is already open.** The `optional-custom-mood` change (see git history, pre-superpowers-removal: `docs/superpowers/specs/2026-08-11-optional-custom-mood-design.md:15,24`) demoted `SpecificEmotion` to `string` and dropped taxonomy validation, so tier two is suggestions plus free text. Only tier one is a closed set.
 
-The original rationale is in `docs/superpowers/specs/2026-08-11-phase4a-journal-entries-design.md:33`, which cites Gloria Willcox's Feeling Wheel and How We Feel as the models, and explicitly rejects a flat "happy/neutral/sad" enum as a grab-all.
+The original rationale is in git history, pre-superpowers-removal (`docs/superpowers/specs/2026-08-11-phase4a-journal-entries-design.md:33`), which cites Gloria Willcox's Feeling Wheel and How We Feel as the models, and explicitly rejects a flat "happy/neutral/sad" enum as a grab-all.
 That is where `neutral` was dropped: it was never in the shipped taxonomy, it was the strawman the two-tier design argued against.
 
 ## 1. Discrete / basic emotion theories
