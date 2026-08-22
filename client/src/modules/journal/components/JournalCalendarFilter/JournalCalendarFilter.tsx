@@ -181,11 +181,21 @@ export function JournalCalendarFilter({
             _hover={{ bg: 'moss/14', textDecoration: 'none' }}
           />
         </Stack>
-        {hasFilter && (
-          <Button type="button" variant="link" onClick={() => onRangeChange({})}>
-            Clear filter
+        <Stack align="center" gap="2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setVisibleMonth(startOfMonth(new Date()))}
+          >
+            Today
           </Button>
-        )}
+          {hasFilter && (
+            <Button type="button" variant="link" onClick={() => onRangeChange({})}>
+              Clear filter
+            </Button>
+          )}
+        </Stack>
       </Stack>
       <MarkedRangeCalendar
         markedDates={markedDates}
