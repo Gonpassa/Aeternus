@@ -3,6 +3,8 @@ import {
   ApiErrorResponse,
   CreateEntryRequest,
   EntryRangeQuery,
+  JournalSummaryResponse,
+  PrimaryMood,
   UpdateEntryRequest,
 } from '@nee3/shared-types';
 import {
@@ -10,6 +12,8 @@ import {
   validateRangeQuery,
   parsePagination,
   normalizeSpecificEmotion,
+  parseAsOf,
+  PRIMARY_MOODS,
 } from './validation';
 import { sanitizeEntryContent } from './sanitize';
 import {
@@ -20,10 +24,40 @@ import {
   findEntryByDate,
   listEntriesByUser,
   listEntriesByRange,
+  getJournalSummaryData,
+  RecentEntry,
   DuplicateEntryError,
 } from '../../db/entries';
 
 const getUserId = (req: Request): number => (req.user as Express.User).id;
+
+const subtractOneDayUTC = (dateStr: string): string => {
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+};
+
+const computeStreak = (entryDates: string[], asOf: string): number => {
+  const dateSet = new Set(entryDates);
+  let cursor = dateSet.has(asOf) ? asOf : subtractOneDayUTC(asOf);
+  let streak = 0;
+  while (dateSet.has(cursor)) {
+    streak += 1;
+    cursor = subtractOneDayUTC(cursor);
+  }
+  return streak;
+};
+
+const buildMoodSnapshot = (recentEntries: RecentEntry[]): Record<PrimaryMood, number> => {
+  const snapshot = Object.fromEntries(PRIMARY_MOODS.map((mood) => [mood, 0])) as Record<
+    PrimaryMood,
+    number
+  >;
+  recentEntries.forEach((entry) => {
+    snapshot[entry.primaryMood] += 1;
+  });
+  return snapshot;
+};
 
 export const listEntries = async (
   req: Request,
@@ -185,6 +219,29 @@ export const deleteEntry = async (
       return;
     }
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getJournalSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const asOfResult = parseAsOf(req.query);
+  if (!asOfResult.valid) {
+    res.status(400).json({ error: asOfResult.error } satisfies ApiErrorResponse);
+    return;
+  }
+  try {
+    const { recentEntries, entryDates } = await getJournalSummaryData({ userId: getUserId(req) });
+    const response: JournalSummaryResponse = {
+      recentEntries,
+      streak: { current: computeStreak(entryDates, asOfResult.asOf) },
+      moodSnapshot: buildMoodSnapshot(recentEntries),
+    };
+    res.status(200).json(response);
   } catch (err) {
     next(err);
   }

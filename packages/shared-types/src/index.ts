@@ -71,3 +71,9 @@ export interface EntryRangeQuery {
   start: string;
   end: string;
 }
+
+export interface JournalSummaryResponse {
+  recentEntries: Array<Pick<Entry, 'id' | 'date' | 'title' | 'primaryMood'>>;
+  streak: { current: number };
+  moodSnapshot: Record<PrimaryMood, number>;
+}

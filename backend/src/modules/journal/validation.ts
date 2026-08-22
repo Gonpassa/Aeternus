@@ -10,7 +10,7 @@ const isValidDate = (value: unknown): value is string =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   !Number.isNaN(Date.parse(value));
 
-const PRIMARY_MOODS: readonly PrimaryMood[] = [
+export const PRIMARY_MOODS: readonly PrimaryMood[] = [
   'happy',
   'calm',
   'sad',
@@ -82,4 +82,18 @@ export const validateRangeQuery = (query: { start?: unknown; end?: unknown }): V
     return { valid: false, error: 'start must not be after end.' };
   }
   return { valid: true };
+};
+
+export type AsOfResult = { valid: true; asOf: string } | { valid: false; error: string };
+
+const todayUTC = (): string => new Date().toISOString().slice(0, 10);
+
+export const parseAsOf = (query: { asOf?: unknown }): AsOfResult => {
+  if (query.asOf === undefined) {
+    return { valid: true, asOf: todayUTC() };
+  }
+  if (!isValidDate(query.asOf)) {
+    return { valid: false, error: 'asOf must be a valid date.' };
+  }
+  return { valid: true, asOf: query.asOf };
 };

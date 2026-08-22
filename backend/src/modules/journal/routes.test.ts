@@ -137,6 +137,26 @@ describe('journal routes (integration)', () => {
     });
   });
 
+  describe('GET /api/journal/entries/summary', () => {
+    it('requires authentication', async () => {
+      const res = await request(createApp()).get('/api/journal/entries/summary');
+      expect(res.status).toBe(401);
+    });
+
+    it("never reflects another user's entries", async () => {
+      await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-01' });
+
+      const res = await bobAgent.get('/api/journal/entries/summary?asOf=2026-08-01');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        recentEntries: [],
+        streak: { current: 0 },
+        moodSnapshot: { happy: 0, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
+      });
+    });
+  });
+
   describe('cross-user isolation', () => {
     it("returns 404 when reading, updating, or deleting another user's entry", async () => {
       const created = await aliceAgent.post('/api/journal/entries').send(validPayload);

@@ -137,3 +137,36 @@ export const listEntriesByRange = async ({
     .from(entries)
     .where(and(eq(entries.userId, userId), gte(entries.date, start), lte(entries.date, end)))
     .orderBy(asc(entries.date));
+
+const STREAK_LOOKBACK_LIMIT = 366;
+const RECENT_ENTRIES_LIMIT = 5;
+
+export type RecentEntry = Pick<Entry, 'id' | 'date' | 'title' | 'primaryMood'>;
+export type JournalSummaryData = { recentEntries: RecentEntry[]; entryDates: string[] };
+
+export const getJournalSummaryData = async ({
+  userId,
+}: {
+  userId: number;
+}): Promise<JournalSummaryData> => {
+  const [recentEntries, dateRows] = await Promise.all([
+    db
+      .select({
+        id: entries.id,
+        date: entries.date,
+        title: entries.title,
+        primaryMood: entries.primaryMood,
+      })
+      .from(entries)
+      .where(eq(entries.userId, userId))
+      .orderBy(desc(entries.date))
+      .limit(RECENT_ENTRIES_LIMIT),
+    db
+      .select({ date: entries.date })
+      .from(entries)
+      .where(eq(entries.userId, userId))
+      .orderBy(desc(entries.date))
+      .limit(STREAK_LOOKBACK_LIMIT),
+  ]);
+  return { recentEntries, entryDates: dateRows.map((row) => row.date) };
+};

@@ -5,6 +5,7 @@ import {
   getEntry,
   getEntryByDate,
   getEntriesByRange,
+  getJournalSummary,
   createEntry,
   updateEntry,
   deleteEntry,
@@ -15,6 +16,7 @@ const router = Router();
 router.use(ensureAuth);
 
 router.get('/entries', listEntries);
+router.get('/entries/summary', getJournalSummary);
 router.get('/entries/by-date/:date', getEntryByDate);
 router.get('/entries/by-range', getEntriesByRange);
 router.get('/entries/:id', getEntry);

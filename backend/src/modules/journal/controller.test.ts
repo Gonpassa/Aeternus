@@ -4,6 +4,7 @@ import {
   getEntry,
   getEntryByDate,
   getEntriesByRange,
+  getJournalSummary,
   createEntry,
   updateEntry,
   deleteEntry,
@@ -20,6 +21,7 @@ jest.mock('../../db/entries', () => ({
   findEntryByDate: jest.fn(),
   listEntriesByUser: jest.fn(),
   listEntriesByRange: jest.fn(),
+  getJournalSummaryData: jest.fn(),
 }));
 
 const mocked = entryService as jest.Mocked<typeof entryService>;
@@ -218,6 +220,99 @@ describe('updateEntry', () => {
     await updateEntry(req, res, jest.fn());
 
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+});
+
+describe('getJournalSummary', () => {
+  afterEach(() => jest.resetAllMocks());
+
+  it('returns recent entries, streak, and mood snapshot on the happy path', async () => {
+    mocked.getJournalSummaryData.mockResolvedValue({
+      recentEntries: [{ id: 1, date: '2026-08-01', title: 'A good day', primaryMood: 'happy' }],
+      entryDates: ['2026-08-01'],
+    });
+    const req = reqAs(7, { query: { asOf: '2026-08-01' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      recentEntries: [{ id: 1, date: '2026-08-01', title: 'A good day', primaryMood: 'happy' }],
+      streak: { current: 1 },
+      moodSnapshot: { happy: 1, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
+    });
+  });
+
+  it('returns a uniform empty response for a user with zero entries', async () => {
+    mocked.getJournalSummaryData.mockResolvedValue({ recentEntries: [], entryDates: [] });
+    const req = reqAs(7, { query: { asOf: '2026-08-01' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      recentEntries: [],
+      streak: { current: 0 },
+      moodSnapshot: { happy: 0, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
+    });
+  });
+
+  it('breaks the streak at the first gap', async () => {
+    mocked.getJournalSummaryData.mockResolvedValue({
+      recentEntries: [],
+      entryDates: ['2026-08-01', '2026-07-30'],
+    });
+    const req = reqAs(7, { query: { asOf: '2026-08-01' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ streak: { current: 1 } }));
+  });
+
+  it('stays unbroken across the asOf boundary when asOf has no entry yet', async () => {
+    mocked.getJournalSummaryData.mockResolvedValue({
+      recentEntries: [],
+      entryDates: ['2026-08-01', '2026-07-31', '2026-07-30'],
+    });
+    const req = reqAs(7, { query: { asOf: '2026-08-02' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ streak: { current: 3 } }));
+  });
+
+  it('zero-fills mood keys absent from the recent set', async () => {
+    mocked.getJournalSummaryData.mockResolvedValue({
+      recentEntries: [
+        { id: 1, date: '2026-08-01', title: 'Entry one', primaryMood: 'calm' },
+        { id: 2, date: '2026-07-31', title: 'Entry two', primaryMood: 'calm' },
+      ],
+      entryDates: ['2026-08-01', '2026-07-31'],
+    });
+    const req = reqAs(7, { query: { asOf: '2026-08-01' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        moodSnapshot: { happy: 0, calm: 2, sad: 0, anxious: 0, angry: 0, steady: 0 },
+      }),
+    );
+  });
+
+  it('returns 400 for a malformed asOf without calling the db layer', async () => {
+    const req = reqAs(7, { query: { asOf: 'not-a-date' } });
+    const res = buildRes();
+
+    await getJournalSummary(req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mocked.getJournalSummaryData).not.toHaveBeenCalled();
   });
 });
 
