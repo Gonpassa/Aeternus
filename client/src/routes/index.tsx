@@ -1,10 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Stack } from '../atoms/Stack/Stack.tsx';
+import { Dashboard } from '../shell/Dashboard.tsx';
+import { requireAuth } from '../auth/requireAuth.ts';
 
 export const Route = createFileRoute('/')({
-  component: () => (
-    <Stack direction="column" p="4">
-      Aeternus
-    </Stack>
-  ),
+  component: Dashboard,
+  beforeLoad: ({ context, location }) => requireAuth(context.queryClient)({ location }),
 });
