@@ -111,6 +111,9 @@ Google Calendar sync, distinct from the journal's own date view.
 ### Phase 9 — AI-assisted learning
 Question generation from notes/writing for self-testing, integrated into the writing module's flow.
 
+### Later — Design audit pass
+Once more modules are built out and the UI is more rounded out, run [Impeccable](https://impeccable.style/tutorials/getting-started/)'s audit/polish commands (accessibility, typography, spacing, color, interaction states) against the built screens, seeded with `docs/design/design-system.md` as context. Not needed while the design system itself is still being defined — the goal is drift-catching on an already-built UI, not generating the design language from scratch.
+
 ---
 
 ## Commands
