@@ -146,9 +146,12 @@ export type JournalSummaryData = { recentEntries: RecentEntry[]; entryDates: str
 
 export const getJournalSummaryData = async ({
   userId,
+  asOf,
 }: {
   userId: number;
+  asOf: string;
 }): Promise<JournalSummaryData> => {
+  const scope = and(eq(entries.userId, userId), lte(entries.date, asOf));
   const [recentEntries, dateRows] = await Promise.all([
     db
       .select({
@@ -158,13 +161,13 @@ export const getJournalSummaryData = async ({
         primaryMood: entries.primaryMood,
       })
       .from(entries)
-      .where(eq(entries.userId, userId))
+      .where(scope)
       .orderBy(desc(entries.date))
       .limit(RECENT_ENTRIES_LIMIT),
     db
       .select({ date: entries.date })
       .from(entries)
-      .where(eq(entries.userId, userId))
+      .where(scope)
       .orderBy(desc(entries.date))
       .limit(STREAK_LOOKBACK_LIMIT),
   ]);

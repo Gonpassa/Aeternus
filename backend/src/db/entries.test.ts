@@ -11,6 +11,7 @@ import {
   findEntryByDate,
   updateEntry,
   deleteEntry,
+  getJournalSummaryData,
   DuplicateEntryError,
 } from './entries';
 
@@ -133,5 +134,16 @@ describe('entry service', () => {
     await createEntry({ userId, ...baseInput, date: '2026-08-01' });
     const result = await listEntriesByRange({ userId, start: '2026-09-01', end: '2026-09-30' });
     expect(result).toEqual([]);
+  });
+
+  it('excludes entries dated after asOf from the journal summary data', async () => {
+    await createEntry({ userId, ...baseInput, date: '2026-08-01' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-15' });
+    await createEntry({ userId, ...baseInput, date: '2026-08-31' });
+
+    const result = await getJournalSummaryData({ userId, asOf: '2026-08-15' });
+
+    expect(result.recentEntries.map((e) => e.date)).toEqual(['2026-08-15', '2026-08-01']);
+    expect(result.entryDates).toEqual(['2026-08-15', '2026-08-01']);
   });
 });

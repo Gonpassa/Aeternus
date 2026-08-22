@@ -235,7 +235,10 @@ export const getJournalSummary = async (
     return;
   }
   try {
-    const { recentEntries, entryDates } = await getJournalSummaryData({ userId: getUserId(req) });
+    const { recentEntries, entryDates } = await getJournalSummaryData({
+      userId: getUserId(req),
+      asOf: asOfResult.asOf,
+    });
     const response: JournalSummaryResponse = {
       recentEntries,
       streak: { current: computeStreak(entryDates, asOfResult.asOf) },
