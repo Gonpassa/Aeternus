@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-const mockUseEntries = vi.fn();
+const mockUseJournalSummary = vi.fn();
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ to, children }: { to: string; children: ReactNode }) => <a href={to}>{children}</a>,
@@ -15,15 +15,24 @@ vi.mock('./AuthProvider.tsx', () => ({
 }));
 
 vi.mock('../modules/journal/api/journalHooks.ts', () => ({
-  useEntries: () => mockUseEntries(),
+  useJournalSummary: () => mockUseJournalSummary(),
 }));
 
 const { Dashboard } = await import('./Dashboard.tsx');
 
+const emptySummary = {
+  data: {
+    recentEntries: [],
+    streak: { current: 0 },
+    moodSnapshot: { happy: 0, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
+  },
+  isLoading: false,
+};
+
 describe('Dashboard', () => {
   beforeEach(() => {
-    mockUseEntries.mockReset();
-    mockUseEntries.mockReturnValue({ data: { entries: [], page: 1, pageSize: 20, total: 0 } });
+    mockUseJournalSummary.mockReset();
+    mockUseJournalSummary.mockReturnValue(emptySummary);
   });
 
   it('renders the greeting header with the username', () => {
@@ -49,8 +58,13 @@ describe('Dashboard', () => {
   });
 
   it('does not show the empty-state CTA once entries exist', () => {
-    mockUseEntries.mockReturnValue({
-      data: { entries: [{ id: 1 }], page: 1, pageSize: 20, total: 3 },
+    mockUseJournalSummary.mockReturnValue({
+      data: {
+        recentEntries: [{ id: 1, date: '2026-08-01', title: 'A good day', primaryMood: 'happy' }],
+        streak: { current: 1 },
+        moodSnapshot: { happy: 1, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
+      },
+      isLoading: false,
     });
 
     render(<Dashboard />);

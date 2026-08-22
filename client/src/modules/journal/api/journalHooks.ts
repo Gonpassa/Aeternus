@@ -5,6 +5,7 @@ import type {
   Entry,
   EntryListResponse,
   EntryRangeQuery,
+  JournalSummaryResponse,
   UpdateEntryRequest,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
@@ -16,6 +17,7 @@ export const journalKeys = {
   detail: (id: number) => ['journal', 'entries', 'detail', id] as const,
   byDate: (date: string) => ['journal', 'entries', 'by-date', date] as const,
   byRange: (start: string, end: string) => ['journal', 'entries', 'by-range', start, end] as const,
+  summary: (asOf: string) => ['journal', 'entries', 'summary', asOf] as const,
 };
 
 export const useEntries = (page: number) =>
@@ -65,6 +67,17 @@ export const useEntriesByRange = ({ start, end }: EntryRangeQuery) =>
     queryFn: async () => {
       const { data } = await apiClient.get<Entry[]>(endpoints.journal.entriesByRange, {
         params: { start, end },
+      });
+      return data;
+    },
+  });
+
+export const useJournalSummary = (asOf: string) =>
+  useQuery<JournalSummaryResponse>({
+    queryKey: journalKeys.summary(asOf),
+    queryFn: async () => {
+      const { data } = await apiClient.get<JournalSummaryResponse>(endpoints.journal.summary, {
+        params: { asOf },
       });
       return data;
     },

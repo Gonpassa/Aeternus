@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useEntries, useEntriesByRange } from '../../modules/journal/api/journalHooks.ts';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../modules/journal/moodColors.ts';
 import { stripHtml } from '../../modules/journal/textUtils.ts';
+import { toIsoDate } from '../../modules/journal/dateUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
 import type { DateRangeValue } from '../../atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
@@ -19,13 +20,6 @@ export interface JournalIndexSearch {
 }
 
 const routeApi = getRouteApi('/journal/');
-
-const toIsoDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 function JournalIndexPage() {
   const { page } = routeApi.useSearch();
