@@ -7,7 +7,7 @@
 
 ## Question
 
-Is Aeternus.3's Phase 4a mood model - a two-tier taxonomy with exactly five primary moods (`happy`, `calm`, `sad`, `anxious`, `angry`), each carrying four suggested specific emotions - well grounded in established emotion psychology, or should it be adjusted or restructured?
+Is Aeternus's Phase 4a mood model - a two-tier taxonomy with exactly five primary moods (`happy`, `calm`, `sad`, `anxious`, `angry`), each carrying four suggested specific emotions - well grounded in established emotion psychology, or should it be adjusted or restructured?
 
 ## Why this file lives here
 
@@ -101,11 +101,11 @@ Daylio's primary tier is therefore a **5-point ordinal valence scale with a neut
 | How We Feel | 4 valence x energy quadrants | No explicit neutral | 144 emotion words |
 | Apple Health | continuous valence, 7 buckets | Yes, explicit Neutral | 38 flat labels |
 | Daylio | 5-point ordinal valence | Yes, "Meh" | user-defined, nested |
-| **Aeternus.3** | **5 named emotions** | **No** | **4 suggestions + free text** |
+| **Aeternus** | **5 named emotions** | **No** | **4 suggestions + free text** |
 
 Not one of the three shipped products uses named emotions as the primary tier.
 All three use a dimension, and put the names in tier two.
-Aeternus.3 is the outlier in kind, not just in count.
+Aeternus is the outlier in kind, not just in count.
 
 ## 4. Evaluating `happy, calm, sad, anxious, angry`
 
@@ -138,14 +138,14 @@ Missing families that are well attested:
 - **Surprise.** In Ekman and Plutchik. Genuinely awkward for daily journaling because it is valence-ambiguous and momentary. Reasonable to omit.
 - **Fear as distinct from anxiety.** The APA and the wider literature draw the line clearly: fear is "an appropriate, present-oriented, and short-lived response to a clearly identifiable and specific threat", while anxiety is future-oriented, longer-acting, and directed at a diffuse threat ([APA, Anxiety topic page](https://www.apa.org/topics/anxiety); [Classification and assessment of fear and anxiety, *Neuroscience & Biobehavioral Reviews*](https://www.sciencedirect.com/science/article/am/pii/S0149763422003670)). Apple carries both `anxious` and `scared`. For a once-a-day retrospective journal, `anxious` is the right one to keep, and dropping `fear` is defensible.
 - **Low-arousal-negative beyond sadness.** `sad` is the only occupant of the blue quadrant, and its four suggestions (`lonely`, `disappointed`, `hurt`, `grieving`) are all grief-family. Nothing covers tiredness, flatness, drained-ness, boredom, or numbness, which are extremely common journal states. Apple covers this with `drained`, `discouraged`, `indifferent`, `hopeless`. This is the most real gap in the set.
-- **Agency / powerful.** Willcox's inner ring includes `powerful`; Apple has `brave`, `confident`, `proud`. Aeternus.3 has `proud` buried as a suggestion under `happy`. This is a defensible tier-two placement.
+- **Agency / powerful.** Willcox's inner ring includes `powerful`; Apple has `brave`, `confident`, `proud`. Aeternus has `proud` buried as a suggestion under `happy`. This is a defensible tier-two placement.
 
 ### The neutral question
 
 Comparable apps split, but the two that use an ordinal or continuous primary scale both include a neutral midpoint: Daylio's "Meh" and Apple's explicit `Neutral` valence classification plus an `indifferent` label.
 How We Feel does not have a neutral, but it does not need one - the centre of a 2D grid is reachable by construction.
 
-Aeternus.3 has neither.
+Aeternus has neither.
 Mood is required (`schema.ts:35`, `validation.ts:31`, `EntryForm.tsx:89`), there is no neutral swatch, and `MoodPicker` cannot deselect.
 That combination means a user with a flat, unremarkable day must misreport.
 They will pick `calm` (which the taxonomy defines as `peaceful`/`relaxed`/`relieved`/`secure`, all actively positive) or `sad` (defined as `lonely`/`hurt`/`grieving`, actively distressing).
@@ -161,7 +161,7 @@ Tier two trusts the user; tier one does not.
 **Do not keep the five as-is. Adjust rather than restructure - but restructure the *rationale*.**
 
 I would not move to valence x arousal quadrants as the visible primary tier, despite that being what How We Feel does.
-Aeternus.3's design language is explicitly literary and anti-clinical (`design-system.md:87`: a filled dot "instead of an emoji - keeps the journal's tone literary rather than cute").
+Aeternus's design language is explicitly literary and anti-clinical (`design-system.md:87`: a filled dot "instead of an emoji - keeps the journal's tone literary rather than cute").
 A 2D affect grid is a clinical instrument and would read as an imported product pattern, not as this notebook.
 Named moods with hand-mixed pigment colors are the right surface for this product.
 

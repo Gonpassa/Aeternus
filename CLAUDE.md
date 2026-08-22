@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository overview
 
-Aeternus.3 is a personal hub application (journaling, structured writing, calendar, AI-assisted learning) and the current, planned rewrite of Harmonee. It lives inside a parent folder containing two other, unrelated generations of the same app (`harmonee/`, `Nee.2/`) — each is a separate git repository. This directory (`Aeternus.3/`) is its own git repo, branch `main`, with a remote named `Aeternus` pointing at `github.com/Gonpassa/Aeternus`.
+Aeternus is a personal hub application (journaling, structured writing, calendar, AI-assisted learning) and the current, planned rewrite of Harmonee. It lives inside a parent folder containing two other, unrelated generations of the same app (`harmonee/`, `Nee.2/`) — each is a separate git repository. This directory (`Aeternus/`) is its own git repo, branch `main`, with a remote named `Aeternus` pointing at `github.com/Gonpassa/Aeternus`.
 
 **Phases 1-4 are complete.** The npm-workspaces monorepo skeleton, backend API core (Postgres/Drizzle, sessions), authentication (Passport session auth, protected routes, client `AuthProvider`), and the journal module (entries CRUD, mood tagging, calendar filter, rich text editor) are all built and covered by tests on both sides. Journal insights/overview is deferred to a later pass. `backend/src/modules/` and `client/src/modules/` currently hold only the `journal` module — `writing`, `calendar`, and `learning` (Phases 5-7) haven't started. Don't design those later-phase data models before their phase starts.
 
@@ -12,7 +12,7 @@ See `docs/adr/0001-npm-workspaces-monorepo.md` for the Phase 1 architecture rati
 
 ## Commands
 
-Root-level (npm workspaces; run from `Aeternus.3/`):
+Root-level (npm workspaces; run from `Aeternus/`):
 
 ```sh
 npm install                # installs all three workspaces

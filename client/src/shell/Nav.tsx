@@ -45,7 +45,7 @@ export function Nav() {
   return (
     <Stack
       as="nav"
-      aria-label="Aeternus.3 sections"
+      aria-label="Aeternus sections"
       direction="column"
       gap="10"
       w={{ base: '100%', md: '15rem' }}
