@@ -13,7 +13,7 @@ import { Box } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { DayPicker, getDefaultClassNames, type DayButton } from 'react-day-picker';
 
-import { Button, type ButtonProps } from '@/components/ui/Button/Button';
+import { Button, type ButtonProps } from '@/atoms/Button/Button';
 import styles from './Calendar.module.css';
 
 function Calendar({

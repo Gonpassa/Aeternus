@@ -12,16 +12,16 @@ Conventions for organizing `client/src`, modeled loosely on atomic design (atoms
 Every component - atom or molecule - gets its own folder named for the component, containing a same-named entry file:
 
 ```
-components/ui/Button/Button.tsx
-components/MarkedRangeCalendar/MarkedRangeCalendar.tsx
+atoms/Button/Button.tsx
+atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx
 modules/journal/components/EntryForm/EntryForm.tsx
 ```
 
 Colocate `.module.css` and `.test.tsx` in that same folder when they exist. Always name the entry file `<Name>.tsx`, never `index.tsx` - one rule for atoms and molecules alike, easy to grep for.
 
-No barrel (`index.ts`) files. Import the full path (`components/ui/Button/Button.tsx`), matching existing usage across the codebase.
+No barrel (`index.ts`) files. Import the full path (`atoms/Button/Button.tsx`), matching existing usage across the codebase.
 
-**Atoms** live in `client/src/components/ui/` - the generic, design-system-level primitives (Button, Calendar, Popover, Select, Tooltip, VisuallyHidden). **Molecules** live in `client/src/components/<Name>/` when cross-module (e.g. `MarkedRangeCalendar`), or `client/src/modules/<module>/components/<Name>/` when scoped to one module (e.g. `EntryForm`, `MoodPicker`).
+**Atoms** live in `client/src/atoms/` (branded "Adams" as the UI library name) - the generic, design-system-level primitives (Button, Calendar, Popover, Select, Tooltip, VisuallyHidden), plus cross-module molecules built purely from those primitives (e.g. `MarkedRangeCalendar`). There is no separate top-level `components/` folder - `atoms/` is the only cross-module UI location. **Module-scoped molecules** live in `client/src/modules/<module>/components/<Name>/` (e.g. `EntryForm`, `MoodPicker`).
 
 ## When to split a component
 

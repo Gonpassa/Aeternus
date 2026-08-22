@@ -3,8 +3,8 @@ import type { CreateEntryRequest } from '@nee3/shared-types';
 import { EntryForm } from '../../modules/journal/components/EntryForm/EntryForm.tsx';
 import { useCreateEntry, useUpdateEntry } from '../../modules/journal/api/journalHooks.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
-import { PageContainer } from '../../components/ui/PageContainer/PageContainer.tsx';
-import { Heading } from '../../components/ui/Heading/Heading.tsx';
+import { PageContainer } from '../../atoms/PageContainer/PageContainer.tsx';
+import { Heading } from '../../atoms/Heading/Heading.tsx';
 
 function NewEntryPage() {
   const navigate = useNavigate();

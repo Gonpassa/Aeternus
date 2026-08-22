@@ -1,10 +1,10 @@
 import type { Entry } from '@nee3/shared-types';
-import { Card } from '../../../../components/ui/Card/Card.tsx';
-import { Text } from '../../../../components/ui/Text/Text.tsx';
-import { Heading } from '../../../../components/ui/Heading/Heading.tsx';
-import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
-import { Dot } from '../../../../components/ui/Dot/Dot.tsx';
-import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
+import { Card } from '../../../../atoms/Card/Card.tsx';
+import { Text } from '../../../../atoms/Text/Text.tsx';
+import { Heading } from '../../../../atoms/Heading/Heading.tsx';
+import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Dot } from '../../../../atoms/Dot/Dot.tsx';
+import { Prose } from '../../../../atoms/Prose/Prose.tsx';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
 
 export interface EntryViewProps {

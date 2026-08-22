@@ -7,9 +7,9 @@ import {
   useUpdateEntry,
 } from '../../modules/journal/api/journalHooks.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
-import { PageContainer } from '../../components/ui/PageContainer/PageContainer.tsx';
-import { Heading } from '../../components/ui/Heading/Heading.tsx';
-import { Text } from '../../components/ui/Text/Text.tsx';
+import { PageContainer } from '../../atoms/PageContainer/PageContainer.tsx';
+import { Heading } from '../../atoms/Heading/Heading.tsx';
+import { Text } from '../../atoms/Text/Text.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId_/edit');
 

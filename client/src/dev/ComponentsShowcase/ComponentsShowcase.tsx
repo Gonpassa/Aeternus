@@ -1,14 +1,14 @@
 import { PropsWithChildren, useState } from 'react';
 import { ChevronLeft, Star } from 'lucide-react';
-import { Button, type ButtonSize, type ButtonVariant } from '../../components/ui/Button/Button.tsx';
-import { Stack } from '../../components/ui/Stack/Stack.tsx';
-import { Heading } from '../../components/ui/Heading/Heading.tsx';
-import { Text } from '../../components/ui/Text/Text.tsx';
-import { Card } from '../../components/ui/Card/Card.tsx';
-import { Calendar } from '../../components/ui/Calendar/Calendar.tsx';
-import { Dialog } from '../../components/ui/Dialog/Dialog.tsx';
-import { useDialogState } from '../../components/ui/Dialog/useDialogState.ts';
-import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/Popover/Popover.tsx';
+import { Button, type ButtonSize, type ButtonVariant } from '../../atoms/Button/Button.tsx';
+import { Stack } from '../../atoms/Stack/Stack.tsx';
+import { Heading } from '../../atoms/Heading/Heading.tsx';
+import { Text } from '../../atoms/Text/Text.tsx';
+import { Card } from '../../atoms/Card/Card.tsx';
+import { Calendar } from '../../atoms/Calendar/Calendar.tsx';
+import { Dialog } from '../../atoms/Dialog/Dialog.tsx';
+import { useDialogState } from '../../atoms/Dialog/useDialogState.ts';
+import { Popover, PopoverContent, PopoverTrigger } from '../../atoms/Popover/Popover.tsx';
 import {
   createListCollection,
   Select,
@@ -16,16 +16,16 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/Select/Select.tsx';
-import { Tooltip } from '../../components/ui/Tooltip/Tooltip.tsx';
-import { VisuallyHidden } from '../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
-import { ToggleButton } from '../../components/ui/ToggleButton/ToggleButton.tsx';
+} from '../../atoms/Select/Select.tsx';
+import { Tooltip } from '../../atoms/Tooltip/Tooltip.tsx';
+import { VisuallyHidden } from '../../atoms/VisuallyHidden/VisuallyHidden.tsx';
+import { ToggleButton } from '../../atoms/ToggleButton/ToggleButton.tsx';
 import {
   ToggleButtonGroup,
   ToggleButtonGroupItem,
-} from '../../components/ui/ToggleButtonGroup/ToggleButtonGroup.tsx';
-import { ToolbarActionButton } from '../../components/ui/ToolbarActionButton/ToolbarActionButton.tsx';
-import { IconButton } from '../../components/ui/IconButton/IconButton.tsx';
+} from '../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
+import { ToolbarActionButton } from '../../atoms/ToolbarActionButton/ToolbarActionButton.tsx';
+import { IconButton } from '../../atoms/IconButton/IconButton.tsx';
 
 const BUTTON_VARIANTS: ButtonVariant[] = ['default', 'destructive', 'outline', 'ghost', 'link'];
 const BUTTON_SIZES: ButtonSize[] = ['default', 'xs', 'sm', 'lg'];
@@ -75,12 +75,12 @@ export function ComponentsShowcase() {
         UI components
       </Heading>
       <Text fontFamily="body" color="inkSoft" mb="10">
-        Dev-only reference of every primitive in <code>components/ui/</code>, rendered with
+        Dev-only reference of every primitive in <code>atoms/</code>, rendered with
         representative props so their functionality can be exercised without navigating the real
         app.
       </Text>
 
-      <Section title="Button" description="every variant × size, from components/ui/Button">
+      <Section title="Button" description="every variant × size, from atoms/Button">
         <Stack direction="column" gap="4">
           {BUTTON_VARIANTS.map((variant) => (
             <Stack key={variant} align="center" gap="3" wrap="wrap">
@@ -124,7 +124,7 @@ export function ComponentsShowcase() {
         </Stack>
       </Section>
 
-      <Section title="IconButton" description="every variant × size, from components/ui/IconButton">
+      <Section title="IconButton" description="every variant × size, from atoms/IconButton">
         <Stack direction="column" gap="4">
           {BUTTON_VARIANTS.map((variant) => (
             <Stack key={variant} align="center" gap="3" wrap="wrap">
@@ -159,7 +159,7 @@ export function ComponentsShowcase() {
 
       <Section
         title="ToggleButton"
-        description="a two-state pressed/unpressed button, from components/ui/ToggleButton"
+        description="a two-state pressed/unpressed button, from atoms/ToggleButton"
       >
         <ToggleButton pressed={togglePressed} onPressedChange={setTogglePressed}>
           {togglePressed ? 'Pressed' : 'Unpressed'}
@@ -180,7 +180,7 @@ export function ComponentsShowcase() {
 
       <Section
         title="ToolbarActionButton"
-        description="stateless action buttons, from components/ui/ToolbarActionButton"
+        description="stateless action buttons, from atoms/ToolbarActionButton"
       >
         <Stack gap="2">
           <ToolbarActionButton onClick={() => {}}>Clear marks</ToolbarActionButton>

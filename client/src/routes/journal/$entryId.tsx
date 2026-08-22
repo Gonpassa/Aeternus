@@ -2,11 +2,11 @@ import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
-import { Button } from '../../components/ui/Button/Button.tsx';
-import { Dialog } from '../../components/ui/Dialog/Dialog.tsx';
-import { useDialogState } from '../../components/ui/Dialog/useDialogState.ts';
-import { Stack } from '../../components/ui/Stack/Stack.tsx';
-import { Text } from '../../components/ui/Text/Text.tsx';
+import { Button } from '../../atoms/Button/Button.tsx';
+import { Dialog } from '../../atoms/Dialog/Dialog.tsx';
+import { useDialogState } from '../../atoms/Dialog/useDialogState.ts';
+import { Stack } from '../../atoms/Stack/Stack.tsx';
+import { Text } from '../../atoms/Text/Text.tsx';
 
 const routeApi = getRouteApi('/journal/$entryId');
 

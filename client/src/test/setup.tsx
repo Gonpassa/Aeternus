@@ -14,7 +14,7 @@ afterEach(() => {
   cleanup();
 });
 
-// Starting with the Chakra UI migration, primitives under `components/ui/`
+// Starting with the Chakra UI migration, primitives under `atoms/`
 // resolve tokens/recipes from Chakra's context (`useChakraContext`), which
 // throws `ContextError` when rendered without a `<ChakraProvider />`
 // ancestor. Test files call `render` from `@testing-library/react` directly,

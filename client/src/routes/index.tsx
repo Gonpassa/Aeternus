@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Stack } from '../components/ui/Stack/Stack.tsx';
+import { Stack } from '../atoms/Stack/Stack.tsx';
 
 export const Route = createFileRoute('/')({
   component: () => (

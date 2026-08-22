@@ -4,7 +4,7 @@
    underlying Chakra primitive. */
 import * as React from 'react';
 import { Text as ChakraText, useRecipe, type TextProps as ChakraTextProps } from '@chakra-ui/react';
-import { textRecipe } from '../../../theme.ts';
+import { textRecipe } from '../../theme.ts';
 
 export type TextVariant = 'default' | 'eyebrow' | 'muted' | 'error' | 'formError';
 

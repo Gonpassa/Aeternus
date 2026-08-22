@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { Nav } from './Nav.tsx';
-import { Stack } from '../components/ui/Stack/Stack.tsx';
+import { Stack } from '../atoms/Stack/Stack.tsx';
 
 export function Layout({ children }: PropsWithChildren) {
   return (

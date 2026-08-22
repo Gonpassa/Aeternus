@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { Button } from '../../../../components/ui/Button/Button.tsx';
-import { IconButton } from '../../../../components/ui/IconButton/IconButton.tsx';
-import { Card } from '../../../../components/ui/Card/Card.tsx';
-import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
-import { Text } from '../../../../components/ui/Text/Text.tsx';
+import { Button } from '../../../../atoms/Button/Button.tsx';
+import { IconButton } from '../../../../atoms/IconButton/IconButton.tsx';
+import { Card } from '../../../../atoms/Card/Card.tsx';
+import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../atoms/Text/Text.tsx';
 import {
   createListCollection,
   Select,
@@ -12,11 +12,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../components/ui/Select/Select.tsx';
+} from '../../../../atoms/Select/Select.tsx';
 import {
   MarkedRangeCalendar,
   type DateRangeValue,
-} from '../../../../components/ui/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
+} from '../../../../atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 import { useEntriesByRange } from '../../api/journalHooks.ts';
 import { MOOD_RING_COLOR } from '../../moodColors.ts';
 

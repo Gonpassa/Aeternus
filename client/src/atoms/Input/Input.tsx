@@ -8,7 +8,7 @@ import {
   useRecipe,
   type InputProps as ChakraInputProps,
 } from '@chakra-ui/react';
-import { inputRecipe } from '../../../theme.ts';
+import { inputRecipe } from '../../theme.ts';
 
 export type InputVariant = 'default' | 'title';
 

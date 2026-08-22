@@ -4,21 +4,21 @@ import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@n
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
-import { Button } from '../../../../components/ui/Button/Button.tsx';
-import { Calendar } from '../../../../components/ui/Calendar/Calendar.tsx';
-import { Card } from '../../../../components/ui/Card/Card.tsx';
-import { Dialog } from '../../../../components/ui/Dialog/Dialog.tsx';
-import { useDialogState } from '../../../../components/ui/Dialog/useDialogState.ts';
-import { FieldLabel } from '../../../../components/ui/FieldLabel/FieldLabel.tsx';
-import { Input } from '../../../../components/ui/Input/Input.tsx';
-import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
-import { Text } from '../../../../components/ui/Text/Text.tsx';
+import { Button } from '../../../../atoms/Button/Button.tsx';
+import { Calendar } from '../../../../atoms/Calendar/Calendar.tsx';
+import { Card } from '../../../../atoms/Card/Card.tsx';
+import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
+import { useDialogState } from '../../../../atoms/Dialog/useDialogState.ts';
+import { FieldLabel } from '../../../../atoms/FieldLabel/FieldLabel.tsx';
+import { Input } from '../../../../atoms/Input/Input.tsx';
+import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../atoms/Text/Text.tsx';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '../../../../components/ui/Popover/Popover.tsx';
-import { VisuallyHidden } from '../../../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
+} from '../../../../atoms/Popover/Popover.tsx';
+import { VisuallyHidden } from '../../../../atoms/VisuallyHidden/VisuallyHidden.tsx';
 import styles from './EntryForm.module.css';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);

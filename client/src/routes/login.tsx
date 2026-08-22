@@ -1,13 +1,13 @@
 import { createFileRoute, getRouteApi, useNavigate, Link } from '@tanstack/react-router';
 import { FormEvent, FormEventHandler, useState } from 'react';
 import { useAuth } from '../shell/AuthProvider.tsx';
-import { Button } from '../components/ui/Button/Button.tsx';
-import { PageContainer } from '../components/ui/PageContainer/PageContainer.tsx';
-import { Heading } from '../components/ui/Heading/Heading.tsx';
-import { Stack } from '../components/ui/Stack/Stack.tsx';
-import { FieldLabel } from '../components/ui/FieldLabel/FieldLabel.tsx';
-import { Input } from '../components/ui/Input/Input.tsx';
-import { Text } from '../components/ui/Text/Text.tsx';
+import { Button } from '../atoms/Button/Button.tsx';
+import { PageContainer } from '../atoms/PageContainer/PageContainer.tsx';
+import { Heading } from '../atoms/Heading/Heading.tsx';
+import { Stack } from '../atoms/Stack/Stack.tsx';
+import { FieldLabel } from '../atoms/FieldLabel/FieldLabel.tsx';
+import { Input } from '../atoms/Input/Input.tsx';
+import { Text } from '../atoms/Text/Text.tsx';
 
 export interface LoginSearch {
   redirect?: string;

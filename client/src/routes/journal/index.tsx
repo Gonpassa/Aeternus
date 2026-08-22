@@ -5,14 +5,14 @@ import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../modules/journal/moodColors.ts'
 import { stripHtml } from '../../modules/journal/textUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
-import type { DateRangeValue } from '../../components/ui/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
-import { Button } from '../../components/ui/Button/Button.tsx';
-import { PageContainer } from '../../components/ui/PageContainer/PageContainer.tsx';
-import { Stack } from '../../components/ui/Stack/Stack.tsx';
-import { Heading } from '../../components/ui/Heading/Heading.tsx';
-import { Text } from '../../components/ui/Text/Text.tsx';
-import { Card } from '../../components/ui/Card/Card.tsx';
-import { Dot } from '../../components/ui/Dot/Dot.tsx';
+import type { DateRangeValue } from '../../atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
+import { Button } from '../../atoms/Button/Button.tsx';
+import { PageContainer } from '../../atoms/PageContainer/PageContainer.tsx';
+import { Stack } from '../../atoms/Stack/Stack.tsx';
+import { Heading } from '../../atoms/Heading/Heading.tsx';
+import { Text } from '../../atoms/Text/Text.tsx';
+import { Card } from '../../atoms/Card/Card.tsx';
+import { Dot } from '../../atoms/Dot/Dot.tsx';
 
 export interface JournalIndexSearch {
   page: number;

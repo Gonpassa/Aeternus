@@ -8,7 +8,7 @@ import {
   useRecipe,
   type HeadingProps as ChakraHeadingProps,
 } from '@chakra-ui/react';
-import { headingRecipe } from '../../../theme.ts';
+import { headingRecipe } from '../../theme.ts';
 
 export type HeadingVariant = 'default' | 'page';
 

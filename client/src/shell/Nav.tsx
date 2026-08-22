@@ -1,7 +1,7 @@
 import { Link, useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { useAuth } from './AuthProvider.tsx';
-import { Stack } from '../components/ui/Stack/Stack.tsx';
-import { Text } from '../components/ui/Text/Text.tsx';
+import { Stack } from '../atoms/Stack/Stack.tsx';
+import { Text } from '../atoms/Text/Text.tsx';
 
 function RailLink({ to, children }: { to: string; children: string }) {
   const matchRoute = useMatchRoute();

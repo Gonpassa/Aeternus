@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { MOOD_LABEL, MOOD_RING_COLOR } from '../../moodColors.ts';
-import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
-import { Text } from '../../../../components/ui/Text/Text.tsx';
-import { Input } from '../../../../components/ui/Input/Input.tsx';
+import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../atoms/Text/Text.tsx';
+import { Input } from '../../../../atoms/Input/Input.tsx';
 import { MoodSwatchButton } from './MoodSwatchButton.tsx';
 import { EmotionPillButton } from './EmotionPillButton.tsx';
 
