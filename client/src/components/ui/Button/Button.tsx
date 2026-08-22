@@ -7,13 +7,14 @@
 import * as React from 'react';
 import { Button as ChakraButton, type ButtonProps as ChakraButtonProps } from '@chakra-ui/react';
 
-export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-export type ButtonSize =
-  'default' | 'xs' | 'sm' | 'lg' | 'icon' | 'icon-xs' | 'icon-sm' | 'icon-lg';
+export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'ghost' | 'link';
+export type ButtonSize = 'default' | 'xs' | 'sm' | 'lg';
 
 export interface ButtonProps extends Omit<ChakraButtonProps, 'variant' | 'size'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  loading?: ChakraButtonProps['loading'];
+  loadingText?: ChakraButtonProps['loadingText'];
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(

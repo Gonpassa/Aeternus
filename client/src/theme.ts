@@ -31,13 +31,6 @@ const buttonRecipe = defineRecipe({
         color: 'primary',
         _hover: { bg: 'primary/5' },
       },
-      secondary: {
-        borderWidth: '1px',
-        borderColor: 'primary',
-        bg: 'transparent',
-        color: 'primary',
-        _hover: { bg: 'primary/5' },
-      },
       ghost: { color: 'accent', _hover: { textDecoration: 'underline' } },
       link: {
         color: 'accent',
@@ -50,10 +43,6 @@ const buttonRecipe = defineRecipe({
       xs: { h: '6', gap: '1', px: '2', fontSize: 'xs' },
       sm: { h: '8', gap: '1.5', px: '3' },
       lg: { h: '10', px: '6' },
-      icon: { h: '9', w: '9', px: '0' },
-      'icon-xs': { h: '6', w: '6', px: '0' },
-      'icon-sm': { h: '8', w: '8', px: '0' },
-      'icon-lg': { h: '10', w: '10', px: '0' },
     },
   },
   defaultVariants: {

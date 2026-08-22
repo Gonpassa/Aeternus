@@ -1,0 +1,71 @@
+.button {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  padding-inline: 0.5rem;
+  border: 1.5px solid #d8cfb8;
+  border-radius: 4px;
+  background: transparent;
+  color: #2c3e52;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out;
+}
+
+.button:hover {
+  border-color: #2c3e52;
+}
+
+.button:focus-visible {
+  outline: 2px solid #55684a;
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.buttonActive {
+  border-color: #2c3e52;
+}
+
+.ripple {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.35;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-expand 450ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes ripple-expand {
+  to {
+    transform: translate(-50%, -50%) scale(60);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .ripple {
+    display: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { PropsWithChildren, useState } from 'react';
+import { ChevronLeft, Star } from 'lucide-react';
 import { Button, type ButtonSize, type ButtonVariant } from '../../components/ui/Button/Button.tsx';
 import { Stack } from '../../components/ui/Stack/Stack.tsx';
 import { Heading } from '../../components/ui/Heading/Heading.tsx';
@@ -18,25 +19,16 @@ import {
 } from '../../components/ui/Select/Select.tsx';
 import { Tooltip } from '../../components/ui/Tooltip/Tooltip.tsx';
 import { VisuallyHidden } from '../../components/ui/VisuallyHidden/VisuallyHidden.tsx';
+import { ToggleButton } from '../../components/ui/ToggleButton/ToggleButton.tsx';
+import {
+  ToggleButtonGroup,
+  ToggleButtonGroupItem,
+} from '../../components/ui/ToggleButtonGroup/ToggleButtonGroup.tsx';
+import { ToolbarActionButton } from '../../components/ui/ToolbarActionButton/ToolbarActionButton.tsx';
+import { IconButton } from '../../components/ui/IconButton/IconButton.tsx';
 
-const BUTTON_VARIANTS: ButtonVariant[] = [
-  'default',
-  'destructive',
-  'outline',
-  'secondary',
-  'ghost',
-  'link',
-];
-const BUTTON_SIZES: ButtonSize[] = [
-  'default',
-  'xs',
-  'sm',
-  'lg',
-  'icon',
-  'icon-xs',
-  'icon-sm',
-  'icon-lg',
-];
+const BUTTON_VARIANTS: ButtonVariant[] = ['default', 'destructive', 'outline', 'ghost', 'link'];
+const BUTTON_SIZES: ButtonSize[] = ['default', 'xs', 'sm', 'lg'];
 
 const moodCollection = createListCollection({
   items: [
@@ -74,6 +66,8 @@ export function ComponentsShowcase() {
   const confirmDialog = useDialogState();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectValue, setSelectValue] = useState<string[]>(['content']);
+  const [togglePressed, setTogglePressed] = useState(false);
+  const [blockType, setBlockType] = useState('paragraph');
 
   return (
     <Stack direction="column" maxW="4xl">
@@ -102,11 +96,95 @@ export function ComponentsShowcase() {
               </Text>
               {BUTTON_SIZES.map((size) => (
                 <Button key={size} variant={variant} size={size}>
-                  {size.startsWith('icon') ? '★' : 'Button'}
+                  Button
                 </Button>
               ))}
             </Stack>
           ))}
+        </Stack>
+      </Section>
+
+      <Section title="Button (disabled)" description="every variant, disabled">
+        <Stack align="center" gap="3" wrap="wrap">
+          {BUTTON_VARIANTS.map((variant) => (
+            <Button key={variant} variant={variant} disabled>
+              {variant}
+            </Button>
+          ))}
+        </Stack>
+      </Section>
+
+      <Section title="Button (loading)" description="every variant, loading">
+        <Stack align="center" gap="3" wrap="wrap">
+          {BUTTON_VARIANTS.map((variant) => (
+            <Button key={variant} variant={variant} loading loadingText="Saving">
+              {variant}
+            </Button>
+          ))}
+        </Stack>
+      </Section>
+
+      <Section title="IconButton" description="every variant × size, from components/ui/IconButton">
+        <Stack direction="column" gap="4">
+          {BUTTON_VARIANTS.map((variant) => (
+            <Stack key={variant} align="center" gap="3" wrap="wrap">
+              <Text
+                fontFamily="mono"
+                fontSize="xs"
+                textTransform="uppercase"
+                color="inkSoft"
+                w="24"
+                flexShrink="0"
+              >
+                {variant}
+              </Text>
+              {BUTTON_SIZES.map((size) => (
+                <IconButton
+                  key={size}
+                  variant={variant}
+                  size={size}
+                  icon={Star}
+                  aria-label={`${variant} ${size} star`}
+                />
+              ))}
+              <IconButton
+                variant={variant}
+                icon={ChevronLeft}
+                aria-label={`${variant} chevron left`}
+              />
+            </Stack>
+          ))}
+        </Stack>
+      </Section>
+
+      <Section
+        title="ToggleButton"
+        description="a two-state pressed/unpressed button, from components/ui/ToggleButton"
+      >
+        <ToggleButton pressed={togglePressed} onPressedChange={setTogglePressed}>
+          {togglePressed ? 'Pressed' : 'Unpressed'}
+        </ToggleButton>
+      </Section>
+
+      <Section
+        title="ToggleButtonGroup"
+        description="single-selection radiogroup, mirroring EditorMenuBar's block-type group"
+      >
+        <ToggleButtonGroup aria-label="Block type" value={blockType} onChange={setBlockType}>
+          <ToggleButtonGroupItem value="paragraph">Paragraph</ToggleButtonGroupItem>
+          <ToggleButtonGroupItem value="heading1">H1</ToggleButtonGroupItem>
+          <ToggleButtonGroupItem value="heading2">H2</ToggleButtonGroupItem>
+          <ToggleButtonGroupItem value="heading3">H3</ToggleButtonGroupItem>
+        </ToggleButtonGroup>
+      </Section>
+
+      <Section
+        title="ToolbarActionButton"
+        description="stateless action buttons, from components/ui/ToolbarActionButton"
+      >
+        <Stack gap="2">
+          <ToolbarActionButton onClick={() => {}}>Clear marks</ToolbarActionButton>
+          <ToolbarActionButton onClick={() => {}}>Clear nodes</ToolbarActionButton>
         </Stack>
       </Section>
 

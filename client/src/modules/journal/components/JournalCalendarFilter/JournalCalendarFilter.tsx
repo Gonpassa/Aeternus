@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '../../../../components/ui/Button/Button.tsx';
+import { IconButton } from '../../../../components/ui/IconButton/IconButton.tsx';
 import { Card } from '../../../../components/ui/Card/Card.tsx';
 import { Stack } from '../../../../components/ui/Stack/Stack.tsx';
 import { Text } from '../../../../components/ui/Text/Text.tsx';
@@ -123,17 +124,16 @@ export function JournalCalendarFilter({
     <Card>
       <Stack mb="3" align="center" justify="space-between" gap="2">
         <Stack align="center" gap="2">
-          <Button
+          <IconButton
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="sm"
+            icon={ChevronLeftIcon}
             aria-label="Previous month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}
             borderRadius="full"
             _hover={{ bg: 'moss/14', textDecoration: 'none' }}
-          >
-            <ChevronLeftIcon size={16} />
-          </Button>
+          />
           <Select
             collection={monthCollection}
             value={[String(visibleMonth.getMonth())]}
@@ -170,17 +170,16 @@ export function JournalCalendarFilter({
               ))}
             </SelectContent>
           </Select>
-          <Button
+          <IconButton
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="sm"
+            icon={ChevronRightIcon}
             aria-label="Next month"
             onClick={() => setVisibleMonth(addMonths(visibleMonth, 1))}
             borderRadius="full"
             _hover={{ bg: 'moss/14', textDecoration: 'none' }}
-          >
-            <ChevronRightIcon size={16} />
-          </Button>
+          />
         </Stack>
         {hasFilter && (
           <Button type="button" variant="link" onClick={() => onRangeChange({})}>
