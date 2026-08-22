@@ -6,7 +6,7 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 export default defineConfig(({ command }) => ({
   plugins: [
-    TanStackRouterVite(),
+    TanStackRouterVite({ routeFileIgnorePattern: '\\.test\\.tsx$' }),
     viteReact({
       babel: {
         plugins: command === 'serve' ? ['@locator/babel-jsx/dist/index.js'] : [],
