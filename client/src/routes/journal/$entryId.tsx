@@ -13,13 +13,14 @@ const routeApi = getRouteApi('/journal/$entryId');
 function EntryDetailPage() {
   const { entryId } = routeApi.useParams();
   const navigate = useNavigate();
-  const { data: entry, isLoading } = useEntry(Number(entryId));
   const deleteEntry = useDeleteEntry();
+  const { data: entry, isLoading } = useEntry(Number(entryId), {
+    enabled: !deleteEntry.isPending && !deleteEntry.isSuccess,
+  });
   const deleteDialog = useDialogState();
 
   const handleDelete = async () => {
     await deleteEntry.mutateAsync(Number(entryId));
-    deleteDialog.closeDialog();
     navigate({ to: '/journal', search: { page: 1 } });
   };
 
@@ -51,13 +52,23 @@ function EntryDetailPage() {
         </Button>
         <Dialog
           open={deleteDialog.open}
-          onClose={deleteDialog.closeDialog}
+          onClose={deleteEntry.isPending ? () => {} : deleteDialog.closeDialog}
           variant="small"
           role="alertdialog"
           header={{ title: 'Delete this entry?' }}
           footer={{
-            secondary: { label: 'Cancel', onClick: deleteDialog.closeDialog },
-            primary: { label: 'Delete', variant: 'destructive', onClick: handleDelete },
+            secondary: {
+              label: 'Cancel',
+              onClick: deleteDialog.closeDialog,
+              disabled: deleteEntry.isPending,
+            },
+            primary: {
+              label: 'Delete',
+              variant: 'destructive',
+              onClick: handleDelete,
+              loading: deleteEntry.isPending,
+              disabled: deleteEntry.isPending,
+            },
           }}
         >
           <Text fontFamily="body" color="inkSoft">

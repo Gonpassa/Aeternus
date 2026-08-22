@@ -83,8 +83,6 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
     const trimmed = raw.trim();
     emit(primaryMood, trimmed.length > 0 ? raw : null);
   };
-    console.log("🚀 ~ deriveLocalState ~ MOOD_TAXONOMY:", MOOD_TAXONOMY)
-
 
   return (
     <Stack as="fieldset" flexDirection="column" gap="2">

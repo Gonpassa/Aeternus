@@ -29,9 +29,10 @@ export const useEntries = (page: number) =>
     },
   });
 
-export const useEntry = (id: number) =>
+export const useEntry = (id: number, options?: { enabled?: boolean }) =>
   useQuery<Entry>({
     queryKey: journalKeys.detail(id),
+    enabled: options?.enabled,
     queryFn: async () => {
       const { data } = await apiClient.get<{ entry: Entry }>(endpoints.journal.entry(id));
       return data.entry;

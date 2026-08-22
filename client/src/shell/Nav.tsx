@@ -1,6 +1,5 @@
 import { Link, useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { useAuth } from './AuthProvider.tsx';
-import { Button } from '../components/ui/Button/Button.tsx';
 import { Stack } from '../components/ui/Stack/Stack.tsx';
 import { Text } from '../components/ui/Text/Text.tsx';
 
@@ -100,31 +99,14 @@ export function Nav() {
             <Text color="paper/70" textTransform="uppercase" letterSpacing="wide">
               {user.username}
             </Text>
-            <Button
-              type="button"
-              variant="link"
-              h="auto"
-              p="0"
-              minW="0"
-              color="paper"
-              fontSize="11px"
-              textTransform="uppercase"
-              letterSpacing="wide"
-              textDecoration="none"
-              _hover={{ textDecoration: 'underline' }}
-              onClick={handleLogout}
-            >
+            <Link to="/" onClick={handleLogout}>
               Log out
-            </Button>
+            </Link>
           </Stack>
         ) : (
-          <Stack gap="3">
-            <Stack asChild color="paper" textTransform="uppercase" letterSpacing="wide">
-              <Link to="/login">Log in</Link>
-            </Stack>
-            <Stack asChild color="paper" textTransform="uppercase" letterSpacing="wide">
-              <Link to="/register">Register</Link>
-            </Stack>
+          <Stack direction="column" align="flex-start" gap="2">
+            <Link to="/login">Log in</Link>
+            <Link to="/register">Register</Link>
           </Stack>
         )}
       </Stack>

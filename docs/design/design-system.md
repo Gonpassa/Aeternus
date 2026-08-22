@@ -106,6 +106,8 @@ Mood marks still carry a text label on hover/focus per the accessibility floor b
 
 Minimal and functional only: 150-200ms ease on hover/focus states, a single on-load moment where the journal page's ruled lines draw in left-to-right (the one orchestrated flourish). No scroll-triggered reveals, no hover lift/shadow on cards — the paper metaphor means things stay flat on the page.
 
+Exception: deliberate click-feedback animation (e.g. a ripple) is allowed on interactive controls, to confirm a click landed. This is scoped narrowly to that purpose — it doesn't reopen hover lift, shadow pop, or scroll-triggered motion elsewhere, which stay off the table. Respect `prefers-reduced-motion` per the accessibility floor below.
+
 ## Accessibility floor
 
 - All interactive elements have a visible focus ring (`--moss`, 2px, offset).

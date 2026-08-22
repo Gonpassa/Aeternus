@@ -63,6 +63,7 @@ export function Dialog({
     <ChakraDialog.Root
       role={role}
       open={open}
+      placement="center"
       onOpenChange={(details) => !details.open && onClose()}
     >
       <Portal>

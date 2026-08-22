@@ -179,6 +179,9 @@ const config = defineConfig({
       marginTop: '1.5em',
       marginBottom: '0.5em',
     },
+    '.entry-content em': {
+      fontStyle: 'italic',
+    },
     '.entry-content ul, .entry-content ol': {
       marginBottom: '1em',
       paddingLeft: '1.5em',

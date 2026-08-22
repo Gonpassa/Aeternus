@@ -3,6 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Card } from '../../../../components/ui/Card/Card.tsx';
 import { Prose } from '../../../../components/ui/Prose/Prose.tsx';
+import { EditorMenuBar } from '../EditorMenuBar/EditorMenuBar.tsx';
 import styles from './RichTextEditor.module.css';
 
 export interface RichTextEditorProps {
@@ -40,6 +41,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       minH="15rem"
       onClick={() => editor?.commands.focus()}
     >
+      <EditorMenuBar editor={editor} />
       <Prose>
         <EditorContent
           editor={editor}
