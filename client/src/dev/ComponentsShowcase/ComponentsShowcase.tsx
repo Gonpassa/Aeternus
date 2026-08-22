@@ -1,6 +1,10 @@
 import { PropsWithChildren, useState } from 'react';
 import { ChevronLeft, Star } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, type ButtonSize, type ButtonVariant } from '../../atoms/Button/Button.tsx';
+import { FormField } from '../../atoms/FormField/FormField.tsx';
 import { Stack } from '../../atoms/Stack/Stack.tsx';
 import { Heading } from '../../atoms/Heading/Heading.tsx';
 import { Text } from '../../atoms/Text/Text.tsx';
@@ -37,6 +41,22 @@ const moodCollection = createListCollection({
     { value: 'restless', label: 'Restless' },
   ],
 });
+
+const formFieldSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
+});
+type FormFieldShowcaseValues = z.infer<typeof formFieldSchema>;
+
+function FormFieldShowcase() {
+  const { control } = useForm<FormFieldShowcaseValues>({
+    defaultValues: { email: '' },
+    resolver: zodResolver(formFieldSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  return <FormField control={control} name="email" label="Email" placeholder="you@example.com" />;
+}
 
 function Section({
   title,
@@ -75,9 +95,8 @@ export function ComponentsShowcase() {
         UI components
       </Heading>
       <Text fontFamily="body" color="inkSoft" mb="10">
-        Dev-only reference of every primitive in <code>atoms/</code>, rendered with
-        representative props so their functionality can be exercised without navigating the real
-        app.
+        Dev-only reference of every primitive in <code>atoms/</code>, rendered with representative
+        props so their functionality can be exercised without navigating the real app.
       </Text>
 
       <Section title="Button" description="every variant × size, from atoms/Button">
@@ -186,6 +205,13 @@ export function ComponentsShowcase() {
           <ToolbarActionButton onClick={() => {}}>Clear marks</ToolbarActionButton>
           <ToolbarActionButton onClick={() => {}}>Clear nodes</ToolbarActionButton>
         </Stack>
+      </Section>
+
+      <Section
+        title="FormField"
+        description="RHF-bound labeled input with inline validation, from atoms/FormField - blur away then back to see the error"
+      >
+        <FormFieldShowcase />
       </Section>
 
       <Section title="Tooltip" description="hover or focus the trigger to reveal content">

@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
+import { useController, type Control } from 'react-hook-form';
 import { MOOD_LABEL, MOOD_RING_COLOR } from '../../moodColors.ts';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { Input } from '../../../../atoms/Input/Input.tsx';
 import { MoodSwatchButton } from './MoodSwatchButton.tsx';
 import { EmotionPillButton } from './EmotionPillButton.tsx';
+import type { EntryFormValues } from '../EntryForm/EntryForm.utils.ts';
 
 export interface MoodPickerProps {
-  primaryMood: PrimaryMood | null;
-  specificEmotion: SpecificEmotion | null;
-  onChange: (value: { primaryMood: PrimaryMood; specificEmotion: SpecificEmotion | null }) => void;
+  control: Control<EntryFormValues>;
 }
 
 const PRIMARY_MOODS = Object.keys(MOOD_TAXONOMY) as PrimaryMood[];
@@ -33,17 +33,25 @@ function deriveLocalState(
   };
 }
 
-export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPickerProps) {
+export function MoodPicker({ control }: MoodPickerProps) {
+  const { field: primaryMoodField, fieldState: primaryMoodFieldState } = useController({
+    control,
+    name: 'primaryMood',
+  });
+  const { field: specificEmotionField } = useController({ control, name: 'specificEmotion' });
+  const primaryMood = primaryMoodField.value;
+  const specificEmotion = specificEmotionField.value;
+
   const [{ selectedFixed, customText }, setLocalState] = useState<LocalMoodState>(() =>
     deriveLocalState(primaryMood, specificEmotion),
   );
 
   // Tracks the last { primaryMood, specificEmotion } this component itself emitted via
-  // onChange, so we can tell an external prop change (e.g. loading a different entry, or
-  // the EntryForm collision-lookup prefill) apart from the parent simply echoing back what
-  // we just told it. Only external changes should resync local display state from props;
-  // otherwise a custom-typed value that happens to match a fixed suggestion (e.g. "content")
-  // would self-clear the moment the parent's controlled prop catches up.
+  // the RHF fields' onChange, so we can tell an external change (e.g. loading a different
+  // entry, or the EntryForm collision-lookup prefill via reset()) apart from RHF simply
+  // echoing back what we just told it. Only external changes should resync local display
+  // state from the field values; otherwise a custom-typed value that happens to match a
+  // fixed suggestion (e.g. "content") would self-clear the moment the field catches up.
   const lastEmitted = useRef<{
     primaryMood: PrimaryMood | null;
     specificEmotion: SpecificEmotion | null;
@@ -63,7 +71,8 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
 
   const emit = (nextPrimaryMood: PrimaryMood, nextSpecificEmotion: SpecificEmotion | null) => {
     lastEmitted.current = { primaryMood: nextPrimaryMood, specificEmotion: nextSpecificEmotion };
-    onChange({ primaryMood: nextPrimaryMood, specificEmotion: nextSpecificEmotion });
+    primaryMoodField.onChange(nextPrimaryMood);
+    specificEmotionField.onChange(nextSpecificEmotion);
   };
 
   const handlePrimaryMoodClick = (mood: PrimaryMood) => {
@@ -100,6 +109,11 @@ export function MoodPicker({ primaryMood, specificEmotion, onChange }: MoodPicke
           />
         ))}
       </Stack>
+      {primaryMoodFieldState.error && (
+        <Text id="primaryMood-error" variant="formError" role="alert">
+          {primaryMoodFieldState.error.message}
+        </Text>
+      )}
       {primaryMood && (
         <Stack wrap="wrap" align="center" gap="2" role="radiogroup" aria-label="Specific emotion">
           {(MOOD_TAXONOMY[primaryMood] ?? []).map((emotion) => (

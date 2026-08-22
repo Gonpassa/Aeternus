@@ -1,6 +1,8 @@
-import { FormEvent, FormEventHandler, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEventHandler } from 'react';
 import { format, parse } from 'date-fns';
-import type { CreateEntryRequest, Entry, PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { CreateEntryRequest, Entry } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
@@ -10,15 +12,12 @@ import { Card } from '../../../../atoms/Card/Card.tsx';
 import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
 import { useDialogState } from '../../../../atoms/Dialog/useDialogState.ts';
 import { FieldLabel } from '../../../../atoms/FieldLabel/FieldLabel.tsx';
-import { Input } from '../../../../atoms/Input/Input.tsx';
+import { FormField } from '../../../../atoms/FormField/FormField.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '../../../../atoms/Popover/Popover.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../../atoms/Popover/Popover.tsx';
 import { VisuallyHidden } from '../../../../atoms/VisuallyHidden/VisuallyHidden.tsx';
+import { entrySchema, type EntryFormValues, type EntryFormOutput } from './EntryForm.utils.ts';
 import styles from './EntryForm.module.css';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
@@ -31,19 +30,31 @@ export interface EntryFormProps {
   onDelete?: () => void | Promise<void>;
 }
 
+const defaultValuesFor = (initialEntry: Entry | undefined): EntryFormValues => ({
+  date: initialEntry?.date ?? todayIsoDate(),
+  title: initialEntry?.title ?? '',
+  primaryMood: initialEntry?.primaryMood ?? null,
+  specificEmotion: initialEntry?.specificEmotion ?? null,
+  content: initialEntry?.content ?? '',
+});
+
 export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: EntryFormProps) {
-  const [date, setDate] = useState(initialEntry?.date ?? todayIsoDate());
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [title, setTitle] = useState(initialEntry?.title ?? '');
-  const [primaryMood, setPrimaryMood] = useState<PrimaryMood | null>(
-    initialEntry?.primaryMood ?? null,
-  );
-  const [specificEmotion, setSpecificEmotion] = useState<SpecificEmotion | null>(
-    initialEntry?.specificEmotion ?? null,
-  );
-  const [content, setContent] = useState(initialEntry?.content ?? '');
-  const [error, setError] = useState<string | null>(null);
   const deleteDialog = useDialogState();
+  const discardDialog = useDialogState();
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isDirty, isSubmitting },
+  } = useForm<EntryFormValues, unknown, EntryFormOutput>({
+    defaultValues: defaultValuesFor(initialEntry),
+    resolver: zodResolver(entrySchema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+  const date = useWatch({ control, name: 'date' });
 
   // Only look up by-date collisions in create mode; an edit route already has its entry.
   const collisionLookupDate = initialEntry ? null : date;
@@ -63,49 +74,45 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
     }
     if (collidingEntry) {
       prefilledFromCollisionId.current = collidingEntry.id;
-      setTitle(collidingEntry.title);
-      setPrimaryMood(collidingEntry.primaryMood);
-      setSpecificEmotion(collidingEntry.specificEmotion);
-      setContent(collidingEntry.content);
+      reset({
+        date,
+        title: collidingEntry.title,
+        primaryMood: collidingEntry.primaryMood,
+        specificEmotion: collidingEntry.specificEmotion,
+        content: collidingEntry.content,
+      });
     } else if (!initialEntry && prefilledFromCollisionId.current !== null) {
       prefilledFromCollisionId.current = null;
-      setTitle('');
-      setPrimaryMood(null);
-      setSpecificEmotion(null);
-      setContent('');
+      reset({ date, title: '', primaryMood: null, specificEmotion: null, content: '' });
     }
+    // `reset` is stable and `date` is read fresh via `useWatch` above; including them
+    // would re-run this on every keystroke in other fields (RHF re-renders on every
+    // field change).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collidingEntry, collisionLookupLoading, initialEntry]);
 
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 
-  const isDirty =
-    date !== (initialEntry?.date ?? todayIsoDate()) ||
-    title !== (initialEntry?.title ?? '') ||
-    primaryMood !== (initialEntry?.primaryMood ?? null) ||
-    specificEmotion !== (initialEntry?.specificEmotion ?? null) ||
-    content !== (initialEntry?.content ?? '');
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    if (!primaryMood) {
-      setError('Please choose a mood.');
-      return;
-    }
+  const onValid = async (values: EntryFormOutput) => {
     try {
-      await onSubmit({ date, title, primaryMood, specificEmotion, content }, existingEntryId);
+      await onSubmit(values, existingEntryId);
     } catch {
-      setError('Could not save this entry.');
+      // Save failures aren't field-attributable here (there's no per-field validation path
+      // for them, unlike login/register); the global toast interceptor in api/client.ts
+      // already surfaced it - nothing more to do here.
     }
   };
 
   const handleDiscard = () => {
-    // A blocking native confirm is the deliberate choice here: discarding is destructive and
-    // rare enough that a custom dialog component isn't warranted just for this one call site.
-    // eslint-disable-next-line no-alert
-    if (isDirty && !window.confirm('Discard this entry? Unsaved changes will be lost.')) {
+    if (isDirty) {
+      discardDialog.openDialog();
       return;
     }
+    onDiscard?.();
+  };
+
+  const confirmDiscard = () => {
+    discardDialog.closeDialog();
     onDiscard?.();
   };
 
@@ -120,7 +127,7 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
       variant="railed"
       // Card's props are typed against its div-rendering default; `as="form"` changes the
       // rendered element at runtime but not the typed handler signature, hence the cast.
-      onSubmit={handleSubmit as unknown as FormEventHandler<HTMLDivElement>}
+      onSubmit={handleSubmit(onValid) as unknown as FormEventHandler<HTMLDivElement>}
       display="flex"
       flexDirection="column"
       gap="4"
@@ -134,62 +141,65 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
           </Text>
         </Card>
       )}
-      <FieldLabel eyebrow htmlFor="entry-date">
-        Date
-        <Popover
-          open={datePopoverOpen}
-          onOpenChange={(details) => setDatePopoverOpen(details.open)}
-        >
-          <PopoverTrigger asChild>
-            <Button
-              id="entry-date"
-              type="button"
-              variant="outline"
-              justifyContent="flex-start"
-              fontFamily="body"
-              textTransform="none"
-              w="fit-content"
-              disabled={Boolean(initialEntry)}
+      <Controller
+        control={control}
+        name="date"
+        render={({ field }) => (
+          <FieldLabel eyebrow htmlFor="entry-date">
+            Date
+            <Popover
+              open={datePopoverOpen}
+              onOpenChange={(details) => setDatePopoverOpen(details.open)}
             >
-              {format(parseIsoDate(date), 'MMM d, yyyy')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent w="auto" borderColor="line" bg="paperCard" p="2">
-            <Calendar
-              mode="single"
-              selected={parseIsoDate(date)}
-              onSelect={(selected) => {
-                if (!selected) return;
-                setDate(format(selected, 'yyyy-MM-dd'));
-                setDatePopoverOpen(false);
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      </FieldLabel>
-      <FieldLabel display="block" position="relative" htmlFor="entry-title">
-        <VisuallyHidden>Title</VisuallyHidden>
-        <Input
-          id="entry-title"
-          variant="title"
-          placeholder="Give the page a title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </FieldLabel>
-      <MoodPicker
-        primaryMood={primaryMood}
-        specificEmotion={specificEmotion}
-        onChange={({ primaryMood: p, specificEmotion: s }) => {
-          setPrimaryMood(p);
-          setSpecificEmotion(s);
-        }}
+              <PopoverTrigger asChild>
+                <Button
+                  id="entry-date"
+                  type="button"
+                  variant="outline"
+                  justifyContent="flex-start"
+                  fontFamily="body"
+                  textTransform="none"
+                  w="fit-content"
+                  disabled={Boolean(initialEntry)}
+                >
+                  {format(parseIsoDate(field.value), 'MMM d, yyyy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent w="auto" borderColor="line" bg="paperCard" p="2">
+                <Calendar
+                  mode="single"
+                  selected={parseIsoDate(field.value)}
+                  onSelect={(selected) => {
+                    if (!selected) return;
+                    field.onChange(format(selected, 'yyyy-MM-dd'));
+                    setDatePopoverOpen(false);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </FieldLabel>
+        )}
       />
+      <FormField
+        control={control}
+        name="title"
+        label={<VisuallyHidden>Title</VisuallyHidden>}
+        variant="title"
+        placeholder="Give the page a title"
+      />
+      <MoodPicker control={control} />
 
-      <RichTextEditor value={content} onChange={setContent} placeholder="Write today's entry..." />
-
-      {error && <Text variant="error">{error}</Text>}
+      <Controller
+        control={control}
+        name="content"
+        render={({ field }) => (
+          <RichTextEditor
+            value={field.value}
+            onChange={field.onChange}
+            placeholder="Write today's entry..."
+          />
+        )}
+      />
 
       <Stack justify="flex-end" gap="3" mt="2">
         {initialEntry ? (
@@ -221,11 +231,30 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
             </Dialog>
           </>
         ) : (
-          <Button type="button" variant="ghost" onClick={handleDiscard}>
-            Discard
-          </Button>
+          <>
+            <Button type="button" variant="ghost" onClick={handleDiscard}>
+              Discard
+            </Button>
+            <Dialog
+              open={discardDialog.open}
+              onClose={discardDialog.closeDialog}
+              variant="small"
+              role="alertdialog"
+              header={{ title: 'Discard this entry?' }}
+              footer={{
+                secondary: { label: 'Cancel', onClick: discardDialog.closeDialog },
+                primary: { label: 'Discard', variant: 'destructive', onClick: confirmDiscard },
+              }}
+            >
+              <Text fontFamily="body" color="inkSoft">
+                Unsaved changes will be lost.
+              </Text>
+            </Dialog>
+          </>
         )}
-        <Button type="submit">Save entry</Button>
+        <Button type="submit" loading={isSubmitting}>
+          Save entry
+        </Button>
       </Stack>
     </Card>
   );
