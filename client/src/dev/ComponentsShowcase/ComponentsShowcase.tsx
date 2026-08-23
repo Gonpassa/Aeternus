@@ -10,6 +10,7 @@ import { Heading } from '../../atoms/Heading/Heading.tsx';
 import { Text } from '../../atoms/Text/Text.tsx';
 import { Card } from '../../atoms/Card/Card.tsx';
 import { IndexCard } from '../../atoms/IndexCard/IndexCard.tsx';
+import { DieCutTab } from '../../atoms/DieCutTab/DieCutTab.tsx';
 import { Calendar } from '../../atoms/Calendar/Calendar.tsx';
 import { Dialog } from '../../atoms/Dialog/Dialog.tsx';
 import { useDialogState } from '../../atoms/Dialog/useDialogState.ts';
@@ -255,28 +256,34 @@ export function ComponentsShowcase() {
 
       <Section
         title="IndexCard"
-        description="die-cut tab, punch hole, mono catalog number, from atoms/IndexCard"
+        description="die-cut tab and mono catalog number, from atoms/IndexCard"
       >
         <Stack gap="4" wrap="wrap" align="flex-start">
           <Stack w="18rem" direction="column">
-            <IndexCard title="A quiet Tuesday" label="Journal" catalogNumber="No. 014">
+            <IndexCard label="Journal" catalogNumber="No. 014">
               Started the morning with coffee on the porch and a page of longhand notes before
               anything else.
             </IndexCard>
           </Stack>
           <Stack w="18rem" direction="column">
-            <IndexCard
-              title="Field notes: moss"
-              label="Catalog"
-              catalogNumber="No. 032"
-              accent="moss"
-            >
+            <IndexCard label="Catalog" catalogNumber="No. 032" accent="moss">
               A second category, using the moss accent instead of rust.
             </IndexCard>
           </Stack>
           <Stack w="18rem" direction="column">
-            <IndexCard title="No excerpt yet" label="Journal" catalogNumber="No. 041" />
+            <IndexCard label="Journal" catalogNumber="No. 041" />
           </Stack>
+        </Stack>
+      </Section>
+
+      <Section
+        title="DieCutTab"
+        description="reusable die-cut tab label, from atoms/DieCutTab, color variants"
+      >
+        <Stack gap="4" wrap="wrap" align="flex-start">
+          <DieCutTab color="rust">Rust</DieCutTab>
+          <DieCutTab color="moss">Moss</DieCutTab>
+          <DieCutTab color="inkBlue">Ink blue</DieCutTab>
         </Stack>
       </Section>
 

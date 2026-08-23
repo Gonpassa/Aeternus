@@ -100,7 +100,7 @@ export function JournalWidget() {
   const summary = useJournalSummary(asOf);
 
   return (
-    <IndexCard title="Journal" label="Journal" catalogNumber="No. 001">
+    <IndexCard label="Journal" catalogNumber="No. 001">
       <Stack direction="column" gap="4" align="flex-start">
         <QuickEntryLink />
         {summary.isLoading && <Text variant="muted">Loading your journal summary&hellip;</Text>}
