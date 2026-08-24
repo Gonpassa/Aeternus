@@ -28,8 +28,8 @@ function EditEntryPage() {
     );
   }
 
-  const handleSubmit = async (input: CreateEntryRequest) => {
-    await updateEntry.mutateAsync({ id: entry.id, input });
+  const handleUpdate = async (id: number, input: CreateEntryRequest) => {
+    await updateEntry.mutateAsync({ id, input });
     navigate({ to: '/journal/$entryId', params: { entryId } });
   };
 
@@ -43,7 +43,7 @@ function EditEntryPage() {
       <Heading as="h1" mb="4" variant="page">
         Edit entry
       </Heading>
-      <EntryForm initialEntry={entry} onSubmit={handleSubmit} onDelete={handleDelete} />
+      <EntryForm initialEntry={entry} onUpdate={handleUpdate} onDelete={handleDelete} />
     </PageContainer>
   );
 }

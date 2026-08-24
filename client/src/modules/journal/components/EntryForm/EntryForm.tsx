@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type FormEventHandler } from 'react';
+import { useState, type FormEventHandler } from 'react';
 import { format, parse } from 'date-fns';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateEntryRequest, Entry } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
+import { useExternalChange } from '../../hooks/useExternalChange.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../atoms/Button/Button.tsx';
@@ -25,7 +26,11 @@ const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date())
 
 export interface EntryFormProps {
   initialEntry?: Entry;
-  onSubmit: (input: CreateEntryRequest, existingEntryId?: number) => Promise<void>;
+  // EntryForm decides internally (via `initialEntry` or a same-date collision lookup)
+  // whether a Save creates or updates an Entry - callers supply both operations and
+  // never need to know which one applies to the current Save.
+  onCreate?: (input: CreateEntryRequest) => Promise<void>;
+  onUpdate?: (id: number, input: CreateEntryRequest) => Promise<void>;
   onDiscard?: () => void;
   onDelete?: () => void | Promise<void>;
 }
@@ -38,7 +43,13 @@ const defaultValuesFor = (initialEntry: Entry | undefined): EntryFormValues => (
   content: initialEntry?.content ?? '',
 });
 
-export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: EntryFormProps) {
+export function EntryForm({
+  initialEntry,
+  onCreate,
+  onUpdate,
+  onDiscard,
+  onDelete,
+}: EntryFormProps) {
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const deleteDialog = useDialogState();
   const discardDialog = useDialogState();
@@ -60,42 +71,39 @@ export function EntryForm({ initialEntry, onSubmit, onDiscard, onDelete }: Entry
   const collisionLookupDate = initialEntry ? null : date;
   const { data: collidingEntry, isLoading: collisionLookupLoading } =
     useEntryByDate(collisionLookupDate);
-  // Tracks whether the form's fields are currently populated from a fetched collision,
-  // so we only clear them once that collision is confirmed gone - never merely because
-  // the lookup is loading or resolved to "no collision" for data the user typed themselves.
-  const prefilledFromCollisionId = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (collisionLookupLoading) {
-      // The collision lookup for the current date is still in flight; `collidingEntry`
-      // is momentarily `undefined` here even though no collision has been ruled out yet.
-      // Don't clear user-typed data based on this transient state.
-      return;
-    }
-    if (collidingEntry) {
-      prefilledFromCollisionId.current = collidingEntry.id;
-      reset({
-        date,
-        title: collidingEntry.title,
-        primaryMood: collidingEntry.primaryMood,
-        specificEmotion: collidingEntry.specificEmotion,
-        content: collidingEntry.content,
-      });
-    } else if (!initialEntry && prefilledFromCollisionId.current !== null) {
-      prefilledFromCollisionId.current = null;
-      reset({ date, title: '', primaryMood: null, specificEmotion: null, content: '' });
-    }
-    // `reset` is stable and `date` is read fresh via `useWatch` above; including them
-    // would re-run this on every keystroke in other fields (RHF re-renders on every
-    // field change).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collidingEntry, collisionLookupLoading, initialEntry]);
+  // Only a confirmed collision (fetch settled, one way or the other) should ever touch
+  // the form - never a transient `undefined` while the lookup for the current date is
+  // still in flight, which would otherwise clear data the user just typed.
+  useExternalChange(
+    collidingEntry ?? null,
+    (nextCollidingEntry) => {
+      if (nextCollidingEntry) {
+        reset({
+          date,
+          title: nextCollidingEntry.title,
+          primaryMood: nextCollidingEntry.primaryMood,
+          specificEmotion: nextCollidingEntry.specificEmotion,
+          content: nextCollidingEntry.content,
+        });
+      } else if (!initialEntry) {
+        reset({ date, title: '', primaryMood: null, specificEmotion: null, content: '' });
+      }
+    },
+    {
+      skip: collisionLookupLoading,
+      isEqual: (a, b) => (a?.id ?? null) === (b?.id ?? null),
+    },
+  );
 
   const existingEntryId = initialEntry?.id ?? collidingEntry?.id;
 
   const onValid = async (values: EntryFormOutput) => {
     try {
-      await onSubmit(values, existingEntryId);
+      if (existingEntryId) {
+        await onUpdate?.(existingEntryId, values);
+      } else {
+        await onCreate?.(values);
+      }
     } catch {
       // Save failures aren't field-attributable here (there's no per-field validation path
       // for them, unlike login/register); the global toast interceptor in api/client.ts

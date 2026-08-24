@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { Entry } from '@nee3/shared-types';
+import { toIsoDate } from '../../dateUtils.ts';
 
 vi.mock('../RichTextEditor/RichTextEditor.tsx', () => ({
   RichTextEditor: ({ value, onChange }: { value: string; onChange: (html: string) => void }) => (
@@ -15,23 +16,16 @@ vi.mock('../../api/journalHooks.ts', () => ({
 
 const { EntryForm } = await import('./EntryForm.tsx');
 
-const toIso = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 // The date-picker Calendar opens on the real current month and doesn't
 // auto-navigate on selection, so test dates must stay within it (mirrors the
-// same constraint/approach as JournalCalendarFilter.test.tsx's `toIso`).
+// same constraint/approach as JournalCalendarFilter.test.tsx's `toIsoDate`).
 const today = new Date();
 const dateA = new Date(today.getFullYear(), today.getMonth(), 1);
 const dateB = new Date(today.getFullYear(), today.getMonth(), 5);
 const dateC = new Date(today.getFullYear(), today.getMonth(), 9);
-const isoA = toIso(dateA);
-const isoB = toIso(dateB);
-const isoC = toIso(dateC);
+const isoA = toIsoDate(dateA);
+const isoB = toIsoDate(dateB);
+const isoC = toIsoDate(dateC);
 
 const existingEntry: Entry = {
   id: 42,
@@ -78,8 +72,9 @@ describe('EntryForm date-collision', () => {
     mockUseEntryByDate.mockImplementation((date: string | null) => ({
       data: date === isoA ? existingEntry : null,
     }));
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onCreate={onCreate} onUpdate={onUpdate} />);
 
     await selectDate(isoA);
 
@@ -93,19 +88,20 @@ describe('EntryForm date-collision', () => {
     fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
 
     await waitFor(() => {
-      expect(handleSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ date: isoA, title: 'Existing title' }),
+      expect(onUpdate).toHaveBeenCalledWith(
         42,
+        expect.objectContaining({ date: isoA, title: 'Existing title' }),
       );
     });
+    expect(onCreate).not.toHaveBeenCalled();
   });
 
   it('clears the pre-filled fields when the date changes away from a collision', async () => {
     mockUseEntryByDate.mockImplementation((date: string | null) => ({
       data: date === isoA ? existingEntry : null,
     }));
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onCreate={onCreate} />);
 
     await selectDate(isoA);
 
@@ -127,20 +123,20 @@ describe('EntryForm date-collision', () => {
 
   it('does not clear a user-typed title while the collision lookup is still loading', async () => {
     mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    const { rerender } = render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const { rerender } = render(<EntryForm onCreate={onCreate} />);
 
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'My draft title' } });
     expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
 
     mockUseEntryByDate.mockImplementation(() => ({ data: undefined, isLoading: true }));
     await selectDate(isoC);
-    rerender(<EntryForm onSubmit={handleSubmit} />);
+    rerender(<EntryForm onCreate={onCreate} />);
 
     expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
 
     mockUseEntryByDate.mockImplementation(() => ({ data: null, isLoading: false }));
-    rerender(<EntryForm onSubmit={handleSubmit} />);
+    rerender(<EntryForm onCreate={onCreate} />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/title/i)).toHaveValue('My draft title');
@@ -149,8 +145,9 @@ describe('EntryForm date-collision', () => {
 
   it('submits a plain create when no colliding entry exists', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onCreate={onCreate} onUpdate={onUpdate} />);
 
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'New entry' } });
     fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
@@ -158,46 +155,43 @@ describe('EntryForm date-collision', () => {
     fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
 
     await waitFor(() => {
-      expect(handleSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'New entry' }),
-        undefined,
-      );
+      expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ title: 'New entry' }));
     });
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 
   it('saves successfully with a primary mood but no specific emotion', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onCreate={onCreate} />);
 
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'No specific mood' } });
     fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
     fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
 
     await waitFor(() => {
-      expect(handleSubmit).toHaveBeenCalledWith(
+      expect(onCreate).toHaveBeenCalledWith(
         expect.objectContaining({ primaryMood: 'happy', specificEmotion: null }),
-        undefined,
       );
     });
   });
 
   it('blocks submission with an inline error when no primary mood is chosen', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(<EntryForm onCreate={onCreate} />);
 
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'No mood' } });
     fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
 
     const error = await screen.findByRole('alert');
     expect(error).toHaveTextContent('Please choose a mood.');
-    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(onCreate).not.toHaveBeenCalled();
   });
 
   it('disables the date trigger in edit mode', () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} />);
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} />);
 
     expect(screen.getByLabelText(/date/i)).toBeDisabled();
   });
@@ -205,7 +199,7 @@ describe('EntryForm date-collision', () => {
   it('shows a delete button with a confirm dialog in edit mode instead of discard', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const onDelete = vi.fn();
-    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} onDelete={onDelete} />);
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} onDelete={onDelete} />);
 
     expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
 
@@ -223,7 +217,7 @@ describe('EntryForm date-collision', () => {
   it('confirms via a dialog before discarding when only the date changed', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const onDiscard = vi.fn();
-    render(<EntryForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
+    render(<EntryForm onCreate={vi.fn()} onDiscard={onDiscard} />);
 
     await selectDate(isoB);
     fireEvent.click(screen.getByRole('button', { name: /discard/i }));
@@ -242,7 +236,7 @@ describe('EntryForm date-collision', () => {
   it('does not confirm before discarding when nothing changed', () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const onDiscard = vi.fn();
-    render(<EntryForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
+    render(<EntryForm onCreate={vi.fn()} onDiscard={onDiscard} />);
 
     fireEvent.click(screen.getByRole('button', { name: /discard/i }));
 
@@ -253,7 +247,7 @@ describe('EntryForm date-collision', () => {
   it('measures dirty state in edit mode from the loaded entry, not from blank', () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
     const onDiscard = vi.fn();
-    render(<EntryForm initialEntry={existingEntry} onSubmit={vi.fn()} onDiscard={onDiscard} />);
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} onDiscard={onDiscard} />);
 
     // Edit mode has no discard button (delete replaces it); exercise the same
     // isDirty semantics indirectly by confirming the title starts at the loaded
@@ -265,15 +259,15 @@ describe('EntryForm date-collision', () => {
 
   it('does not render an inline error for a network failure while saving - the global toast handles it', async () => {
     mockUseEntryByDate.mockReturnValue({ data: null });
-    const handleSubmit = vi.fn().mockRejectedValue(new Error('Network Error'));
-    render(<EntryForm onSubmit={handleSubmit} />);
+    const onCreate = vi.fn().mockRejectedValue(new Error('Network Error'));
+    render(<EntryForm onCreate={onCreate} />);
 
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'New entry' } });
     fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
     fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
 
     await waitFor(() => {
-      expect(handleSubmit).toHaveBeenCalled();
+      expect(onCreate).toHaveBeenCalled();
     });
     expect(screen.queryByText(/could not save/i)).not.toBeInTheDocument();
   });

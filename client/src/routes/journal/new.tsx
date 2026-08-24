@@ -11,10 +11,13 @@ function NewEntryPage() {
   const createEntry = useCreateEntry();
   const updateEntry = useUpdateEntry();
 
-  const handleSubmit = async (input: CreateEntryRequest, existingEntryId?: number) => {
-    const entry = existingEntryId
-      ? await updateEntry.mutateAsync({ id: existingEntryId, input })
-      : await createEntry.mutateAsync(input);
+  const handleCreate = async (input: CreateEntryRequest) => {
+    const entry = await createEntry.mutateAsync(input);
+    navigate({ to: '/journal/$entryId', params: { entryId: String(entry.id) } });
+  };
+
+  const handleUpdate = async (id: number, input: CreateEntryRequest) => {
+    const entry = await updateEntry.mutateAsync({ id, input });
     navigate({ to: '/journal/$entryId', params: { entryId: String(entry.id) } });
   };
 
@@ -24,7 +27,8 @@ function NewEntryPage() {
         New entry
       </Heading>
       <EntryForm
-        onSubmit={handleSubmit}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
         onDiscard={() => navigate({ to: '/journal', search: { page: 1 } })}
       />
     </PageContainer>

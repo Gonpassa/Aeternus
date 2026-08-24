@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { MOOD_TAXONOMY } from '@nee3/shared-types';
 import type { PrimaryMood, SpecificEmotion } from '@nee3/shared-types';
 import { useController, type Control } from 'react-hook-form';
@@ -9,6 +9,7 @@ import { Input } from '../../../../atoms/Input/Input.tsx';
 import { MoodSwatchButton } from './MoodSwatchButton.tsx';
 import { EmotionPillButton } from './EmotionPillButton.tsx';
 import type { EntryFormValues } from '../EntryForm/EntryForm.utils.ts';
+import { useExternalChange } from '../../hooks/useExternalChange.ts';
 
 export interface MoodPickerProps {
   control: Control<EntryFormValues>;
@@ -46,31 +47,23 @@ export function MoodPicker({ control }: MoodPickerProps) {
     deriveLocalState(primaryMood, specificEmotion),
   );
 
-  // Tracks the last { primaryMood, specificEmotion } this component itself emitted via
-  // the RHF fields' onChange, so we can tell an external change (e.g. loading a different
-  // entry, or the EntryForm collision-lookup prefill via reset()) apart from RHF simply
-  // echoing back what we just told it. Only external changes should resync local display
-  // state from the field values; otherwise a custom-typed value that happens to match a
-  // fixed suggestion (e.g. "content") would self-clear the moment the field catches up.
-  const lastEmitted = useRef<{
-    primaryMood: PrimaryMood | null;
-    specificEmotion: SpecificEmotion | null;
-  }>({
-    primaryMood,
-    specificEmotion,
-  });
-
-  useEffect(() => {
-    const last = lastEmitted.current;
-    const isExternalChange =
-      last.primaryMood !== primaryMood || last.specificEmotion !== specificEmotion;
-    if (!isExternalChange) return;
-    lastEmitted.current = { primaryMood, specificEmotion };
-    setLocalState(deriveLocalState(primaryMood, specificEmotion));
-  }, [primaryMood, specificEmotion]);
+  // Only a genuine external change (e.g. loading a different entry, or the EntryForm
+  // collision-lookup prefill via reset()) should resync local display state from the
+  // field values; otherwise a custom-typed value that happens to match a fixed
+  // suggestion (e.g. "content") would self-clear the moment the field catches up with
+  // this component's own emit().
+  const { notify } = useExternalChange(
+    { primaryMood, specificEmotion },
+    (next) => {
+      setLocalState(deriveLocalState(next.primaryMood, next.specificEmotion));
+    },
+    {
+      isEqual: (a, b) => a.primaryMood === b.primaryMood && a.specificEmotion === b.specificEmotion,
+    },
+  );
 
   const emit = (nextPrimaryMood: PrimaryMood, nextSpecificEmotion: SpecificEmotion | null) => {
-    lastEmitted.current = { primaryMood: nextPrimaryMood, specificEmotion: nextSpecificEmotion };
+    notify({ primaryMood: nextPrimaryMood, specificEmotion: nextSpecificEmotion });
     primaryMoodField.onChange(nextPrimaryMood);
     specificEmotionField.onChange(nextSpecificEmotion);
   };
