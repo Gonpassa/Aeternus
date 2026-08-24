@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 
-dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
+const useTestDb = process.env.NODE_ENV === 'test' || process.env.USE_TEST_DB === 'true';
+
+dotenv.config({ path: useTestDb ? '.env.test' : '.env' });
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {

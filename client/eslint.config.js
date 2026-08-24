@@ -26,6 +26,15 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      // The client and backend eslint configs both use tseslint.configs.recommended,
+      // and typescript-eslint infers each one's tsconfig root dir by walking the call
+      // stack of the config file that references it. The VS Code ESLint extension
+      // runs a single server process for the whole workspace, so both configs load
+      // into that same process and register conflicting candidates. Setting this
+      // explicitly avoids the ambiguity.
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,

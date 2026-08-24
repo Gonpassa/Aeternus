@@ -12,7 +12,7 @@
     "test": "jest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node src/db/migrate.ts",
-    "seed:test-entries": "ts-node src/scripts/seedTestEntries.ts",
+    "seed:test-entries": "USE_TEST_DB=true ts-node src/scripts/seedTestEntries.ts",
     "migrate:mongo": "ts-node src/scripts/migrateMongoJournal.ts"
   },
   "dependencies": {

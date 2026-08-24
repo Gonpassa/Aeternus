@@ -2,6 +2,17 @@ import { findByUsername } from '../db/users';
 import { createEntry, DuplicateEntryError } from '../db/entries';
 import { pool } from '../db/index';
 import { NewEntry } from '../db/schema';
+import config from '../config/default';
+
+// This script writes synthetic journal content. Refuse to run against anything that
+// isn't clearly a test database, so a missing/forgotten USE_TEST_DB flag can't seed
+// fake entries into a real personal journal database.
+if (!/test/i.test(config.databaseUrl)) {
+  throw new Error(
+    `Refusing to seed test entries into "${config.databaseUrl}" - it doesn't look like a test database. ` +
+      'Run this via "npm run seed:test-entries" (which sets USE_TEST_DB=true) or set USE_TEST_DB=true / DATABASE_URL to a *_test database explicitly.',
+  );
+}
 
 const SAMPLE_ENTRIES: Omit<NewEntry, 'userId'>[] = [
   {
