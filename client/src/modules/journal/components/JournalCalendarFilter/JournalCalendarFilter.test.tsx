@@ -2,19 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import * as journalHooks from '../../api/journalHooks.ts';
 import { JournalCalendarFilter, formatRangeLabel } from './JournalCalendarFilter.tsx';
+import { toIsoDate } from '../../dateUtils.ts';
 
 vi.mock('../../api/journalHooks.ts', () => ({
   useEntriesByRange: vi.fn(),
 }));
 
 const mockedUseEntriesByRange = vi.mocked(journalHooks.useEntriesByRange);
-
-const toIso = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 const fakeEntry = (date: string) => ({
   id: 1,
@@ -33,14 +27,14 @@ describe('JournalCalendarFilter', () => {
     const today = new Date();
     const sampleDate = new Date(today.getFullYear(), today.getMonth(), 10);
     mockedUseEntriesByRange.mockReturnValue({
-      data: [fakeEntry(toIso(sampleDate))],
+      data: [fakeEntry(toIsoDate(sampleDate))],
     } as ReturnType<typeof journalHooks.useEntriesByRange>);
 
     const { container } = render(
       <JournalCalendarFilter selectedRange={{}} onRangeChange={vi.fn()} />,
     );
 
-    expect(container.querySelector(`[data-iso="${toIso(sampleDate)}"]`)).not.toBeDisabled();
+    expect(container.querySelector(`[data-iso="${toIsoDate(sampleDate)}"]`)).not.toBeDisabled();
   });
 
   it('shows a clear-filter link only when a range is active', () => {
