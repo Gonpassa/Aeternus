@@ -6,4 +6,8 @@ module.exports = {
   // parallel workers run suites concurrently, so those truncates/writes race across suites
   // and produce flaky failures. Run test files serially to keep the shared DB consistent.
   maxWorkers: 1,
+  // The build step compiles src/ into dist/, including test files. Without this,
+  // jest's default testMatch picks up those compiled dist/**/*.test.js files too,
+  // running every integration suite twice.
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
 };
