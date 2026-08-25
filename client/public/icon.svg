@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Aeternus</title>
+  <rect width="512" height="512" rx="88" fill="#2C3E52" />
+  <text x="256" y="336" font-family="Georgia, 'Iowan Old Style', ui-serif, serif" font-size="260" font-weight="700" fill="#F3EEE2" text-anchor="middle">&#198;</text>
+  <circle cx="400" cy="400" r="16" fill="#A8532F" />
+</svg>
