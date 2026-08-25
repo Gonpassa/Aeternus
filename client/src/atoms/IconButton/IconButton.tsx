@@ -11,6 +11,8 @@ import {
   type ButtonProps as ChakraButtonProps,
 } from '@chakra-ui/react';
 import type { ButtonVariant } from '../Button/Button.tsx';
+import { useRipple } from '../../hooks/useRipple.ts';
+import styles from './IconButton.module.css';
 
 export type IconButtonSize = 'default' | 'xs' | 'sm' | 'lg';
 
@@ -36,10 +38,11 @@ export interface IconButtonProps extends Omit<ChakraButtonProps, 'variant' | 'si
 }
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon: Icon, variant = 'default', size = 'default', ...props },
+  { icon: Icon, variant = 'default', size = 'default', onClick, className, ...props },
   ref,
 ) {
   const dimension = SQUARE_DIMENSION[size];
+  const { ripple, handleClick, clearRipple } = useRipple<HTMLButtonElement>(onClick);
 
   return (
     <ChakraIconButton
@@ -48,9 +51,20 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
       h={dimension}
       w={dimension}
       px="0"
+      className={[styles.button, className].filter(Boolean).join(' ')}
+      onClick={handleClick}
       {...props}
     >
       <Icon size={ICON_PIXEL_SIZE[size]} />
+      {ripple && (
+        <span
+          key={ripple.key}
+          className={styles.ripple}
+          style={{ left: ripple.x, top: ripple.y } as React.CSSProperties}
+          onAnimationEnd={clearRipple}
+          aria-hidden="true"
+        />
+      )}
     </ChakraIconButton>
   );
 });

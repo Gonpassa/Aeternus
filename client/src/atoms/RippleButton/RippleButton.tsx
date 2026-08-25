@@ -5,6 +5,7 @@
    `{...props}` to the underlying `<button>`, which is the point of a thin
    wrapper like this one. */
 import * as React from 'react';
+import { useRipple } from '../../hooks/useRipple.ts';
 import styles from './RippleButton.module.css';
 
 export interface RippleButtonProps extends Omit<
@@ -14,25 +15,9 @@ export interface RippleButtonProps extends Omit<
   active?: boolean;
 }
 
-interface Ripple {
-  key: number;
-  x: number;
-  y: number;
-}
-
 export const RippleButton = React.forwardRef<HTMLButtonElement, RippleButtonProps>(
   function RippleButton({ active = false, onClick, children, ...props }, ref) {
-    const [ripple, setRipple] = React.useState<Ripple | null>(null);
-
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      const rect = event.currentTarget.getBoundingClientRect();
-      setRipple({
-        key: Date.now(),
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      });
-      onClick?.(event);
-    };
+    const { ripple, handleClick, clearRipple } = useRipple<HTMLButtonElement>(onClick);
 
     return (
       <button
@@ -48,7 +33,7 @@ export const RippleButton = React.forwardRef<HTMLButtonElement, RippleButtonProp
             key={ripple.key}
             className={styles.ripple}
             style={{ left: ripple.x, top: ripple.y } as React.CSSProperties}
-            onAnimationEnd={() => setRipple(null)}
+            onAnimationEnd={clearRipple}
             aria-hidden="true"
           />
         )}

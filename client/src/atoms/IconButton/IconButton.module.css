@@ -1,0 +1,29 @@
+.button {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.35;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-expand 450ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes ripple-expand {
+  to {
+    transform: translate(-50%, -50%) scale(60);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple {
+    display: none;
+  }
+}
