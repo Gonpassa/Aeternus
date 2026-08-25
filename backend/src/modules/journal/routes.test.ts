@@ -79,7 +79,6 @@ describe('journal routes (integration)', () => {
 
       const res = await aliceAgent.get('/api/journal/entries');
       expect(res.status).toBe(200);
-      expect(res.body.total).toBe(2);
       expect(res.body.entries.map((e: { date: string }) => e.date)).toEqual([
         '2026-08-02',
         '2026-08-01',
@@ -102,7 +101,7 @@ describe('journal routes (integration)', () => {
   });
 
   describe('GET /api/journal/entries/by-range', () => {
-    it('returns entries within range, scoped to the requester, sorted ascending', async () => {
+    it('returns entries within range, scoped to the requester, sorted reverse-chronologically', async () => {
       await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-01' });
       await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-15' });
       await aliceAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-09-01' });
@@ -113,7 +112,7 @@ describe('journal routes (integration)', () => {
       );
 
       expect(res.status).toBe(200);
-      expect(res.body.map((e: { date: string }) => e.date)).toEqual(['2026-08-01', '2026-08-15']);
+      expect(res.body.map((e: { date: string }) => e.date)).toEqual(['2026-08-15', '2026-08-01']);
     });
 
     it('returns 400 for a malformed range', async () => {

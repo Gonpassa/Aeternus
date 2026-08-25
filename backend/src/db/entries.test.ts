@@ -53,13 +53,12 @@ describe('entry service', () => {
     );
   });
 
-  it('lists entries for a user in reverse-chronological order with a total count', async () => {
+  it('lists entries for a user in reverse-chronological order', async () => {
     await createEntry({ userId, ...baseInput, date: '2026-08-01' });
     await createEntry({ userId, ...baseInput, date: '2026-08-03' });
     await createEntry({ userId, ...baseInput, date: '2026-08-02' });
 
-    const { entries, total } = await listEntriesByUser({ userId, page: 1, pageSize: 20 });
-    expect(total).toBe(3);
+    const entries = await listEntriesByUser({ userId });
     expect(entries.map((e) => e.date)).toEqual(['2026-08-03', '2026-08-02', '2026-08-01']);
   });
 
@@ -118,7 +117,7 @@ describe('entry service', () => {
     expect(deleted).toBe(false);
   });
 
-  it('lists entries within an inclusive date range, sorted ascending, scoped to the user', async () => {
+  it('lists entries within an inclusive date range, sorted reverse-chronologically, scoped to the user', async () => {
     await createEntry({ userId, ...baseInput, date: '2026-08-01' });
     await createEntry({ userId, ...baseInput, date: '2026-08-15' });
     await createEntry({ userId, ...baseInput, date: '2026-08-31' });
@@ -127,7 +126,7 @@ describe('entry service', () => {
 
     const result = await listEntriesByRange({ userId, start: '2026-08-01', end: '2026-08-15' });
 
-    expect(result.map((e: Entry) => e.date)).toEqual(['2026-08-01', '2026-08-15']);
+    expect(result.map((e: Entry) => e.date)).toEqual(['2026-08-15', '2026-08-01']);
   });
 
   it('returns an empty array when nothing falls in range', async () => {

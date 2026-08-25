@@ -10,7 +10,6 @@ import {
 import {
   validateEntryInput,
   validateRangeQuery,
-  parsePagination,
   normalizeSpecificEmotion,
   parseAsOf,
   PRIMARY_MOODS,
@@ -64,10 +63,9 @@ export const listEntries = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const { page, pageSize } = parsePagination(req.query);
   try {
-    const { entries, total } = await listEntriesByUser({ userId: getUserId(req), page, pageSize });
-    res.status(200).json({ entries, page, pageSize, total });
+    const entries = await listEntriesByUser({ userId: getUserId(req) });
+    res.status(200).json({ entries });
   } catch (err) {
     next(err);
   }

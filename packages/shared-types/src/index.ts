@@ -62,9 +62,6 @@ export type UpdateEntryRequest = CreateEntryRequest;
 
 export interface EntryListResponse {
   entries: Entry[];
-  page: number;
-  pageSize: number;
-  total: number;
 }
 
 export interface EntryRangeQuery {

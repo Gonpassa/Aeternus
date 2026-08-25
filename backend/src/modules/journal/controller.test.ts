@@ -52,16 +52,16 @@ const reqAs = (userId: number, overrides: Partial<Request> = {}): Request =>
 describe('listEntries', () => {
   afterEach(() => jest.resetAllMocks());
 
-  it('returns a paginated envelope scoped to the requester', async () => {
-    mocked.listEntriesByUser.mockResolvedValue({ entries: [fakeEntry], total: 1 });
-    const req = reqAs(7, { query: { page: '2', pageSize: '5' } });
+  it('returns all entries scoped to the requester', async () => {
+    mocked.listEntriesByUser.mockResolvedValue([fakeEntry]);
+    const req = reqAs(7);
     const res = buildRes();
 
     await listEntries(req, res, jest.fn());
 
-    expect(mocked.listEntriesByUser).toHaveBeenCalledWith({ userId: 7, page: 2, pageSize: 5 });
+    expect(mocked.listEntriesByUser).toHaveBeenCalledWith({ userId: 7 });
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ entries: [fakeEntry], page: 2, pageSize: 5, total: 1 });
+    expect(res.json).toHaveBeenCalledWith({ entries: [fakeEntry] });
   });
 });
 

@@ -1,9 +1,4 @@
-import {
-  validateEntryInput,
-  validateRangeQuery,
-  parsePagination,
-  normalizeSpecificEmotion,
-} from './validation';
+import { validateEntryInput, validateRangeQuery, normalizeSpecificEmotion } from './validation';
 
 const validInput = {
   date: '2026-08-01',
@@ -85,20 +80,6 @@ describe('normalizeSpecificEmotion', () => {
     expect(normalizeSpecificEmotion(undefined)).toBeNull();
     expect(normalizeSpecificEmotion(null)).toBeNull();
     expect(normalizeSpecificEmotion('   ')).toBeNull();
-  });
-});
-
-describe('parsePagination', () => {
-  it('defaults to page 1 and pageSize 20', () => {
-    expect(parsePagination({})).toEqual({ page: 1, pageSize: 20 });
-  });
-
-  it('parses valid page and pageSize from query strings', () => {
-    expect(parsePagination({ page: '3', pageSize: '10' })).toEqual({ page: 3, pageSize: 10 });
-  });
-
-  it('falls back to defaults for invalid values', () => {
-    expect(parsePagination({ page: '-1', pageSize: '9999' })).toEqual({ page: 1, pageSize: 20 });
   });
 });
 

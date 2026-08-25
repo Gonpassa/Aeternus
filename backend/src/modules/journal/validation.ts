@@ -57,20 +57,6 @@ export const normalizeSpecificEmotion = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
-export type PaginationParams = { page: number; pageSize: number };
-
-export const parsePagination = (query: {
-  page?: unknown;
-  pageSize?: unknown;
-}): PaginationParams => {
-  const page = Number(query.page);
-  const pageSize = Number(query.pageSize);
-  return {
-    page: Number.isInteger(page) && page > 0 ? page : 1,
-    pageSize: Number.isInteger(pageSize) && pageSize > 0 && pageSize <= 100 ? pageSize : 20,
-  };
-};
-
 export const validateRangeQuery = (query: { start?: unknown; end?: unknown }): ValidationResult => {
   if (!isValidDate(query.start)) {
     return { valid: false, error: 'A valid start date is required.' };

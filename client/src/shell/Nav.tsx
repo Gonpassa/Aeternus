@@ -20,9 +20,7 @@ function RailLink({ to, children }: { to: string; children: string }) {
       borderRadius="4px"
       _hover={{ color: 'paper', bg: 'paper/8' }}
     >
-      <Link to={to} search={to === '/journal' ? { page: 1 } : undefined}>
-        {children}
-      </Link>
+      <Link to={to}>{children}</Link>
     </Stack>
   );
 }

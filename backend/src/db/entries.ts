@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { db } from './index';
 import { entries, Entry, NewEntry } from './schema';
 
@@ -36,27 +36,8 @@ export const createEntry = async (input: NewEntryInput): Promise<Entry> => {
   }
 };
 
-export type ListEntriesInput = { userId: number; page: number; pageSize: number };
-export type EntryPage = { entries: Entry[]; total: number };
-
-export const listEntriesByUser = async ({
-  userId,
-  page,
-  pageSize,
-}: ListEntriesInput): Promise<EntryPage> => {
-  const offset = (page - 1) * pageSize;
-  const [rows, totalRows] = await Promise.all([
-    db
-      .select()
-      .from(entries)
-      .where(eq(entries.userId, userId))
-      .orderBy(desc(entries.date))
-      .limit(pageSize)
-      .offset(offset),
-    db.select({ value: count() }).from(entries).where(eq(entries.userId, userId)),
-  ]);
-  return { entries: rows, total: totalRows[0]?.value ?? 0 };
-};
+export const listEntriesByUser = async ({ userId }: { userId: number }): Promise<Entry[]> =>
+  db.select().from(entries).where(eq(entries.userId, userId)).orderBy(desc(entries.date));
 
 export const findEntryById = async ({
   id,
@@ -136,7 +117,7 @@ export const listEntriesByRange = async ({
     .select()
     .from(entries)
     .where(and(eq(entries.userId, userId), gte(entries.date, start), lte(entries.date, end)))
-    .orderBy(asc(entries.date));
+    .orderBy(desc(entries.date));
 
 const STREAK_LOOKBACK_LIMIT = 366;
 const RECENT_ENTRIES_LIMIT = 5;

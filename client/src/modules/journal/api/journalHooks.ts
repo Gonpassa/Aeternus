@@ -13,21 +13,19 @@ import { endpoints } from '../../../api/endpoints.ts';
 
 export const journalKeys = {
   all: ['journal', 'entries'] as const,
-  list: (page: number) => ['journal', 'entries', 'list', page] as const,
+  list: () => ['journal', 'entries', 'list'] as const,
   detail: (id: number) => ['journal', 'entries', 'detail', id] as const,
   byDate: (date: string) => ['journal', 'entries', 'by-date', date] as const,
   byRange: (start: string, end: string) => ['journal', 'entries', 'by-range', start, end] as const,
   summary: (asOf: string) => ['journal', 'entries', 'summary', asOf] as const,
 };
 
-export const useEntries = (page: number) =>
-  useQuery<EntryListResponse>({
-    queryKey: journalKeys.list(page),
+export const useEntries = () =>
+  useQuery<Entry[]>({
+    queryKey: journalKeys.list(),
     queryFn: async () => {
-      const { data } = await apiClient.get<EntryListResponse>(endpoints.journal.entries, {
-        params: { page, pageSize: 20 },
-      });
-      return data;
+      const { data } = await apiClient.get<EntryListResponse>(endpoints.journal.entries);
+      return data.entries;
     },
   });
 
