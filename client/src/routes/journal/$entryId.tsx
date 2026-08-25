@@ -21,7 +21,7 @@ function EntryDetailPage() {
 
   const handleDelete = async () => {
     await deleteEntry.mutateAsync(Number(entryId));
-    navigate({ to: '/journal', search: { page: 1 } });
+    navigate({ to: '/journal' });
   };
 
   if (isLoading || !entry) {

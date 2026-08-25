@@ -29,7 +29,7 @@ function NewEntryPage() {
       <EntryForm
         onCreate={handleCreate}
         onUpdate={handleUpdate}
-        onDiscard={() => navigate({ to: '/journal', search: { page: 1 } })}
+        onDiscard={() => navigate({ to: '/journal' })}
       />
     </PageContainer>
   );

@@ -35,7 +35,7 @@ function EditEntryPage() {
 
   const handleDelete = async () => {
     await deleteEntry.mutateAsync(entry.id);
-    navigate({ to: '/journal', search: { page: 1 } });
+    navigate({ to: '/journal' });
   };
 
   return (
