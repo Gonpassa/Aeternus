@@ -96,8 +96,8 @@ Wire login, registration, and session handling through the API. Implement protec
 ### Phase 4 — Journal module (mostly done)
 Rebuild the journal: entry list, detail view, create/edit/delete, mood tagging, calendar view are built and tested on both sides. Insights/overview is deferred to a later pass. Next up: migrating existing entries from the old Harmonee MongoDB into Postgres.
 
-### Phase 5 — Deployment
-Set up a deployment pipeline for both packages. Evaluate whether to migrate the existing Fly.io app or deploy Aeternus as a separate service alongside it. Moved up ahead of the remaining modules so what's built so far (through Journal) ships before more feature work piles up.
+### Phase 5 — Deployment ✅
+Deployed as a separate service on Fly.io (app `aeternus`), alongside the existing Harmonee app rather than replacing it: single Docker image (backend serves the built client with SPA fallback), self-managed Postgres, first production deploy and smoke test done, and existing journal entries migrated from Harmonee's MongoDB via a documented runbook.
 
 ### Phase 6 — Dream Journal
 Standalone module for recording dreams and working through them using Jungian dream-analysis method (see `CONTEXT.md` for the full glossary: Dream, Anchor, Emotional beat, Symbol, Analytic/Synthetic analysis, Association). A dream has a date and a rich-text narrative, no title. Users highlight passages as anchors to attach freeform emotional beats, tag recurring symbols, and record associations to those symbols. Analytic (reductive) and synthetic (constructive) analysis passes can be added at any time - analytic optionally per-anchor, synthetic always whole-dream - and passes accumulate rather than overwrite, so a dream can be reread as understanding deepens. AI-assisted analysis (symbol surfacing, suggested readings) is deliberately out of scope here and planned as a later, separate phase - this one is manual only.
