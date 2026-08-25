@@ -128,7 +128,7 @@ export function MoodPicker({ control }: MoodPickerProps) {
             bg="paperCard"
             px="2"
             fontFamily="mono"
-            fontSize="xs"
+            fontSize="0.75rem"
             w="auto"
           />
         </Stack>

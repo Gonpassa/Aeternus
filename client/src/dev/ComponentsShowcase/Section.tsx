@@ -13,7 +13,7 @@ export function Section({
 }>) {
   return (
     <Stack as="section" direction="column" mb="12">
-      <Heading as="h2" fontFamily="heading" fontSize="xl" fontWeight="semibold" color="ink" mb="1">
+      <Heading as="h2" variant="section" mb="1">
         {title}
       </Heading>
       {description && (

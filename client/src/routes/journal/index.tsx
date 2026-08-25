@@ -41,16 +41,7 @@ function JournalIndexPage() {
         <Heading as="h1" variant="page">
           Journal
         </Heading>
-        <Button
-          asChild
-          bg="inkBlue"
-          px="3"
-          py="2"
-          fontFamily="mono"
-          fontSize="xs"
-          textTransform="uppercase"
-          color="paper"
-        >
+        <Button asChild bg="inkBlue" px="3" py="2" color="paper">
           <Link to="/journal/new">New entry</Link>
         </Button>
       </Stack>
@@ -66,18 +57,11 @@ function JournalIndexPage() {
           <Card as="li" key={entry.id}>
             <Stack asChild direction="column">
               <Link to="/journal/$entryId" params={{ entryId: String(entry.id) }}>
-                <Stack
-                  align="center"
-                  gap="2"
-                  fontFamily="mono"
-                  fontSize="xs"
-                  textTransform="uppercase"
-                  color="inkSoft"
-                >
+                <Stack align="center" gap="2" textStyle="label" color="inkSoft">
                   <Dot size="2" color={MOOD_DOT_COLOR[entry.primaryMood]} />
                   {entry.date} &middot; {MOOD_LABEL[entry.primaryMood]}
                 </Stack>
-                <Heading as="h2" fontFamily="heading" fontSize="lg" fontWeight="medium" color="ink">
+                <Heading as="h2" variant="card">
                   {entry.title}
                 </Heading>
                 <Text fontFamily="body" color="ink">

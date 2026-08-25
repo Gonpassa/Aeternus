@@ -22,11 +22,7 @@ export const DieCutTab = React.forwardRef<HTMLDivElement, DieCutTabProps>(functi
       color="paper"
       px="3"
       py="1"
-      fontFamily="mono"
-      fontSize="2xs"
-      fontWeight="medium"
-      textTransform="uppercase"
-      letterSpacing="0.06em"
+      textStyle="label"
       borderTopRadius="sm"
       {...props}
     />

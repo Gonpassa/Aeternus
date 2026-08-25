@@ -11,14 +11,7 @@ import { Dot } from '../../../../atoms/Dot/Dot.tsx';
 
 function QuickEntryLink() {
   return (
-    <Stack
-      asChild
-      fontFamily="mono"
-      fontSize="xs"
-      textTransform="uppercase"
-      letterSpacing="0.04em"
-      color="moss"
-    >
+    <Stack asChild textStyle="button" color="moss">
       <Link to="/journal/new">+ New entry</Link>
     </Stack>
   );
@@ -52,9 +45,7 @@ function PopulatedState({ summary }: { summary: JournalSummaryResponse }) {
             asChild
             align="center"
             gap="2"
-            fontFamily="mono"
-            fontSize="xs"
-            textTransform="uppercase"
+            textStyle="label"
             color="inkSoft"
           >
             <Link to="/journal/$entryId" params={{ entryId: String(entry.id) }}>
@@ -68,7 +59,7 @@ function PopulatedState({ summary }: { summary: JournalSummaryResponse }) {
         ))}
       </Stack>
 
-      <Stack gap="1" fontFamily="mono" fontSize="xs" textTransform="uppercase" color="inkSoft">
+      <Stack gap="1" textStyle="label" color="inkSoft">
         <Text as="span" color="ink" fontWeight="medium">
           {summary.streak.current}
         </Text>
@@ -77,15 +68,7 @@ function PopulatedState({ summary }: { summary: JournalSummaryResponse }) {
 
       <Stack gap="3" wrap="wrap">
         {activeMoods.map((mood) => (
-          <Stack
-            key={mood}
-            align="center"
-            gap="1.5"
-            fontFamily="mono"
-            fontSize="xs"
-            textTransform="uppercase"
-            color="inkSoft"
-          >
+          <Stack key={mood} align="center" gap="1.5" textStyle="label" color="inkSoft">
             <Dot size="2" color={MOOD_DOT_COLOR[mood]} />
             {MOOD_LABEL[mood]} &middot; {summary.moodSnapshot[mood]}
           </Stack>

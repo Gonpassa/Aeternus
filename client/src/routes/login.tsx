@@ -54,7 +54,7 @@ function LoginPage() {
 
   return (
     <PageContainer maxW="sm" centered>
-      <Heading as="h1" mb="4" fontSize="xl" fontWeight="semibold">
+      <Heading as="h1" mb="4" variant="page">
         Log in
       </Heading>
       <Stack as="form" direction="column" gap="3" onSubmit={handleSubmit(onValid)}>

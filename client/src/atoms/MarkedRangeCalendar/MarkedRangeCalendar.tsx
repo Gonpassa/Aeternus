@@ -111,7 +111,7 @@ function MarkedDayButton({
       justifyContent="center"
       borderRadius="md"
       fontFamily="mono"
-      fontSize="xs"
+      fontSize="0.75rem"
       fontWeight={marked ? 'semibold' : 'normal'}
       cursor="pointer"
       color={textColor}

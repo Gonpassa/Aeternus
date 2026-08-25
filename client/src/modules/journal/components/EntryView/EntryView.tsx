@@ -20,23 +20,14 @@ export function EntryView({ entry }: EntryViewProps) {
       <Heading as="h1" variant="page">
         {entry.title}
       </Heading>
-      <Stack
-        mt="1"
-        align="center"
-        gap="1.5"
-        fontFamily="mono"
-        fontSize="xs"
-        textTransform="uppercase"
-        color="inkSoft"
-      >
+      <Stack mt="1" align="center" gap="1.5" textStyle="label" color="inkSoft">
         <Dot size="2.5" color={MOOD_DOT_COLOR[entry.primaryMood]} />
         {MOOD_LABEL[entry.primaryMood]}
         {entry.specificEmotion && <> &middot; {entry.specificEmotion}</>}
       </Stack>
       <Prose
         mt="6"
-        fontFamily="body"
-        fontSize="17px"
+        textStyle="body"
         color="ink"
         // The content injected via dangerouslySetInnerHTML is safe here specifically because
         // entry.content was sanitized server-side (allow-listed tags only, per

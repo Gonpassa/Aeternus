@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { headingRecipe } from '../../theme.ts';
 
-export type HeadingVariant = 'default' | 'page';
+export type HeadingVariant = 'default' | 'page' | 'section' | 'card';
 
 export interface HeadingProps extends Omit<ChakraHeadingProps, 'variant'> {
   variant?: HeadingVariant;

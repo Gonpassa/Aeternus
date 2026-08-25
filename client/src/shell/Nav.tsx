@@ -11,10 +11,7 @@ function RailLink({ to, children }: { to: string; children: string }) {
     <Stack
       asChild
       alignItems="center"
-      fontFamily="mono"
-      fontSize="13px"
-      letterSpacing="wide"
-      textTransform="uppercase"
+      textStyle="button"
       color={isActive ? 'paper' : 'paper/72'}
       bg={isActive ? 'paper/12' : 'transparent'}
       boxShadow={isActive ? 'inset 2px 0 0 #A8532F' : 'none'}
@@ -57,14 +54,13 @@ export function Nav() {
       px={{ base: '5', md: '6' }}
       py={{ base: '4', md: '7' }}
     >
-      <Stack asChild direction="column" fontFamily="heading" fontWeight="semibold" fontSize="22px">
+      <Stack asChild direction="column" textStyle="sectionHeading">
         <Link to="/">
           Aeternus
           <Text
             as="small"
             display="block"
             variant="eyebrow"
-            fontSize="11px"
             fontWeight="normal"
             color="paper/60"
             mt="1.5"
@@ -86,14 +82,7 @@ export function Nav() {
         </Stack>
       )}
 
-      <Stack
-        direction="column"
-        mt="auto"
-        fontFamily="mono"
-        fontSize="11px"
-        color="paper/45"
-        lineHeight="tall"
-      >
+      <Stack direction="column" mt="auto" textStyle="label" color="paper/45" lineHeight="tall">
         {user ? (
           <Stack direction="column" align="flex-start" gap="2">
             <Text color="paper/70" textTransform="uppercase" letterSpacing="wide">

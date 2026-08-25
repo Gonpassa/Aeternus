@@ -23,16 +23,10 @@ export function Dashboard() {
   return (
     <PageContainer maxW="2xl">
       <Stack direction="column" gap="1" mb="10">
-        <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink">
+        <Heading as="h1" variant="page">
           {greeting}
         </Heading>
-        <Text
-          fontFamily="mono"
-          fontSize="xs"
-          textTransform="uppercase"
-          letterSpacing="0.06em"
-          color="inkSoft"
-        >
+        <Text variant="eyebrow" color="inkSoft">
           {formatDateLine(new Date())}
         </Text>
       </Stack>

@@ -78,12 +78,7 @@ export function Dialog({
             maxW={MAX_WIDTH_BY_VARIANT[variant]}
             p="6"
           >
-            <ChakraDialog.Title
-              fontFamily="heading"
-              fontSize="xl"
-              fontWeight="semibold"
-              color="ink"
-            >
+            <ChakraDialog.Title textStyle="cardTitle" fontWeight="semibold" color="ink">
               {header.title}
             </ChakraDialog.Title>
             <Box mt="2">{children}</Box>

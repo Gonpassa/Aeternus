@@ -22,9 +22,7 @@ const SelectTrigger = React.forwardRef<HTMLDivElement, ChakraSelect.ControlProps
           bg="transparent"
           px="3"
           py="2"
-          fontFamily="mono"
-          fontSize="xs"
-          textTransform="uppercase"
+          textStyle="label"
           whiteSpace="nowrap"
         >
           {children}
@@ -66,8 +64,7 @@ function SelectItem({ item, children, ...props }: ChakraSelect.ItemProps) {
       item={item}
       px="2"
       py="1.5"
-      fontFamily="mono"
-      fontSize="xs"
+      textStyle="label"
       color="ink"
       _highlighted={{ bg: 'line/60' }}
       {...props}

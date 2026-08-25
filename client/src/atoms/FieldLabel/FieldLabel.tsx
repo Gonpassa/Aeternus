@@ -10,9 +10,7 @@ export interface FieldLabelProps extends HTMLChakraProps<'label'> {
 }
 
 const eyebrowStyle = {
-  fontFamily: 'mono',
-  fontSize: 'xs',
-  textTransform: 'uppercase',
+  textStyle: 'label',
 } as const;
 
 export const FieldLabel = React.forwardRef<HTMLLabelElement, FieldLabelProps>(function FieldLabel(

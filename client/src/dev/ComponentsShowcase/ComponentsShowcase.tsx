@@ -21,7 +21,7 @@ import { VisuallyHiddenDemo } from './VisuallyHiddenDemo.tsx';
 export function ComponentsShowcase() {
   return (
     <Stack direction="column" maxW="4xl">
-      <Heading as="h1" fontFamily="heading" fontSize="3xl" fontWeight="semibold" color="ink" mb="2">
+      <Heading as="h1" variant="page" mb="2">
         UI components
       </Heading>
       <Text fontFamily="body" color="inkSoft" mb="10">

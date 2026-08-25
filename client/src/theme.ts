@@ -8,10 +8,7 @@ const buttonRecipe = defineRecipe({
     justifyContent: 'center',
     gap: '2',
     borderRadius: 'md',
-    fontFamily: 'mono',
-    fontSize: 'xs',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
+    textStyle: 'button',
     whiteSpace: 'nowrap',
     transitionProperty: 'background-color, border-color',
     transitionDuration: '150ms',
@@ -39,10 +36,10 @@ const buttonRecipe = defineRecipe({
       },
     },
     size: {
-      default: { h: '9', px: '4', py: '2' },
-      xs: { h: '6', gap: '1', px: '2', fontSize: 'xs' },
-      sm: { h: '8', gap: '1.5', px: '3' },
-      lg: { h: '10', px: '6' },
+      default: { h: '9', px: '4', py: '2', textStyle: 'button' },
+      xs: { h: '6', gap: '1', px: '2', textStyle: 'button' },
+      sm: { h: '8', gap: '1.5', px: '3', textStyle: 'button' },
+      lg: { h: '10', px: '6', textStyle: 'button' },
     },
   },
   defaultVariants: {
@@ -57,10 +54,7 @@ export const textRecipe = defineRecipe({
     variant: {
       default: {},
       eyebrow: {
-        fontFamily: 'mono',
-        fontSize: 'xs',
-        textTransform: 'uppercase',
-        letterSpacing: 'wide',
+        textStyle: 'label',
       },
       muted: {
         color: 'inkSoft',
@@ -84,9 +78,15 @@ export const headingRecipe = defineRecipe({
     variant: {
       default: {},
       page: {
-        fontFamily: 'heading',
-        fontSize: '3xl',
-        fontWeight: 'semibold',
+        textStyle: 'pageTitle',
+        color: 'ink',
+      },
+      section: {
+        textStyle: 'sectionHeading',
+        color: 'ink',
+      },
+      card: {
+        textStyle: 'cardTitle',
         color: 'ink',
       },
     },
@@ -146,6 +146,48 @@ const config = defineConfig({
       },
       radii: {
         md: { value: '4px' },
+      },
+    },
+    textStyles: {
+      pageTitle: {
+        value: {
+          fontFamily: 'heading',
+          fontSize: '2.25rem',
+          fontWeight: '600',
+          lineHeight: '1.15',
+        },
+      },
+      sectionHeading: {
+        value: { fontFamily: 'heading', fontSize: '1.5rem', fontWeight: '600', lineHeight: '1.25' },
+      },
+      cardTitle: {
+        value: {
+          fontFamily: 'heading',
+          fontSize: '1.125rem',
+          fontWeight: '500',
+          lineHeight: '1.3',
+        },
+      },
+      body: {
+        value: { fontFamily: 'body', fontSize: '1.0625rem', fontWeight: '400', lineHeight: '1.6' },
+      },
+      button: {
+        value: {
+          fontFamily: 'mono',
+          fontSize: '0.8125rem',
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+        },
+      },
+      label: {
+        value: {
+          fontFamily: 'mono',
+          fontSize: '0.75rem',
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+        },
       },
     },
     semanticTokens: {
