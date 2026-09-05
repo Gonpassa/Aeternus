@@ -1,10 +1,11 @@
-import { useState, type FormEventHandler } from 'react';
+import { useEffect, useState, type FormEventHandler } from 'react';
 import { format, parse } from 'date-fns';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateEntryRequest, Entry } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { useExternalChange } from '../../hooks/useExternalChange.ts';
+import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { RichTextEditor } from '../RichTextEditor/RichTextEditor.tsx';
 import { Button } from '../../../../atoms/Button/Button.tsx';
@@ -43,6 +44,13 @@ const defaultValuesFor = (initialEntry: Entry | undefined): EntryFormValues => (
   content: initialEntry?.content ?? '',
 });
 
+const recoveryValuesEqual = (a: EntryFormValues, b: EntryFormValues): boolean =>
+  a.date === b.date &&
+  a.title === b.title &&
+  a.primaryMood === b.primaryMood &&
+  a.specificEmotion === b.specificEmotion &&
+  a.content === b.content;
+
 export function EntryForm({
   initialEntry,
   onCreate,
@@ -53,6 +61,8 @@ export function EntryForm({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const deleteDialog = useDialogState();
   const discardDialog = useDialogState();
+  const conflictDialog = useDialogState();
+  const [pendingRecoveryValues, setPendingRecoveryValues] = useState<EntryFormValues | null>(null);
 
   const {
     control,
@@ -66,6 +76,47 @@ export function EntryForm({
     reValidateMode: 'onChange',
   });
   const date = useWatch({ control, name: 'date' });
+  const watchedValues = useWatch({ control }) as EntryFormValues;
+
+  // Recovery buffer (see CONTEXT.md, ADR-0005): a same-browser-only, transient snapshot of
+  // this in-progress Entry form, never itself a saved Entry. Keyed by the same identity the
+  // form itself resolves to - `entryId` in edit mode, a fixed slot in create mode (there is
+  // only ever one new-entry composition per browser, so no date-based re-keying is needed -
+  // the date field is just one of the captured values, not part of the key).
+  const recoveryKey = initialEntry ? `entry:${initialEntry.id}` : 'new';
+  const recoveryBuffer = useRecoveryBuffer(recoveryKey);
+
+  // Restore-on-mount: in create mode there's no server data to disagree with, so restore
+  // silently. In edit mode, only restore silently if the buffer matches what the server
+  // already has; a genuine mismatch is surfaced as a conflict dialog rather than resolved
+  // automatically, since local unsaved input and the server's current version both being
+  // real, disagreeing possibilities is exactly the case the user asked to decide themselves.
+  useEffect(() => {
+    const buffered = recoveryBuffer.read();
+    if (!buffered) return;
+    if (!initialEntry) {
+      reset(buffered);
+      return;
+    }
+    if (recoveryValuesEqual(buffered, defaultValuesFor(initialEntry))) {
+      reset(buffered);
+      return;
+    }
+    setPendingRecoveryValues(buffered);
+    conflictDialog.openDialog();
+    // Mount-only: this reconciles the buffer against the entry this instance was given,
+    // once, the same way the collision-lookup reconciliation below only reacts to real
+    // external changes rather than every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist every change once the user has actually touched the form - not on mount with
+  // untouched defaults, which would just write back an empty/no-op buffer.
+  useEffect(() => {
+    if (!isDirty) return;
+    recoveryBuffer.write(watchedValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty, watchedValues]);
 
   // Only look up by-date collisions in create mode; an edit route already has its entry.
   const collisionLookupDate = initialEntry ? null : date;
@@ -78,6 +129,11 @@ export function EntryForm({
     collidingEntry ?? null,
     (nextCollidingEntry) => {
       if (nextCollidingEntry) {
+        // A same-date saved Entry always wins over a restored recovery buffer - this branch
+        // only runs in create mode, so the buffer being superseded is unambiguously the
+        // fixed 'new' one; clear it so it doesn't linger in localStorage for a draft that's
+        // no longer reachable (its date now belongs to a saved Entry, not an in-progress one).
+        recoveryBuffer.clear();
         reset({
           date,
           title: nextCollidingEntry.title,
@@ -104,6 +160,7 @@ export function EntryForm({
       } else {
         await onCreate?.(values);
       }
+      recoveryBuffer.clear();
     } catch {
       // Save failures aren't field-attributable here (there's no per-field validation path
       // for them, unlike login/register); the global toast interceptor in api/client.ts
@@ -116,17 +173,32 @@ export function EntryForm({
       discardDialog.openDialog();
       return;
     }
+    recoveryBuffer.clear();
     onDiscard?.();
   };
 
   const confirmDiscard = () => {
     discardDialog.closeDialog();
+    recoveryBuffer.clear();
     onDiscard?.();
   };
 
   const handleDelete = async () => {
     await onDelete?.();
     deleteDialog.closeDialog();
+  };
+
+  const keepRecoveredChanges = () => {
+    if (pendingRecoveryValues) reset(pendingRecoveryValues);
+    recoveryBuffer.clear();
+    setPendingRecoveryValues(null);
+    conflictDialog.closeDialog();
+  };
+
+  const keepSavedVersion = () => {
+    recoveryBuffer.clear();
+    setPendingRecoveryValues(null);
+    conflictDialog.closeDialog();
   };
 
   return (
@@ -264,6 +336,22 @@ export function EntryForm({
           Save entry
         </Button>
       </Stack>
+      <Dialog
+        open={conflictDialog.open}
+        onClose={keepSavedVersion}
+        variant="small"
+        role="alertdialog"
+        header={{ title: 'Unsaved changes found' }}
+        footer={{
+          secondary: { label: 'Use saved version', onClick: keepSavedVersion },
+          primary: { label: 'Keep my changes', onClick: keepRecoveredChanges },
+        }}
+      >
+        <Text fontFamily="body" color="inkSoft">
+          You have unsaved changes to this entry from a previous session that differ from
+          what&apos;s saved. Which version would you like to keep?
+        </Text>
+      </Dialog>
     </Card>
   );
 }
