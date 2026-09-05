@@ -12,12 +12,20 @@ _Avoid_: Draft, post, note (in the journal-entry sense)
 The single write action a user takes on an entry - create or update, same request shape (`CreateEntryRequest`/`UpdateEntryRequest` in `@nee3/shared-types`). There is no separate draft-saving action distinct from this.
 _Avoid_: File, publish, save draft
 
+**Recovery buffer**:
+A transient, client-side (same-browser) snapshot of in-progress **Entry** form input, kept so a refresh or an interrupted session doesn't lose unsaved keystrokes. Not itself an **Entry** and not a saved/staged lifecycle state - it holds no meaning until the user takes the **Save** action, at which point it is discarded. Expires after a short window of inactivity.
+_Avoid_: Draft, autosave (implies a saved artifact; this is never saved server-side)
+
 **Primary mood**:
 One of a fixed set of five broad mood categories (`happy`, `calm`, `sad`, `anxious`, `angry` - `PrimaryMood` in `@nee3/shared-types`), required on every entry. Displayed as a single-select row of colored circular dots.
 
 **Specific emotion**:
 An optional finer-grained emotion under a chosen primary mood - either one of a fixed short list per primary mood (`MOOD_TAXONOMY`) or free text typed by the user. Has no visual equivalent in `docs/design/demo.html`, which only models primary mood; its chip-row + custom-text presentation is an Aeternus-specific extension, not a demo mismatch to fix.
 _Avoid_: Sub-mood, tag
+
+**Chronological neighbor**:
+The **Entry** immediately before or after a given Entry by `date` - the next (later) or previous (earlier) one in the user's overall journal history. Fixed by date alone: unaffected by any list filter (e.g. a calendar range) the user may currently have applied, since a neighbor is a property of the Entry itself, not of a particular view of the journal.
+_Avoid_: Adjacent entry (ambiguous about whether filters apply)
 
 ## Dream Journal
 
