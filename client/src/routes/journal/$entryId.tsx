@@ -1,6 +1,7 @@
 import { createFileRoute, getRouteApi, Link, useNavigate } from '@tanstack/react-router';
 import { useDeleteEntry, useEntry } from '../../modules/journal/api/journalHooks.ts';
 import { EntryView } from '../../modules/journal/components/EntryView/EntryView.tsx';
+import { EntryNav } from '../../modules/journal/components/EntryNav/EntryNav.tsx';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { Button } from '../../atoms/Button/Button.tsx';
 import { Dialog } from '../../atoms/Dialog/Dialog.tsx';
@@ -75,6 +76,12 @@ function EntryDetailPage() {
             This action cannot be undone.
           </Text>
         </Dialog>
+        <EntryNav
+          hasNext={entry.nextEntryId !== null}
+          hasPrevious={entry.previousEntryId !== null}
+          nextEntryId={entry.nextEntryId}
+          previousEntryId={entry.previousEntryId}
+        />
       </Stack>
       <EntryView entry={entry} />
     </Stack>

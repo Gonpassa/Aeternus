@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, lt, lte } from 'drizzle-orm';
 import { db } from './index';
 import { entries, Entry, NewEntry } from './schema';
 
@@ -65,6 +65,43 @@ export const findEntryByDate = async ({
     .from(entries)
     .where(and(eq(entries.userId, userId), eq(entries.date, date)));
   return row;
+};
+
+export type ChronologicalNeighborIds = {
+  nextEntryId: number | null;
+  previousEntryId: number | null;
+};
+
+// Resolves the requesting user's chronological neighbor entries for a given date - the
+// entry with the next-later date (nextEntryId) and the entry with the next-earlier date
+// (previousEntryId). Scoped to (userId, date), which already carries a unique constraint,
+// so both lookups stay effectively constant-cost regardless of the user's total entry count.
+// See docs/adr/0006-entry-navigation-adjacency-query.md.
+export const findChronologicalNeighborIds = async ({
+  userId,
+  date,
+}: {
+  userId: number;
+  date: string;
+}): Promise<ChronologicalNeighborIds> => {
+  const [[nextRow], [previousRow]] = await Promise.all([
+    db
+      .select({ id: entries.id })
+      .from(entries)
+      .where(and(eq(entries.userId, userId), gt(entries.date, date)))
+      .orderBy(asc(entries.date))
+      .limit(1),
+    db
+      .select({ id: entries.id })
+      .from(entries)
+      .where(and(eq(entries.userId, userId), lt(entries.date, date)))
+      .orderBy(desc(entries.date))
+      .limit(1),
+  ]);
+  return {
+    nextEntryId: nextRow?.id ?? null,
+    previousEntryId: previousRow?.id ?? null,
+  };
 };
 
 export type UpdateEntryInput = { id: number; userId: number } & Omit<
