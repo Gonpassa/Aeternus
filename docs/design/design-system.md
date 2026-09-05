@@ -26,8 +26,8 @@ Type carries the second voice, and it works the same two-face way the concept do
 - **Paper Card** (`{colors.paperCard}` — `#EAE2CC`): Index card / catalog surface, subtle panel fills.
 
 ### Text
-- **Ink** (`{colors.ink}` — `#232220`): Primary text.
-- **Ink Soft** (`{colors.inkSoft}` — `#5B564C`): Secondary text, placeholders, captions.
+- **Ink** (`{colors.ink}` — `#000000`): Primary text.
+- **Ink Soft** (`{colors.inkSoft}` — `#565656`): Secondary text, placeholders, captions.
 
 ### Brand & Accent
 - **Ink Blue** (`{colors.inkBlue}` — `#2C3E52`): Primary accent — nav rail, primary buttons, page headings.
@@ -167,7 +167,7 @@ Mood marks carry a text label on hover/focus per the accessibility floor below, 
 ### Don't
 - Don't introduce a new font size for a single call site. If nothing in the six-rung scale fits, that's a signal the scale needs a real conversation, not a one-off pixel value.
 - Don't scale a button's label with its height. Height is padding; the label is fixed.
-- Don't use pure white or pure black. The paper's warmth and ink's near-black both carry through every surface and every text color.
+- Don't use pure white for surfaces. The paper's warmth carries through every surface color. (Text is the one exception: `{colors.ink}` is pure black for maximum reading contrast against the warm paper.)
 - Don't reach for rust outside a tag, a dot, or a thin underline — it's a spice, not a base.
 - Don't add hover lift or shadow pop to cards. The paper metaphor means things stay flat on the page; shadow is reserved for things genuinely floating above it (dialogs, dropdowns).
 

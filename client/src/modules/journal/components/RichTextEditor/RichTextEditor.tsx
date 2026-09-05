@@ -39,7 +39,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   return (
     <Card
       padding="sm"
-      fontFamily="body"
+      textStyle="body"
       color="ink"
       minH="15rem"
       onClick={() => editor?.commands.focus()}

@@ -128,8 +128,8 @@ const config = defineConfig({
       colors: {
         paper: { value: '#F3EEE2' },
         paperCard: { value: '#EAE2CC' },
-        ink: { value: '#232220' },
-        inkSoft: { value: '#5B564C' },
+        ink: { value: '#000000' },
+        inkSoft: { value: '#565656' },
         inkBlue: { value: '#2C3E52' },
         moss: { value: '#55684A' },
         rust: { value: '#A8532F' },
