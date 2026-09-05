@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, renderHook, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { Entry } from '@nee3/shared-types';
 import { toIsoDate } from '../../dateUtils.ts';
+import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 
 vi.mock('../RichTextEditor/RichTextEditor.tsx', () => ({
   RichTextEditor: ({ value, onChange }: { value: string; onChange: (html: string) => void }) => (
@@ -19,15 +20,14 @@ const { EntryForm } = await import('./EntryForm.tsx');
 // The date-picker Calendar opens on the real current month and doesn't
 // auto-navigate on selection, so test dates must stay within it (mirrors the
 // same constraint/approach as JournalCalendarFilter.test.tsx's `toIsoDate`).
-// The form defaults a new entry's date to today, so a test date that happens to
-// land on today's day-of-month wouldn't actually change anything when "selected" -
-// nudge by a day whenever that collision occurs (the three candidate days are far
-// enough apart that a single +1 nudge can't collide with either of the others).
+// Candidates are filtered against today's day-of-month: create mode's default date
+// *is* today, so a candidate landing on today would silently fail to dirty the form
+// when "selected", making it indistinguishable from not changing the date at all.
 const today = new Date();
-const skipToday = (day: number) => (day === today.getDate() ? day + 1 : day);
-const dateA = new Date(today.getFullYear(), today.getMonth(), skipToday(1));
-const dateB = new Date(today.getFullYear(), today.getMonth(), skipToday(5));
-const dateC = new Date(today.getFullYear(), today.getMonth(), skipToday(9));
+const [dayA, dayB, dayC] = [1, 5, 9, 13].filter((day) => day !== today.getDate());
+const dateA = new Date(today.getFullYear(), today.getMonth(), dayA);
+const dateB = new Date(today.getFullYear(), today.getMonth(), dayB);
+const dateC = new Date(today.getFullYear(), today.getMonth(), dayC);
 const isoA = toIsoDate(dateA);
 const isoB = toIsoDate(dateB);
 const isoC = toIsoDate(dateC);
@@ -275,5 +275,141 @@ describe('EntryForm date-collision', () => {
       expect(onCreate).toHaveBeenCalled();
     });
     expect(screen.queryByText(/could not save/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('EntryForm recovery buffer', () => {
+  it('restores an in-progress new entry after a refresh (remount)', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const { unmount } = render(<EntryForm onCreate={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Buffered title' } });
+    fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
+    unmount();
+
+    render(<EntryForm onCreate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('Buffered title');
+    });
+    expect(screen.getByRole('radio', { name: /happy/i })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('clears the recovery buffer once the entry is saved, so a later remount starts blank', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    const { unmount } = render(<EntryForm onCreate={onCreate} />);
+
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Saved title' } });
+    fireEvent.click(screen.getByRole('radio', { name: /happy/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
+    await waitFor(() => expect(onCreate).toHaveBeenCalled());
+    unmount();
+
+    render(<EntryForm onCreate={vi.fn()} />);
+
+    expect(screen.getByLabelText(/title/i)).toHaveValue('');
+  });
+
+  it('clears the recovery buffer once the user confirms discarding', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const onDiscard = vi.fn();
+    const { unmount } = render(<EntryForm onCreate={vi.fn()} onDiscard={onDiscard} />);
+
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Discarded title' } });
+    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+    const discardDialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(discardDialog).getByRole('button', { name: /^discard$/i }));
+    await waitFor(() => expect(onDiscard).toHaveBeenCalled());
+    unmount();
+
+    render(<EntryForm onCreate={vi.fn()} />);
+
+    expect(screen.getByLabelText(/title/i)).toHaveValue('');
+  });
+
+  it('clears the new-entry buffer when the restored date collides with an entry saved elsewhere, instead of leaving it stale', async () => {
+    const { result: seedBuffer } = renderHook(() => useRecoveryBuffer('new'));
+    seedBuffer.current.write({
+      date: isoA,
+      title: 'My buffered draft',
+      primaryMood: null,
+      specificEmotion: null,
+      content: '',
+    });
+    mockUseEntryByDate.mockImplementation((d: string | null) => ({
+      data: d === isoA ? existingEntry : null,
+    }));
+
+    render(<EntryForm onCreate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
+    });
+    expect(screen.getByText(/editing it instead/i)).toBeInTheDocument();
+
+    const { result: checkBuffer } = renderHook(() => useRecoveryBuffer('new'));
+    expect(checkBuffer.current.read()).toBeNull();
+  });
+
+  it('silently restores an edit-mode buffer that matches the current entry, with no conflict dialog', () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const { result } = renderHook(() => useRecoveryBuffer('entry:42'));
+    result.current.write({
+      date: isoA,
+      title: 'Existing title',
+      primaryMood: 'calm',
+      specificEmotion: 'peaceful',
+      content: '<p>Existing content</p>',
+    });
+
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} />);
+
+    expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('shows a conflict dialog when the edit-mode buffer disagrees with the saved entry, and applies the local version on request', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const { result } = renderHook(() => useRecoveryBuffer('entry:42'));
+    result.current.write({
+      date: isoA,
+      title: 'Unsaved edit',
+      primaryMood: 'calm',
+      specificEmotion: 'peaceful',
+      content: '<p>Existing content</p>',
+    });
+
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} />);
+
+    const dialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /keep/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/title/i)).toHaveValue('Unsaved edit');
+    });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the saved version when the user rejects the local buffer in the conflict dialog', async () => {
+    mockUseEntryByDate.mockReturnValue({ data: null });
+    const { result } = renderHook(() => useRecoveryBuffer('entry:42'));
+    result.current.write({
+      date: isoA,
+      title: 'Unsaved edit',
+      primaryMood: 'calm',
+      specificEmotion: 'peaceful',
+      content: '<p>Existing content</p>',
+    });
+
+    render(<EntryForm initialEntry={existingEntry} onUpdate={vi.fn()} />);
+
+    const dialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /saved version/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    expect(screen.getByLabelText(/title/i)).toHaveValue('Existing title');
   });
 });

@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
 import '@testing-library/jest-dom/vitest';
 import { system } from '../theme';
+import { MemoryStorage } from './MemoryStorage.ts';
 
 // With `test.globals: false` in vite.config.ts, `afterEach` is not injected
 // as a global, so @testing-library/react's automatic cleanup registration
@@ -12,7 +13,23 @@ import { system } from '../theme';
 // same file.
 afterEach(() => {
   cleanup();
+  window.localStorage.clear();
 });
+
+// Node 22+'s own (opt-out, `--no-experimental-webstorage`) global `localStorage` accessor
+// is already present on `globalThis` by the time vitest's jsdom environment installs its
+// globals, so jsdom's real, working implementation is skipped as "already defined" - the
+// Node one is a no-op without a `--localstorage-file`, so `window.localStorage` resolves to
+// `undefined` rather than a Storage. Recovery-buffer-style tests need a real, working
+// same-origin store, so swap in a minimal in-memory polyfill whenever the ambient one isn't
+// actually functional.
+if (typeof window.localStorage?.setItem !== 'function') {
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: new MemoryStorage(),
+    configurable: true,
+    writable: true,
+  });
+}
 
 // Starting with the Chakra UI migration, primitives under `atoms/`
 // resolve tokens/recipes from Chakra's context (`useChakraContext`), which
