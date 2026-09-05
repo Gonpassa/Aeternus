@@ -22,7 +22,7 @@ function NewEntryPage() {
   };
 
   return (
-    <PageContainer>
+    <PageContainer maxW="4xl" centered>
       <Heading as="h1" mb="4" variant="page">
         New entry
       </Heading>

@@ -17,6 +17,8 @@ import { DieCutTabDemo } from './DieCutTabDemo.tsx';
 import { CalendarDemo } from './CalendarDemo.tsx';
 import { DialogDemo } from './DialogDemo.tsx';
 import { VisuallyHiddenDemo } from './VisuallyHiddenDemo.tsx';
+import { SpinnerDemo } from './SpinnerDemo.tsx';
+import { LoadingGateDemo } from './LoadingGateDemo.tsx';
 
 export function ComponentsShowcase() {
   return (
@@ -45,6 +47,8 @@ export function ComponentsShowcase() {
       <CalendarDemo />
       <DialogDemo />
       <VisuallyHiddenDemo />
+      <SpinnerDemo />
+      <LoadingGateDemo />
     </Stack>
   );
 }

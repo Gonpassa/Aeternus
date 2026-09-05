@@ -4,6 +4,7 @@ import { useJournalSummary } from '../../api/journalHooks.ts';
 import { toIsoDate } from '../../dateUtils.ts';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
 import { IndexCard } from '../../../../atoms/IndexCard/IndexCard.tsx';
+import { LoadingGate } from '../../../../atoms/LoadingGate/LoadingGate.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { Button } from '../../../../atoms/Button/Button.tsx';
@@ -86,7 +87,7 @@ export function JournalWidget() {
     <IndexCard label="Journal" catalogNumber="No. 001">
       <Stack direction="column" gap="4" align="flex-start">
         <QuickEntryLink />
-        {summary.isLoading && <Text variant="muted">Loading your journal summary&hellip;</Text>}
+        {summary.isPending && <LoadingGate w="full" minH="120px" size="sm" />}
         {summary.data && summary.data.recentEntries.length === 0 && <EmptyState />}
         {summary.data && summary.data.recentEntries.length > 0 && (
           <PopulatedState summary={summary.data} />

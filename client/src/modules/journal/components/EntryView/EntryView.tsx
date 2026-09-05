@@ -13,7 +13,7 @@ export interface EntryViewProps {
 
 export function EntryView({ entry }: EntryViewProps) {
   return (
-    <Card as="article" variant="railed" maxW="2xl">
+    <Card as="article" variant="railed" maxW="4xl">
       <Text variant="eyebrow" letterSpacing="wide" color="inkSoft">
         {entry.date}
       </Text>

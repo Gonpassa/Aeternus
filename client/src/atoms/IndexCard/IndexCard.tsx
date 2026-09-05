@@ -36,7 +36,7 @@ export const IndexCard = React.forwardRef<HTMLDivElement, IndexCardProps>(functi
       </DieCutTab>
 
       {children && (
-        <Text textStyle="body" color="ink">
+        <Text as="div" textStyle="body" color="ink">
           {children}
         </Text>
       )}

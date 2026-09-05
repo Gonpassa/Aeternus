@@ -20,11 +20,11 @@ describe('JournalWidget', () => {
   });
 
   it('shows a loading state while the request is in flight', () => {
-    mockUseJournalSummary.mockReturnValue({ data: undefined, isLoading: true });
+    mockUseJournalSummary.mockReturnValue({ data: undefined, isPending: true });
 
     render(<JournalWidget />);
 
-    expect(screen.getByText(/Loading your journal summary/)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Start your first entry' })).not.toBeInTheDocument();
   });
 
@@ -38,7 +38,7 @@ describe('JournalWidget', () => {
         streak: { current: 2 },
         moodSnapshot: { happy: 1, calm: 1, sad: 0, anxious: 0, angry: 0, steady: 0 },
       },
-      isLoading: false,
+      isPending: false,
     });
 
     render(<JournalWidget />);
@@ -59,7 +59,7 @@ describe('JournalWidget', () => {
         streak: { current: 0 },
         moodSnapshot: { happy: 0, calm: 0, sad: 0, anxious: 0, angry: 0, steady: 0 },
       },
-      isLoading: false,
+      isPending: false,
     });
 
     render(<JournalWidget />);

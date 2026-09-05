@@ -7,6 +7,7 @@ import { JournalCalendarFilter } from '../../modules/journal/components/JournalC
 import { EntryTimeline } from '../../modules/journal/components/EntryTimeline/EntryTimeline.tsx';
 import type { DateRangeValue } from '../../atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 import { Button } from '../../atoms/Button/Button.tsx';
+import { LoadingGate } from '../../atoms/LoadingGate/LoadingGate.tsx';
 import { PageContainer } from '../../atoms/PageContainer/PageContainer.tsx';
 import { Stack } from '../../atoms/Stack/Stack.tsx';
 import { Heading } from '../../atoms/Heading/Heading.tsx';
@@ -22,11 +23,11 @@ function JournalIndexPage() {
     end: selectedRange.to ? toIsoDate(selectedRange.to) : '',
   });
 
-  const entries = hasFilter ? (filtered.data ?? []) : (all.data ?? []);
-  const dataLoaded = hasFilter ? filtered.data !== undefined : all.data !== undefined;
+  const activeQuery = hasFilter ? filtered : all;
+  const entries = activeQuery.data ?? [];
 
   return (
-    <PageContainer>
+    <PageContainer maxW="4xl" centered>
       <Stack mb="4" align="center" justify="space-between">
         <Heading as="h1" variant="page">
           Journal
@@ -43,8 +44,11 @@ function JournalIndexPage() {
         />
       </Stack>
 
-      {dataLoaded && entries.length === 0 && <Text variant="muted">No entries yet.</Text>}
-      {dataLoaded && entries.length > 0 && <EntryTimeline entries={entries} />}
+      {activeQuery.isPending && <LoadingGate minH="30vh" />}
+      {!activeQuery.isPending && entries.length === 0 && (
+        <Text variant="muted">No entries yet.</Text>
+      )}
+      {!activeQuery.isPending && entries.length > 0 && <EntryTimeline entries={entries} />}
     </PageContainer>
   );
 }

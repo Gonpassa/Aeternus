@@ -5,7 +5,7 @@
 import * as React from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 
-export type PageContainerMaxW = 'sm' | '2xl';
+export type PageContainerMaxW = 'sm' | '2xl' | '4xl';
 
 export interface PageContainerProps extends Omit<BoxProps, 'maxW' | 'mx' | 'p'> {
   maxW?: PageContainerMaxW;
@@ -14,6 +14,15 @@ export interface PageContainerProps extends Omit<BoxProps, 'maxW' | 'mx' | 'p'> 
 
 export const PageContainer = React.forwardRef<HTMLDivElement, PageContainerProps>(
   function PageContainer({ maxW = '2xl', centered = false, ...props }, ref) {
-    return <Box ref={ref} maxW={maxW} mx={centered ? 'auto' : undefined} p="4" {...props} />;
+    return (
+      <Box
+        ref={ref}
+        maxW={maxW}
+        w={centered ? '100%' : undefined}
+        mx={centered ? 'auto' : undefined}
+        p="4"
+        {...props}
+      />
+    );
   },
 );
