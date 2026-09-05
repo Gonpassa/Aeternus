@@ -23,6 +23,10 @@ One of a fixed set of five broad mood categories (`happy`, `calm`, `sad`, `anxio
 An optional finer-grained emotion under a chosen primary mood - either one of a fixed short list per primary mood (`MOOD_TAXONOMY`) or free text typed by the user. Has no visual equivalent in `docs/design/demo.html`, which only models primary mood; its chip-row + custom-text presentation is an Aeternus-specific extension, not a demo mismatch to fix.
 _Avoid_: Sub-mood, tag
 
+**Chronological neighbor**:
+The **Entry** immediately before or after a given Entry by `date` - the next (later) or previous (earlier) one in the user's overall journal history. Fixed by date alone: unaffected by any list filter (e.g. a calendar range) the user may currently have applied, since a neighbor is a property of the Entry itself, not of a particular view of the journal.
+_Avoid_: Adjacent entry (ambiguous about whether filters apply)
+
 ## Dream Journal
 
 Terminology grounded in Jungian dream-analysis method. Distinct module from Journal - not an extension of **Entry** above, since a dream's lifecycle (record, then one or more rounds of analysis added over time) doesn't fit Entry's "written and saved, never staged" definition. AI-assisted analysis (suggestive only, never authoritative) is an explicitly separate, later phase - this phase is manual recording and analysis only.
