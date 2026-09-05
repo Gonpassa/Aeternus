@@ -43,7 +43,17 @@ function EditEntryPage() {
       <Heading as="h1" mb="4" variant="page">
         Edit entry
       </Heading>
-      <EntryForm initialEntry={entry} onUpdate={handleUpdate} onDelete={handleDelete} />
+      {/* `key` forces a remount on navigation between two edit routes for different
+          entries when TanStack Router reuses this component instance (e.g. the target
+          entry is already cached, so the isLoading gate above never re-triggers) - without
+          it, EntryForm's internal state (including its recovery buffer key) would keep
+          referencing the entry this instance was first mounted for. */}
+      <EntryForm
+        key={entry.id}
+        initialEntry={entry}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
+      />
     </PageContainer>
   );
 }
