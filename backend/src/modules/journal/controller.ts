@@ -21,6 +21,7 @@ import {
   deleteEntry as deleteEntryRecord,
   findEntryById,
   findEntryByDate,
+  findChronologicalNeighborIds,
   listEntriesByUser,
   listEntriesByRange,
   getJournalSummaryData,
@@ -83,7 +84,11 @@ export const getEntry = async (req: Request, res: Response, next: NextFunction):
       res.status(404).json({ error: 'Entry not found' } satisfies ApiErrorResponse);
       return;
     }
-    res.status(200).json({ entry });
+    const { nextEntryId, previousEntryId } = await findChronologicalNeighborIds({
+      userId: getUserId(req),
+      date: entry.date,
+    });
+    res.status(200).json({ entry, nextEntryId, previousEntryId });
   } catch (err) {
     next(err);
   }

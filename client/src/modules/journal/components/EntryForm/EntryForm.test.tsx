@@ -19,10 +19,15 @@ const { EntryForm } = await import('./EntryForm.tsx');
 // The date-picker Calendar opens on the real current month and doesn't
 // auto-navigate on selection, so test dates must stay within it (mirrors the
 // same constraint/approach as JournalCalendarFilter.test.tsx's `toIsoDate`).
+// The form defaults a new entry's date to today, so a test date that happens to
+// land on today's day-of-month wouldn't actually change anything when "selected" -
+// nudge by a day whenever that collision occurs (the three candidate days are far
+// enough apart that a single +1 nudge can't collide with either of the others).
 const today = new Date();
-const dateA = new Date(today.getFullYear(), today.getMonth(), 1);
-const dateB = new Date(today.getFullYear(), today.getMonth(), 5);
-const dateC = new Date(today.getFullYear(), today.getMonth(), 9);
+const skipToday = (day: number) => (day === today.getDate() ? day + 1 : day);
+const dateA = new Date(today.getFullYear(), today.getMonth(), skipToday(1));
+const dateB = new Date(today.getFullYear(), today.getMonth(), skipToday(5));
+const dateC = new Date(today.getFullYear(), today.getMonth(), skipToday(9));
 const isoA = toIsoDate(dateA);
 const isoB = toIsoDate(dateB);
 const isoC = toIsoDate(dateC);

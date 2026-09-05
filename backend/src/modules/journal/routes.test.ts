@@ -167,6 +167,82 @@ describe('journal routes (integration)', () => {
       ).toBe(404);
       expect((await bobAgent.delete(`/api/journal/entries/${entryId}`)).status).toBe(404);
     });
+
+    it("never resolves another user's entry as a chronological neighbor", async () => {
+      const older = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-01' });
+      await bobAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-08-02' });
+      await bobAgent.post('/api/journal/entries').send({ ...validPayload, date: '2026-07-31' });
+
+      const res = await aliceAgent.get(`/api/journal/entries/${older.body.entry.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.nextEntryId).toBeNull();
+      expect(res.body.previousEntryId).toBeNull();
+    });
+  });
+
+  describe('GET /api/journal/entries/:id chronological neighbors', () => {
+    it('returns the surrounding entry ids for a middle entry', async () => {
+      const oldest = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-01' });
+      const middle = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-15' });
+      const newest = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-09-01' });
+
+      const res = await aliceAgent.get(`/api/journal/entries/${middle.body.entry.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.nextEntryId).toBe(newest.body.entry.id);
+      expect(res.body.previousEntryId).toBe(oldest.body.entry.id);
+    });
+
+    it('returns previousEntryId: null for the oldest entry', async () => {
+      const oldest = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-01' });
+      const newer = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-15' });
+
+      const res = await aliceAgent.get(`/api/journal/entries/${oldest.body.entry.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.previousEntryId).toBeNull();
+      expect(res.body.nextEntryId).toBe(newer.body.entry.id);
+    });
+
+    it('returns nextEntryId: null for the newest entry', async () => {
+      const older = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-01' });
+      const newest = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-15' });
+
+      const res = await aliceAgent.get(`/api/journal/entries/${newest.body.entry.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.nextEntryId).toBeNull();
+      expect(res.body.previousEntryId).toBe(older.body.entry.id);
+    });
+
+    it('returns null for both when the entry is the only one', async () => {
+      const only = await aliceAgent
+        .post('/api/journal/entries')
+        .send({ ...validPayload, date: '2026-08-01' });
+
+      const res = await aliceAgent.get(`/api/journal/entries/${only.body.entry.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.nextEntryId).toBeNull();
+      expect(res.body.previousEntryId).toBeNull();
+    });
   });
 
   describe('PUT /api/journal/entries/:id', () => {

@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 import type {
   CreateEntryRequest,
   Entry,
+  EntryDetailResponse,
   EntryListResponse,
   EntryRangeQuery,
   JournalSummaryResponse,
@@ -29,13 +30,22 @@ export const useEntries = () =>
     },
   });
 
+export type EntryWithNeighbors = Entry & {
+  nextEntryId: number | null;
+  previousEntryId: number | null;
+};
+
 export const useEntry = (id: number, options?: { enabled?: boolean }) =>
-  useQuery<Entry>({
+  useQuery<EntryWithNeighbors>({
     queryKey: journalKeys.detail(id),
     enabled: options?.enabled,
     queryFn: async () => {
-      const { data } = await apiClient.get<{ entry: Entry }>(endpoints.journal.entry(id));
-      return data.entry;
+      const { data } = await apiClient.get<EntryDetailResponse>(endpoints.journal.entry(id));
+      return {
+        ...data.entry,
+        nextEntryId: data.nextEntryId,
+        previousEntryId: data.previousEntryId,
+      };
     },
   });
 

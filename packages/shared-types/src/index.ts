@@ -64,6 +64,12 @@ export interface EntryListResponse {
   entries: Entry[];
 }
 
+export interface EntryDetailResponse {
+  entry: Entry;
+  nextEntryId: number | null;
+  previousEntryId: number | null;
+}
+
 export interface EntryRangeQuery {
   start: string;
   end: string;

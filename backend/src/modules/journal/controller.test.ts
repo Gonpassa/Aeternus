@@ -19,6 +19,7 @@ jest.mock('../../db/entries', () => ({
   deleteEntry: jest.fn(),
   findEntryById: jest.fn(),
   findEntryByDate: jest.fn(),
+  findChronologicalNeighborIds: jest.fn(),
   listEntriesByUser: jest.fn(),
   listEntriesByRange: jest.fn(),
   getJournalSummaryData: jest.fn(),
@@ -78,15 +79,27 @@ describe('getEntry', () => {
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
-  it('returns the entry on success', async () => {
+  it('returns the entry along with its chronological neighbor ids on success', async () => {
     mocked.findEntryById.mockResolvedValue(fakeEntry);
+    mocked.findChronologicalNeighborIds.mockResolvedValue({
+      nextEntryId: 2,
+      previousEntryId: null,
+    });
     const req = reqAs(7, { params: { id: '1' } });
     const res = buildRes();
 
     await getEntry(req, res, jest.fn());
 
+    expect(mocked.findChronologicalNeighborIds).toHaveBeenCalledWith({
+      userId: 7,
+      date: fakeEntry.date,
+    });
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ entry: fakeEntry });
+    expect(res.json).toHaveBeenCalledWith({
+      entry: fakeEntry,
+      nextEntryId: 2,
+      previousEntryId: null,
+    });
   });
 });
 
