@@ -4,7 +4,10 @@
  * Variant A — "Marginalia": the narrative is a central manuscript column;
  * each anchor's attachments (beats, symbols, associations) live as margin
  * notes vertically aligned with the anchored passage, like a scholar's
- * annotations. Analysis passes are an appendix ("Readings") below the text.
+ * annotations. Analysis passes are an appendix ("Analysis") below the text,
+ * with Analytic and Synthetic shown one at a time (they are separate modes).
+ * The narrative here is deliberately read-only: editing the dream text is a
+ * separate page, not part of analysis.
  */
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Box, Textarea } from '@chakra-ui/react';
@@ -80,7 +83,7 @@ export function VariantMarginalia({ api }: { api: PrototypeDreamApi }) {
     if (kind === 'note') {
       setPassType('analytic');
       setPassAnchorId(anchorId);
-      document.getElementById('readings-appendix')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('analysis-section')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -156,9 +159,18 @@ export function VariantMarginalia({ api }: { api: PrototypeDreamApi }) {
                   const assocs = dream.associations.filter((a) => a.symbolAttachmentId === sa.id);
                   return (
                     <Box key={sa.id} mt="2">
-                      <Stack direction="row" align="center" gap="2">
-                        <Box as="span" bg="inkBlue" color="paper" px="2" py="0.5" borderRadius="sm">
-                          <Text as="span" textStyle="label" color="paper">
+                      <Stack direction="row" align="baseline" gap="2">
+                        {/* Specimen-label styling: a symbol is a taxonomy term,
+                            not an action — mono small-caps with a dotted rule,
+                            no fill so it can't read as a button. */}
+                        <Box
+                          as="span"
+                          borderBottomWidth="1px"
+                          borderBottomStyle="dotted"
+                          borderBottomColor="inkBlue"
+                          pb="0.5"
+                        >
+                          <Text as="span" textStyle="label" color="inkBlue" letterSpacing="0.08em">
                             {sa.symbolName}
                           </Text>
                         </Box>
@@ -279,9 +291,10 @@ export function VariantMarginalia({ api }: { api: PrototypeDreamApi }) {
         />
       )}
 
-      {/* Readings appendix */}
+      {/* Analysis section — Analytic and Synthetic are separate modes,
+          shown one at a time. */}
       <Box
-        id="readings-appendix"
+        id="analysis-section"
         maxW="42rem"
         mt="14"
         pt="8"
@@ -289,69 +302,80 @@ export function VariantMarginalia({ api }: { api: PrototypeDreamApi }) {
         borderColor="line"
       >
         <Heading as="h2" variant="section" mb="1">
-          Readings
+          Analysis
         </Heading>
-        <Text textStyle="label" color="inkSoft" mb="6">
+        <Text textStyle="label" color="inkSoft" mb="5">
           Append-only — a record of how understanding evolved
         </Text>
 
-        {dream.passes.map((pass) => (
-          <Box
-            key={pass.id}
-            mb="6"
-            pl="4"
-            borderLeftWidth="2px"
-            borderLeftColor={pass.type === 'analytic' ? 'inkBlue' : 'moss'}
-          >
-            <Stack direction="row" gap="3" align="baseline" mb="1">
-              <Text
-                as="span"
-                textStyle="label"
-                color={pass.type === 'analytic' ? 'inkBlue' : 'moss'}
-              >
-                {pass.type === 'analytic' ? 'Analytic' : 'Synthetic'}
+        <Stack direction="row" gap="6" mb="2" borderBottomWidth="1px" borderColor="line">
+          {(['analytic', 'synthetic'] as const).map((t) => (
+            <Box
+              as="button"
+              key={t}
+              cursor="pointer"
+              pb="2"
+              mb="-1px"
+              borderBottomWidth="2px"
+              borderBottomStyle="solid"
+              borderBottomColor={passType === t ? 'rust' : 'transparent'}
+              onClick={() => {
+                setPassType(t);
+                if (t === 'synthetic') setPassAnchorId('');
+              }}
+            >
+              <Text as="span" textStyle="label" color={passType === t ? 'ink' : 'inkSoft'}>
+                {t === 'analytic' ? 'Analytic' : 'Synthetic'}
               </Text>
-              <Text as="span" textStyle="label" color="inkSoft">
-                {formatStamp(pass.createdAt)}
-              </Text>
-              {pass.anchorId && (
+            </Box>
+          ))}
+        </Stack>
+        <Text textStyle="label" color="inkSoft" mb="6">
+          {passType === 'analytic'
+            ? 'Tracing elements backward to their sources'
+            : 'Reading the whole dream forward'}
+        </Text>
+
+        {dream.passes
+          .filter((pass) => pass.type === passType)
+          .map((pass) => (
+            <Box
+              key={pass.id}
+              mb="6"
+              pl="4"
+              borderLeftWidth="2px"
+              borderLeftColor={pass.type === 'analytic' ? 'inkBlue' : 'moss'}
+            >
+              <Stack direction="row" gap="3" align="baseline" mb="1">
                 <Text as="span" textStyle="label" color="inkSoft">
-                  ⚓ “
-                  {anchorExcerpt(
-                    dream,
-                    dream.anchors.find((a) => a.id === pass.anchorId)!,
-                  ).slice(0, 30)}
-                  …”
+                  {formatStamp(pass.createdAt)}
                 </Text>
-              )}
-            </Stack>
-            <Text textStyle="body">{pass.content}</Text>
-          </Box>
-        ))}
+                {pass.anchorId && (
+                  <Text as="span" textStyle="label" color="inkSoft">
+                    ⚓ “
+                    {anchorExcerpt(
+                      dream,
+                      dream.anchors.find((a) => a.id === pass.anchorId)!,
+                    ).slice(0, 30)}
+                    …”
+                  </Text>
+                )}
+              </Stack>
+              <Text textStyle="body">{pass.content}</Text>
+            </Box>
+          ))}
+        {dream.passes.filter((pass) => pass.type === passType).length === 0 && (
+          <Text textStyle="body" color="inkSoft" fontStyle="italic" mb="6">
+            No {passType} passes yet.
+          </Text>
+        )}
 
         <Box mt="8" bg="paperCard" borderWidth="1px" borderColor="line" borderRadius="md" p="4">
           <Text textStyle="label" mb="3">
-            New reading
+            {passType === 'analytic' ? 'New analytic pass' : 'New synthetic pass'}
           </Text>
-          <Stack direction="row" gap="2" mb="3">
-            <Button
-              size="xs"
-              variant={passType === 'analytic' ? 'default' : 'outline'}
-              onClick={() => setPassType('analytic')}
-            >
-              Analytic
-            </Button>
-            <Button
-              size="xs"
-              variant={passType === 'synthetic' ? 'default' : 'outline'}
-              onClick={() => {
-                setPassType('synthetic');
-                setPassAnchorId('');
-              }}
-            >
-              Synthetic
-            </Button>
-            {passType === 'analytic' && (
+          {passType === 'analytic' && (
+            <Stack direction="row" gap="2" mb="3">
               <NativeSelect value={passAnchorId} onChange={setPassAnchorId}>
                 <option value="">Whole dream</option>
                 {dream.anchors.map((a) => (
@@ -360,8 +384,8 @@ export function VariantMarginalia({ api }: { api: PrototypeDreamApi }) {
                   </option>
                 ))}
               </NativeSelect>
-            )}
-          </Stack>
+            </Stack>
+          )}
           <Textarea
             value={passDraft}
             onChange={(e) => setPassDraft(e.target.value)}
