@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, renderHook, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import { toIsoDate } from '../../../journal/dateUtils.ts';
+import { toIsoDate } from '../../../../utils/dateUtils.ts';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 
 vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({

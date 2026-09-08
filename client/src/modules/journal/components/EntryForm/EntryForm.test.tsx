@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, renderHook, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { Entry } from '@nee3/shared-types';
-import { toIsoDate } from '../../dateUtils.ts';
+import { toIsoDate } from '../../../../utils/dateUtils.ts';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 
 vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { MarkedRangeCalendar, computeNextRange, toIsoDate } from './MarkedRangeCalendar.tsx';
+import { MarkedRangeCalendar } from './MarkedRangeCalendar.tsx';
+import { computeNextRange } from './MarkedRangeCalendar.utils.ts';
 
 const getByIso = (container: HTMLElement, iso: string): HTMLElement => {
   const el = container.querySelector(`[data-iso="${iso}"]`);
@@ -137,11 +138,5 @@ describe('MarkedRangeCalendar', () => {
     weekdayHeaders.forEach((header) => {
       expect(header.textContent).toHaveLength(1);
     });
-  });
-});
-
-describe('toIsoDate', () => {
-  it('formats a date as YYYY-MM-DD', () => {
-    expect(toIsoDate(new Date(2026, 7, 5))).toBe('2026-08-05');
   });
 });

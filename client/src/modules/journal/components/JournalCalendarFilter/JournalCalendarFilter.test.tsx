@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import * as journalHooks from '../../api/journalHooks.ts';
 import { JournalCalendarFilter, formatRangeLabel } from './JournalCalendarFilter.tsx';
-import { toIsoDate } from '../../dateUtils.ts';
+import { toIsoDate } from '../../../../utils/dateUtils.ts';
 
 vi.mock('../../api/journalHooks.ts', () => ({
   useEntriesByRange: vi.fn(),

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useEntries, useEntriesByRange } from '../../modules/journal/api/journalHooks.ts';
-import { toIsoDate } from '../../modules/journal/dateUtils.ts';
+import { toIsoDate } from '../../utils/dateUtils.ts';
 import { requireAuth } from '../../auth/requireAuth.ts';
 import { JournalCalendarFilter } from '../../modules/journal/components/JournalCalendarFilter/JournalCalendarFilter.tsx';
 import { EntryTimeline } from '../../modules/journal/components/EntryTimeline/EntryTimeline.tsx';

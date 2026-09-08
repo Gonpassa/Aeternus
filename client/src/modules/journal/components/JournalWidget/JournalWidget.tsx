@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { JournalSummaryResponse, PrimaryMood } from '@nee3/shared-types';
 import { useJournalSummary } from '../../api/journalHooks.ts';
-import { toIsoDate } from '../../dateUtils.ts';
+import { toIsoDate } from '../../../../utils/dateUtils.ts';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
 import { IndexCard } from '../../../../atoms/IndexCard/IndexCard.tsx';
 import { LoadingGate } from '../../../../atoms/LoadingGate/LoadingGate.tsx';

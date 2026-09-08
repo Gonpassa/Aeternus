@@ -19,7 +19,7 @@ import {
 } from '../../../../atoms/MarkedRangeCalendar/MarkedRangeCalendar.tsx';
 import { useEntriesByRange } from '../../api/journalHooks.ts';
 import { MOOD_RING_COLOR } from '../../moodColors.ts';
-import { toIsoDate } from '../../dateUtils.ts';
+import { toIsoDate } from '../../../../utils/dateUtils.ts';
 
 export interface JournalCalendarFilterProps {
   selectedRange: DateRangeValue;

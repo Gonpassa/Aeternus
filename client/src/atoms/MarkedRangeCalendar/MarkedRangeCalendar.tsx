@@ -8,12 +8,12 @@ import type { ComponentProps } from 'react';
 import type { DayButton } from 'react-day-picker';
 import { Box, chakra } from '@chakra-ui/react';
 import { Calendar } from '../Calendar/Calendar.tsx';
+import { toIsoDate } from '../../utils/dateUtils.ts';
+import { computeNextRange, isEndpoint, isInRange } from './MarkedRangeCalendar.utils.ts';
+import type { DateRangeValue } from './MarkedRangeCalendar.utils.ts';
 import styles from './MarkedRangeCalendar.module.css';
 
-export interface DateRangeValue {
-  from?: Date;
-  to?: Date;
-}
+export type { DateRangeValue };
 
 export interface MarkedRangeCalendarProps {
   markedDates: Map<string, string>;
@@ -22,37 +22,6 @@ export interface MarkedRangeCalendarProps {
   selectedRange: DateRangeValue;
   onRangeChange: (range: DateRangeValue) => void;
 }
-
-export const toIsoDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const isSameDay = (a: Date, b: Date): boolean => toIsoDate(a) === toIsoDate(b);
-
-export const computeNextRange = (current: DateRangeValue, clicked: Date): DateRangeValue => {
-  if (!current.from) {
-    return { from: clicked, to: clicked };
-  }
-  const isSingleDaySelection = !current.to || isSameDay(current.from, current.to);
-  if (!isSingleDaySelection) {
-    return { from: clicked, to: clicked };
-  }
-  if (clicked.getTime() < current.from.getTime()) {
-    return { from: clicked, to: clicked };
-  }
-  return { from: current.from, to: clicked };
-};
-
-const isInRange = (date: Date, range: DateRangeValue): boolean => {
-  if (!range.from || !range.to) return false;
-  return date.getTime() >= range.from.getTime() && date.getTime() <= range.to.getTime();
-};
-
-const isEndpoint = (date: Date, range: DateRangeValue): boolean =>
-  Boolean((range.from && isSameDay(date, range.from)) || (range.to && isSameDay(date, range.to)));
 
 interface MarkedRangeContextValue {
   markedDates: Map<string, string>;
