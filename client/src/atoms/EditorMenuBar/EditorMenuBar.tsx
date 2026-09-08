@@ -1,11 +1,11 @@
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
-import { ToggleButton } from '../../../../atoms/ToggleButton/ToggleButton.tsx';
+import { ToggleButton } from '../ToggleButton/ToggleButton.tsx';
 import {
   ToggleButtonGroup,
   ToggleButtonGroupItem,
-} from '../../../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
-import { ToolbarActionButton } from '../../../../atoms/ToolbarActionButton/ToolbarActionButton.tsx';
+} from '../ToggleButtonGroup/ToggleButtonGroup.tsx';
+import { ToolbarActionButton } from '../ToolbarActionButton/ToolbarActionButton.tsx';
 import styles from './EditorMenuBar.module.css';
 
 export interface EditorMenuBarProps {

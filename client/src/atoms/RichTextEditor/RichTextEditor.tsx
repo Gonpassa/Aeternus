@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Card } from '../../../../atoms/Card/Card.tsx';
-import { Prose } from '../../../../atoms/Prose/Prose.tsx';
+import { Card } from '../Card/Card.tsx';
+import { Prose } from '../Prose/Prose.tsx';
 import { EditorMenuBar } from '../EditorMenuBar/EditorMenuBar.tsx';
 import styles from './RichTextEditor.module.css';
 
@@ -16,8 +16,9 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Kept in sync with backend/src/modules/journal/sanitize.ts's allow-list per
-        // ADR-0003 - see sanitize.test.ts's mark-set contract test.
+        // Kept in sync with each consuming module's backend sanitize.ts allow-list
+        // (journal per ADR-0003, dreams mirrors it) - see each module's sanitize.test.ts
+        // mark-set contract test.
         heading: { levels: [1, 2, 3] },
         strike: false,
         code: false,

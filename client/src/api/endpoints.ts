@@ -13,4 +13,5 @@ export const endpoints = {
     entriesByRange: '/journal/entries/by-range',
     summary: '/journal/entries/summary',
   },
+  dreams: '/dreams',
 } as const;

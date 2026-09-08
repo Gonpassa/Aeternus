@@ -1,28 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import type { Entry } from '@nee3/shared-types';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
-import { stripHtml } from '../../textUtils.ts';
+import { stripHtml } from '../../../../utils/textUtils.ts';
+import { groupByMonth, dayLabel } from '../../../../utils/dateGrouping.ts';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Heading } from '../../../../atoms/Heading/Heading.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { Dot } from '../../../../atoms/Dot/Dot.tsx';
-
-const monthLabel = (isoDate: string) =>
-  new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-const dayLabel = (isoDate: string) =>
-  new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-US', { day: '2-digit' });
-
-const groupByMonth = (entries: Entry[]) => {
-  const groups = new Map<string, Entry[]>();
-  entries.forEach((entry) => {
-    const key = monthLabel(entry.date);
-    const bucket = groups.get(key);
-    if (bucket) bucket.push(entry);
-    else groups.set(key, [entry]);
-  });
-  return Array.from(groups.entries());
-};
 
 export interface EntryTimelineProps {
   entries: Entry[];

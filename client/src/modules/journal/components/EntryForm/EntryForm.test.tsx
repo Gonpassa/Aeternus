@@ -4,7 +4,7 @@ import type { Entry } from '@nee3/shared-types';
 import { toIsoDate } from '../../dateUtils.ts';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 
-vi.mock('../RichTextEditor/RichTextEditor.tsx', () => ({
+vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({
   RichTextEditor: ({ value, onChange }: { value: string; onChange: (html: string) => void }) => (
     <textarea aria-label="Content" value={value} onChange={(e) => onChange(e.target.value)} />
   ),

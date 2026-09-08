@@ -52,3 +52,19 @@ export const entries = pgTable(
 
 export type Entry = typeof entries.$inferSelect;
 export type NewEntry = typeof entries.$inferInsert;
+
+// No unique(userId, date) constraint, unlike entries above - a user may record more
+// than one dream on the same date.
+export const dreams = pgTable('dreams', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  date: date('date').notNull(),
+  narrative: text('narrative').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type Dream = typeof dreams.$inferSelect;
+export type NewDream = typeof dreams.$inferInsert;

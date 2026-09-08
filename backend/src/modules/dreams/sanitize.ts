@@ -3,7 +3,7 @@ import { ALLOWED_TAGS } from '../../richTextAllowedTags';
 
 export { ALLOWED_TAGS };
 
-export const sanitizeEntryContent = (html: string): string =>
+export const sanitizeDreamNarrative = (html: string): string =>
   sanitizeHtml(html, {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {},

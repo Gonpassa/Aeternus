@@ -80,3 +80,21 @@ export interface JournalSummaryResponse {
   streak: { current: number };
   moodSnapshot: Record<PrimaryMood, number>;
 }
+
+export interface Dream {
+  id: number;
+  userId: number;
+  date: string;
+  narrative: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDreamRequest {
+  date: string;
+  narrative: string;
+}
+
+export interface DreamListResponse {
+  dreams: Dream[];
+}

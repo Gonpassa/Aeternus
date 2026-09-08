@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as DevComponentsRouteImport } from './routes/dev/components'
+import { Route as DreamsIndexRouteImport } from './routes/dreams/index'
+import { Route as DreamsNewRouteImport } from './routes/dreams/new'
 import { Route as JournalIndexRouteImport } from './routes/journal/index'
 import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
@@ -36,6 +38,16 @@ const RegisterRoute = RegisterRouteImport.update({
 const DevComponentsRoute = DevComponentsRouteImport.update({
   id: '/dev/components',
   path: '/dev/components',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DreamsIndexRoute = DreamsIndexRouteImport.update({
+  id: '/dreams/',
+  path: '/dreams/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DreamsNewRoute = DreamsNewRouteImport.update({
+  id: '/dreams/new',
+  path: '/dreams/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JournalIndexRoute = JournalIndexRouteImport.update({
@@ -64,8 +76,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
+  '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
 }
@@ -74,8 +88,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
+  '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/dreams': typeof DreamsIndexRoute
   '/journal': typeof JournalIndexRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
 }
@@ -85,8 +101,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
+  '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
   '/journal/$entryId_/edit': typeof JournalEntryIdEditRoute
 }
@@ -97,8 +115,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dev/components'
+    | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/dreams/'
     | '/journal/'
     | '/journal/$entryId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -107,8 +127,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dev/components'
+    | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/dreams'
     | '/journal'
     | '/journal/$entryId/edit'
   id:
@@ -117,8 +139,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dev/components'
+    | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/dreams/'
     | '/journal/'
     | '/journal/$entryId_/edit'
   fileRoutesById: FileRoutesById
@@ -128,8 +152,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   DevComponentsRoute: typeof DevComponentsRoute
+  DreamsNewRoute: typeof DreamsNewRoute
   JournalEntryIdRoute: typeof JournalEntryIdRoute
   JournalNewRoute: typeof JournalNewRoute
+  DreamsIndexRoute: typeof DreamsIndexRoute
   JournalIndexRoute: typeof JournalIndexRoute
   JournalEntryIdEditRoute: typeof JournalEntryIdEditRoute
 }
@@ -162,6 +188,20 @@ declare module '@tanstack/react-router' {
       path: '/dev/components'
       fullPath: '/dev/components'
       preLoaderRoute: typeof DevComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dreams/': {
+      id: '/dreams/'
+      path: '/dreams'
+      fullPath: '/dreams/'
+      preLoaderRoute: typeof DreamsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dreams/new': {
+      id: '/dreams/new'
+      path: '/dreams/new'
+      fullPath: '/dreams/new'
+      preLoaderRoute: typeof DreamsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journal/': {
@@ -200,8 +240,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   DevComponentsRoute: DevComponentsRoute,
+  DreamsNewRoute: DreamsNewRoute,
   JournalEntryIdRoute: JournalEntryIdRoute,
   JournalNewRoute: JournalNewRoute,
+  DreamsIndexRoute: DreamsIndexRoute,
   JournalIndexRoute: JournalIndexRoute,
   JournalEntryIdEditRoute: JournalEntryIdEditRoute,
 }

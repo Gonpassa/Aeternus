@@ -6,6 +6,7 @@ import sessionMiddleware from './config/session';
 import passport from './config/passport';
 import authRouter from './auth/routes';
 import journalRouter from './modules/journal/routes';
+import dreamsRouter from './modules/dreams/routes';
 import config from './config/default';
 
 const defaultClientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -29,6 +30,7 @@ export const createApp = (options: { clientDistPath?: string } = {}): Express =>
 
   app.use('/api/auth', authRouter);
   app.use('/api/journal', journalRouter);
+  app.use('/api/dreams', dreamsRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
