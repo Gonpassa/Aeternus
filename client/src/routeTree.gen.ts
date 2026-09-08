@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as DevComponentsRouteImport } from './routes/dev/components'
 import { Route as DreamsIndexRouteImport } from './routes/dreams/index'
 import { Route as DreamsNewRouteImport } from './routes/dreams/new'
+import { Route as DreamsPrototypeAnalysisRouteImport } from './routes/dreams/prototype-analysis'
 import { Route as JournalIndexRouteImport } from './routes/journal/index'
 import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
@@ -50,6 +51,11 @@ const DreamsNewRoute = DreamsNewRouteImport.update({
   path: '/dreams/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DreamsPrototypeAnalysisRoute = DreamsPrototypeAnalysisRouteImport.update({
+  id: '/dreams/prototype-analysis',
+  path: '/dreams/prototype-analysis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JournalIndexRoute = JournalIndexRouteImport.update({
   id: '/journal/',
   path: '/journal/',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
   '/dreams/new': typeof DreamsNewRoute
+  '/dreams/prototype-analysis': typeof DreamsPrototypeAnalysisRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/dreams/': typeof DreamsIndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
   '/dreams/new': typeof DreamsNewRoute
+  '/dreams/prototype-analysis': typeof DreamsPrototypeAnalysisRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/dreams': typeof DreamsIndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/dev/components': typeof DevComponentsRoute
   '/dreams/new': typeof DreamsNewRoute
+  '/dreams/prototype-analysis': typeof DreamsPrototypeAnalysisRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
   '/dreams/': typeof DreamsIndexRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/dev/components'
     | '/dreams/new'
+    | '/dreams/prototype-analysis'
     | '/journal/$entryId'
     | '/journal/new'
     | '/dreams/'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/dev/components'
     | '/dreams/new'
+    | '/dreams/prototype-analysis'
     | '/journal/$entryId'
     | '/journal/new'
     | '/dreams'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/dev/components'
     | '/dreams/new'
+    | '/dreams/prototype-analysis'
     | '/journal/$entryId'
     | '/journal/new'
     | '/dreams/'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   DevComponentsRoute: typeof DevComponentsRoute
   DreamsNewRoute: typeof DreamsNewRoute
+  DreamsPrototypeAnalysisRoute: typeof DreamsPrototypeAnalysisRoute
   JournalEntryIdRoute: typeof JournalEntryIdRoute
   JournalNewRoute: typeof JournalNewRoute
   DreamsIndexRoute: typeof DreamsIndexRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DreamsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dreams/prototype-analysis': {
+      id: '/dreams/prototype-analysis'
+      path: '/dreams/prototype-analysis'
+      fullPath: '/dreams/prototype-analysis'
+      preLoaderRoute: typeof DreamsPrototypeAnalysisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/journal/': {
       id: '/journal/'
       path: '/journal'
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   DevComponentsRoute: DevComponentsRoute,
   DreamsNewRoute: DreamsNewRoute,
+  DreamsPrototypeAnalysisRoute: DreamsPrototypeAnalysisRoute,
   JournalEntryIdRoute: JournalEntryIdRoute,
   JournalNewRoute: JournalNewRoute,
   DreamsIndexRoute: DreamsIndexRoute,
