@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Flex } from '@chakra-ui/react';
+import { Flex, chakra } from '@chakra-ui/react';
 
 export interface TabOption {
   value: string;
@@ -56,9 +56,8 @@ export function Tabs({ options, value, onChange, 'aria-label': ariaLabel }: Tabs
       {options.map((option) => {
         const active = option.value === value;
         return (
-          <Box
+          <chakra.button
             key={option.value}
-            as="button"
             type="button"
             role="tab"
             aria-selected={active}
@@ -75,7 +74,7 @@ export function Tabs({ options, value, onChange, 'aria-label': ariaLabel }: Tabs
             onClick={() => onChange(option.value)}
           >
             {option.label}
-          </Box>
+          </chakra.button>
         );
       })}
     </Flex>

@@ -29,7 +29,11 @@ function DreamAnalysisPage() {
           <Text variant="muted" mb="4">
             {format(parseIsoDate(dreamDetail.data.dream.date), 'MMM d, yyyy')}
           </Text>
-          <DreamAnalysis dream={dreamDetail.data.dream} anchors={dreamDetail.data.anchors} />
+          <DreamAnalysis
+            dream={dreamDetail.data.dream}
+            anchors={dreamDetail.data.anchors}
+            analysisPasses={dreamDetail.data.analysisPasses}
+          />
         </>
       )}
     </PageContainer>

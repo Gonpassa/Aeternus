@@ -2,7 +2,7 @@
    Variant styling is forwarded via `{...variantStyles[variant]}` to the underlying Chakra
    primitives, mirroring the thin-wrapper pattern of the other atoms. */
 import * as React from 'react';
-import { Box, type BoxProps } from '@chakra-ui/react';
+import { Box, chakra, type BoxProps } from '@chakra-ui/react';
 
 export type SelectionToolbarAction = {
   label: string;
@@ -26,7 +26,12 @@ export interface SelectionToolbarProps {
 const SELECTION_GAP = 8;
 const VIEWPORT_MARGIN = 8;
 
-const variantStyles: Record<SelectionToolbarVariant, { container: BoxProps; action: BoxProps }> = {
+type ActionStyleProps = React.ComponentProps<typeof chakra.button>;
+
+const variantStyles: Record<
+  SelectionToolbarVariant,
+  { container: BoxProps; action: ActionStyleProps }
+> = {
   // A solid ink bar with paper text; hovering fills the hovered action with moss. No
   // elevation change on hover, per the design system.
   ink: {
@@ -119,9 +124,8 @@ export function SelectionToolbar({
       {...variantStyles[variant].container}
     >
       {actions.map((action, index) => (
-        <Box
+        <chakra.button
           key={action.label}
-          as="button"
           type="button"
           tabIndex={index === focusedIndex ? 0 : -1}
           onClick={action.onSelect}
@@ -134,7 +138,7 @@ export function SelectionToolbar({
           {...variantStyles[variant].action}
         >
           {action.label}
-        </Box>
+        </chakra.button>
       ))}
     </Box>
   );

@@ -16,7 +16,13 @@ export const endpoints = {
   dreams: '/dreams',
   dream: (id: number) => `/dreams/${id}`,
   dreamAnchors: (id: number) => `/dreams/${id}/anchors`,
+  dreamAnalysisPasses: (id: number) => `/dreams/${id}/analysis-passes`,
   anchor: (id: number) => `/anchors/${id}`,
   anchorEmotionalBeats: (id: number) => `/anchors/${id}/emotional-beats`,
+  anchorSymbols: (id: number) => `/anchors/${id}/symbols`,
   emotionalBeat: (id: number) => `/emotional-beats/${id}`,
+  symbols: '/symbols',
+  symbolAttachment: (id: number) => `/symbol-attachments/${id}`,
+  symbolAttachmentAssociations: (id: number) => `/symbol-attachments/${id}/associations`,
+  association: (id: number) => `/associations/${id}`,
 } as const;

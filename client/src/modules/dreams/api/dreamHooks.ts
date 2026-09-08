@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  AnalysisPass,
   Anchor,
+  Association,
+  CreateAnalysisPassRequest,
+  CreateAssociationRequest,
   CreateDreamRequest,
   CreateEmotionalBeatRequest,
+  CreateSymbolAttachmentRequest,
   Dream,
   DreamDetailResponse,
   DreamListResponse,
+  DreamSymbol,
   EmotionalBeat,
+  SymbolAttachmentDetail,
+  SymbolListResponse,
+  UpdateAssociationRequest,
   UpdateDreamRequest,
   UpdateEmotionalBeatRequest,
 } from '@nee3/shared-types';
@@ -17,6 +26,7 @@ export const dreamKeys = {
   all: ['dreams'] as const,
   list: () => ['dreams', 'list'] as const,
   detail: (id: number) => ['dreams', 'detail', id] as const,
+  symbols: () => ['dreams', 'symbols'] as const,
 };
 
 export const useDreams = () =>
@@ -115,6 +125,106 @@ export const useDeleteEmotionalBeat = (dreamId: number) => {
   return useMutation<void, Error, number>({
     mutationFn: async (id) => {
       await apiClient.delete(endpoints.emotionalBeat(id));
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
+  });
+};
+
+// The user's whole Symbol vocabulary; suggestion filtering happens client-side in
+// SymbolAutocompleteInput (the endpoint also accepts a q filter, unused here).
+export const useSymbols = () =>
+  useQuery<DreamSymbol[]>({
+    queryKey: dreamKeys.symbols(),
+    queryFn: async () => {
+      const { data } = await apiClient.get<SymbolListResponse>(endpoints.symbols);
+      return data.symbols;
+    },
+  });
+
+export const useTagSymbol = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SymbolAttachmentDetail,
+    Error,
+    { anchorId: number; input: CreateSymbolAttachmentRequest }
+  >({
+    mutationFn: async ({ anchorId, input }) => {
+      const { data } = await apiClient.post<{ symbolAttachment: SymbolAttachmentDetail }>(
+        endpoints.anchorSymbols(anchorId),
+        input,
+      );
+      return data.symbolAttachment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) });
+      // Tagging may have grown the vocabulary the autocomplete draws from.
+      queryClient.invalidateQueries({ queryKey: dreamKeys.symbols() });
+    },
+  });
+};
+
+export const useUntagSymbol = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (symbolAttachmentId) => {
+      await apiClient.delete(endpoints.symbolAttachment(symbolAttachmentId));
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
+  });
+};
+
+export const useCreateAssociation = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    Association,
+    Error,
+    { symbolAttachmentId: number; input: CreateAssociationRequest }
+  >({
+    mutationFn: async ({ symbolAttachmentId, input }) => {
+      const { data } = await apiClient.post<{ association: Association }>(
+        endpoints.symbolAttachmentAssociations(symbolAttachmentId),
+        input,
+      );
+      return data.association;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
+  });
+};
+
+export const useUpdateAssociation = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<Association, Error, { id: number; input: UpdateAssociationRequest }>({
+    mutationFn: async ({ id, input }) => {
+      const { data } = await apiClient.patch<{ association: Association }>(
+        endpoints.association(id),
+        input,
+      );
+      return data.association;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
+  });
+};
+
+export const useDeleteAssociation = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await apiClient.delete(endpoints.association(id));
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
+  });
+};
+
+// Create-only, mirroring the API: analysis passes are append-only by design.
+export const useCreateAnalysisPass = (dreamId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<AnalysisPass, Error, CreateAnalysisPassRequest>({
+    mutationFn: async (input) => {
+      const { data } = await apiClient.post<{ analysisPass: AnalysisPass }>(
+        endpoints.dreamAnalysisPasses(dreamId),
+        input,
+      );
+      return data.analysisPass;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: dreamKeys.detail(dreamId) }),
   });
