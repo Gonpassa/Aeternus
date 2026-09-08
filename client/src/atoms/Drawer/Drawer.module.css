@@ -1,0 +1,16 @@
+.content {
+  animation-duration: 200ms !important;
+  animation-timing-function: ease !important;
+}
+
+.backdrop {
+  animation-duration: 200ms !important;
+  animation-timing-function: ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content,
+  .backdrop {
+    animation: none !important;
+  }
+}

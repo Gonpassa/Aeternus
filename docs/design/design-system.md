@@ -100,7 +100,10 @@ Content area caps at a comfortable reading width (`42rem`) for the journal page.
 The catalog grid is allowed to breathe wider since cards are scannable, not read start-to-end.
 
 ### Responsive strategy
-The rail collapses to a horizontal bar above the content on narrow viewports (Chakra's `base`/`md` breakpoint pair) rather than an off-canvas drawer, so nav labels stay visible instead of hiding behind a hamburger.
+Below the `md` (768px) breakpoint, the rail collapses to a slim sticky top bar showing only the wordmark and a hamburger toggle.
+Tapping the toggle opens the nav content (section links, dev-only link, account block) in a right-side `Drawer` atom rather than inline on the page.
+This supersedes an earlier decision to collapse into a horizontal bar with labels left visible; a bar wide enough to hold every rail label (including the account block) stopped fitting comfortably at phone widths, so the drawer trades always-visible labels for a single deliberate tap.
+At and above the `md` breakpoint, the rail is unchanged - full vertical rail, no hamburger, no drawer.
 
 ## Elevation & Depth
 
@@ -153,7 +156,8 @@ Mood marks carry a text label on hover/focus per the accessibility floor below, 
 
 ### Navigation
 - **Rail**: `{colors.inkBlue}` fill, `{typography.sectionHeading}` wordmark, `{typography.button}` nav-item labels, `{typography.label}` for the account block at the bottom.
-- Icon-free by design — the mono text labels are the whole visual language of the rail.
+- Icon-free by design — the mono text labels are the whole visual language of the rail and its drawer content.
+- **Exception**: below the `md` breakpoint, the collapsed top bar's hamburger/X toggle (`lucide-react`'s `Menu`/`X`) is the one deliberate, scoped departure from icon-free navigation - a recognizable open/close affordance for a slim bar with no room for a text label.
 
 ## Do's and Don'ts
 
