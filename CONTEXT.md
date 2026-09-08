@@ -31,12 +31,20 @@ _Avoid_: Adjacent entry (ambiguous about whether filters apply)
 
 Terminology grounded in Jungian dream-analysis method. Distinct module from Journal - not an extension of **Entry** above, since a dream's lifecycle (record, then one or more rounds of analysis added over time) doesn't fit Entry's "written and saved, never staged" definition. AI-assisted analysis (suggestive only, never authoritative) is an explicitly separate, later phase - this phase is manual recording and analysis only.
 
+This lifecycle split is deliberate, not incidental: recording happens immediately upon waking, while analysis is a separate act taken up later, if at all.
+Jungian practice treats immediate interpretation as premature - a dream needs to be lived with in waking consciousness before it can be productively read.
+The module reflects this with two distinct pages rather than one: a Record page (date and narrative only) and a separate Analysis page (where Anchors, attachments, and Analysis passes are added).
+Saving on the Record page returns to the dream list, not into analysis - the two acts are never chained together automatically.
+
+Cross-dream Symbol recurrence browsing (a view answering "show every dream where I tagged this Symbol") is deferred to a later phase, referred to as **phase 6b** in planning discussion, so it isn't lost track of.
+Symbol autocomplete itself (below) is in scope for this phase - only the browsing view is deferred.
+
 **Dream**:
-A dream-journal record: one entry per recorded dream with a required date and a rich-text narrative. No title - unlike **Entry** above, which requires one.
+A dream-journal record: one entry per recorded dream with a required date and a rich-text narrative. No title - unlike **Entry** above, which requires one. Unlike Entry, a user may record more than one Dream on the same date.
 _Avoid_: Dream entry (redundant with Entry's journal-specific meaning above), Dream journal (that's the module, not the record)
 
 **Anchor**:
-A highlighted range within a Dream's rich-text narrative, marking a specific passage or element (an object, person, or moment). Shared attachment point for Emotional beat, Association, and per-element Analytic analysis - one Anchor may carry more than one attachment, and attachments can be added on separate revisits. Created implicitly by adding the first attachment to a text selection, never as a bare, attachment-less object. A selection that overlaps an existing Anchor's range reuses that Anchor rather than creating a second, overlapping one. If the anchored text is later deleted from the narrative, the Anchor and all its attachments are deleted with it.
+A highlighted range within a Dream's rich-text narrative, marking a specific passage or element (an object, person, or moment). Shared attachment point for Emotional beat, Association, and per-element Analytic analysis - one Anchor may carry more than one attachment, and attachments can be added on separate revisits.
 _Avoid_: Highlight, selection
 
 **Emotional beat**:
@@ -44,7 +52,7 @@ A freeform, self-classified emotion label a user attaches to an Anchor, marking 
 _Avoid_: Mood, tag
 
 **Symbol**:
-The name of a recurring dream image, drawn from a controlled-but-growing vocabulary (autocomplete-suggested from names used in prior Dreams, exact match) so recurrence can be tracked reliably. Attached to an Anchor; an Association is always attached to a Symbol.
+The name of a recurring dream image, drawn from a controlled-but-growing vocabulary (autocomplete-suggested from names used in prior Dreams, exact match, case-insensitive) so recurrence can be tracked reliably. Attached to an Anchor; an Association is always attached to a Symbol.
 _Avoid_: Tag, image (ambiguous with a picture)
 
 **Analytic (reductive) analysis**:

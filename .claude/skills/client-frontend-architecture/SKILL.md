@@ -27,6 +27,7 @@ No barrel (`index.ts`) files. Import the full path (`atoms/Button/Button.tsx`), 
 
 Line count (~200 lines) is a smell that tells you to look, not the rule itself. The actual test: can you name a sub-piece with its own concern (e.g. "the button that renders a marked day")? If so, it's a split candidate.
 
+- One component per file, always. Never define multiple components (even small presentational ones) inside a single file just because they're related or only used by each other - once a sub-piece is named and split out, it gets its own file, not a spot lower in the parent file.
 - Extracted sub-pieces stay flat sibling files in the parent's folder (`MarkedRangeCalendar/MarkedDayButton.tsx`), not their own nested folder - unless that piece later grows enough to need its own split (its own test/css/utils).
 - Component-local helper logic goes in a local `<name>.utils.ts` in the same folder.
 - Promote to a shared location only when the logic is genuinely reused or reusable beyond that one component (see Promotion below).

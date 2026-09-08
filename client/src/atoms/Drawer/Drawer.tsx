@@ -63,9 +63,6 @@ export function Drawer({
             data-placement={placement}
             className={styles.content}
             bg="paperCard"
-            borderLeftWidth={placement === 'right' ? '1px' : undefined}
-            borderRightWidth={placement === 'left' ? '1px' : undefined}
-            borderColor="line"
             boxShadow="lg"
             w={width}
             maxW={width}

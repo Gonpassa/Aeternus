@@ -17,11 +17,11 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock('./AuthProvider.tsx', () => ({
+vi.mock('../AuthProvider.tsx', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock('../styling/useMediaQuery.ts', () => ({
+vi.mock('../../styling/useMediaQuery.ts', () => ({
   useMediaQuery: () => mockUseMediaQuery(),
 }));
 
