@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEventHandler } from 'react';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateDreamRequest } from '@nee3/shared-types';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
+import { parseIsoDate } from '../../../../utils/isoDate.ts';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { Calendar } from '../../../../atoms/Calendar/Calendar.tsx';
 import { Card } from '../../../../atoms/Card/Card.tsx';
@@ -17,7 +18,6 @@ import { Text } from '../../../../atoms/Text/Text.tsx';
 import { dreamSchema, type DreamFormValues, type DreamFormOutput } from './DreamForm.utils.ts';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
-const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());
 
 export interface DreamFormProps {
   onCreate: (input: CreateDreamRequest) => Promise<void>;

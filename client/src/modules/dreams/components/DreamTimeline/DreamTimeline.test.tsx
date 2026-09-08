@@ -1,7 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import type { Dream } from '@nee3/shared-types';
-import { DreamTimeline } from './DreamTimeline.tsx';
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    params,
+    children,
+  }: {
+    to: string;
+    params?: { dreamId: string };
+    children: ReactNode;
+  }) => <a href={params ? to.replace('$dreamId', params.dreamId) : to}>{children}</a>,
+}));
+
+const { DreamTimeline } = await import('./DreamTimeline.tsx');
 
 const buildDream = (overrides: Partial<Dream> = {}): Dream => ({
   id: 1,

@@ -98,3 +98,34 @@ export interface CreateDreamRequest {
 export interface DreamListResponse {
   dreams: Dream[];
 }
+
+export type UpdateDreamRequest = CreateDreamRequest;
+
+export interface Anchor {
+  id: number;
+  dreamId: number;
+  createdAt: string;
+}
+
+export interface EmotionalBeat {
+  id: number;
+  anchorId: number;
+  label: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnchorWithBeats extends Anchor {
+  emotionalBeats: EmotionalBeat[];
+}
+
+export interface DreamDetailResponse {
+  dream: Dream;
+  anchors: AnchorWithBeats[];
+}
+
+export interface CreateEmotionalBeatRequest {
+  label: string;
+}
+
+export type UpdateEmotionalBeatRequest = CreateEmotionalBeatRequest;

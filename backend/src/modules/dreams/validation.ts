@@ -20,3 +20,10 @@ export const validateDreamInput = (input: {
   }
   return { valid: true };
 };
+
+export const validateEmotionalBeatInput = (input: { label?: unknown }): ValidationResult => {
+  if (!isNonEmptyString(input.label)) {
+    return { valid: false, error: 'A label is required.' };
+  }
+  return { valid: true };
+};

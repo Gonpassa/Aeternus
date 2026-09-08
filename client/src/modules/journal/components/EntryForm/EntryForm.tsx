@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEventHandler } from 'react';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateEntryRequest, Entry } from '@nee3/shared-types';
 import { useEntryByDate } from '../../api/journalHooks.ts';
 import { useExternalChange } from '../../hooks/useExternalChange.ts';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
+import { parseIsoDate } from '../../../../utils/isoDate.ts';
 import { MoodPicker } from '../MoodPicker/MoodPicker.tsx';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { Calendar } from '../../../../atoms/Calendar/Calendar.tsx';
@@ -23,7 +24,6 @@ import { entrySchema, type EntryFormValues, type EntryFormOutput } from './Entry
 import styles from './EntryForm.module.css';
 
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
-const parseIsoDate = (iso: string): Date => parse(iso, 'yyyy-MM-dd', new Date());
 
 export interface EntryFormProps {
   initialEntry?: Entry;

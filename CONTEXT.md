@@ -36,7 +36,7 @@ A dream-journal record: one entry per recorded dream with a required date and a 
 _Avoid_: Dream entry (redundant with Entry's journal-specific meaning above), Dream journal (that's the module, not the record)
 
 **Anchor**:
-A highlighted range within a Dream's rich-text narrative, marking a specific passage or element (an object, person, or moment). Shared attachment point for Emotional beat, Association, and per-element Analytic analysis - one Anchor may carry more than one attachment, and attachments can be added on separate revisits.
+A highlighted range within a Dream's rich-text narrative, marking a specific passage or element (an object, person, or moment). Shared attachment point for Emotional beat, Association, and per-element Analytic analysis - one Anchor may carry more than one attachment, and attachments can be added on separate revisits. Created implicitly by adding the first attachment to a text selection, never as a bare, attachment-less object. A selection that overlaps an existing Anchor's range reuses that Anchor rather than creating a second, overlapping one. If the anchored text is later deleted from the narrative, the Anchor and all its attachments are deleted with it.
 _Avoid_: Highlight, selection
 
 **Emotional beat**:

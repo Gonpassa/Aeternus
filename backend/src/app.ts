@@ -7,6 +7,8 @@ import passport from './config/passport';
 import authRouter from './auth/routes';
 import journalRouter from './modules/journal/routes';
 import dreamsRouter from './modules/dreams/routes';
+import anchorsRouter from './modules/dreams/anchorsRoutes';
+import emotionalBeatsRouter from './modules/dreams/emotionalBeatsRoutes';
 import config from './config/default';
 
 const defaultClientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -31,6 +33,8 @@ export const createApp = (options: { clientDistPath?: string } = {}): Express =>
   app.use('/api/auth', authRouter);
   app.use('/api/journal', journalRouter);
   app.use('/api/dreams', dreamsRouter);
+  app.use('/api/anchors', anchorsRouter);
+  app.use('/api/emotional-beats', emotionalBeatsRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

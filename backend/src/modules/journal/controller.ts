@@ -28,8 +28,7 @@ import {
   RecentEntry,
   DuplicateEntryError,
 } from '../../db/entries';
-
-const getUserId = (req: Request): number => (req.user as Express.User).id;
+import { getUserId } from '../../types/request';
 
 const subtractOneDayUTC = (dateStr: string): string => {
   const date = new Date(`${dateStr}T00:00:00Z`);

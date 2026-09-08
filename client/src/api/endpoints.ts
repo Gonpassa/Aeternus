@@ -14,4 +14,9 @@ export const endpoints = {
     summary: '/journal/entries/summary',
   },
   dreams: '/dreams',
+  dream: (id: number) => `/dreams/${id}`,
+  dreamAnchors: (id: number) => `/dreams/${id}/anchors`,
+  anchor: (id: number) => `/anchors/${id}`,
+  anchorEmotionalBeats: (id: number) => `/anchors/${id}/emotional-beats`,
+  emotionalBeat: (id: number) => `/emotional-beats/${id}`,
 } as const;
