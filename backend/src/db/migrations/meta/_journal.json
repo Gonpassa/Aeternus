@@ -43,6 +43,13 @@
       "when": 1788887729832,
       "tag": "0005_overconfident_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788910260406,
+      "tag": "0006_fearless_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

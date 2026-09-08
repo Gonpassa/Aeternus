@@ -119,13 +119,86 @@ export interface AnchorWithBeats extends Anchor {
   emotionalBeats: EmotionalBeat[];
 }
 
-export interface DreamDetailResponse {
-  dream: Dream;
-  anchors: AnchorWithBeats[];
-}
-
 export interface CreateEmotionalBeatRequest {
   label: string;
 }
 
 export type UpdateEmotionalBeatRequest = CreateEmotionalBeatRequest;
+
+// Named DreamSymbol (not Symbol) to avoid colliding with the ES global.
+export interface DreamSymbol {
+  id: number;
+  userId: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface SymbolListResponse {
+  symbols: DreamSymbol[];
+}
+
+export interface SymbolAttachment {
+  id: number;
+  symbolId: number;
+  anchorId: number;
+  createdAt: string;
+}
+
+export type AssociationKind = 'personal' | 'cultural';
+
+export interface Association {
+  id: number;
+  symbolAttachmentId: number;
+  content: string;
+  kind: AssociationKind;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// A symbol attachment as the Analysis page consumes it: joined with its Symbol's
+// display name and carrying its Associations.
+export interface SymbolAttachmentDetail extends SymbolAttachment {
+  symbolName: string;
+  associations: Association[];
+}
+
+export interface CreateSymbolAttachmentRequest {
+  name: string;
+}
+
+export interface CreateAssociationRequest {
+  content: string;
+  kind?: AssociationKind;
+}
+
+export interface UpdateAssociationRequest {
+  content: string;
+  kind?: AssociationKind;
+}
+
+export type AnalysisPassType = 'analytic' | 'synthetic';
+
+export interface AnalysisPass {
+  id: number;
+  dreamId: number;
+  anchorId: number | null;
+  type: AnalysisPassType;
+  content: string;
+  createdAt: string;
+}
+
+export interface CreateAnalysisPassRequest {
+  type: AnalysisPassType;
+  content: string;
+  anchorId?: number | null;
+}
+
+export interface AnchorWithAttachments extends AnchorWithBeats {
+  symbolAttachments: SymbolAttachmentDetail[];
+}
+
+export interface DreamDetailResponse {
+  dream: Dream;
+  anchors: AnchorWithAttachments[];
+  analysisPasses: AnalysisPass[];
+}
