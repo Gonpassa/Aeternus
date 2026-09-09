@@ -131,12 +131,18 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
       setOverlappingAnchorId(null);
       return;
     }
-    const domSelection = window.getSelection();
-    const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
-    const rect = range?.getBoundingClientRect() ?? null;
-    setSelectionRect(rect && rect.width > 0 ? rect : null);
-    setSelectionRange({ from, to });
-    setOverlappingAnchorId(anchorIdsInRange(editor, from, to)[0] ?? null);
+    // ProseMirror updates its state selection on mousedown, before the browser has
+    // applied the corresponding DOM selection (observable on double-click word
+    // selection over an anchored span, where the activation re-render shifts the
+    // timing) - defer the rect read a frame so the DOM selection has settled.
+    requestAnimationFrame(() => {
+      const domSelection = window.getSelection();
+      const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
+      const rect = range?.getBoundingClientRect() ?? null;
+      setSelectionRect(rect && rect.width > 0 ? rect : null);
+      setSelectionRange({ from, to });
+      setOverlappingAnchorId(anchorIdsInRange(editor, from, to)[0] ?? null);
+    });
   }, []);
 
   // The toolbar's caller-owned dismissal: Escape clears the selection state (outside
