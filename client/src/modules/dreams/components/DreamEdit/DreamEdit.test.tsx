@@ -81,7 +81,16 @@ const anchors: AnchorWithAttachments[] = [
         anchorId: 7,
         symbolName: 'Ocean',
         createdAt: '2026-08-01T08:07:00.000Z',
-        associations: [],
+        associations: [
+          {
+            id: 300,
+            symbolAttachmentId: 200,
+            content: 'the unconscious rising',
+            kind: 'personal',
+            createdAt: '2026-08-01T08:08:00.000Z',
+            updatedAt: '2026-08-01T08:08:00.000Z',
+          },
+        ],
       },
     ],
   },
@@ -127,8 +136,8 @@ describe('DreamEdit', () => {
     const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByText(/delete anchored passages\?/i)).toBeInTheDocument();
     expect(dialog).toHaveTextContent(
-      'The text you removed carried 1 anchor with 2 emotional beats and 1 symbol tag. ' +
-        'Saving will delete them permanently.',
+      'The text you removed carried 1 anchor with 2 emotional beats, 1 symbol tag and ' +
+        '1 association. Saving will delete them permanently.',
     );
 
     fireEvent.click(within(dialog).getByRole('button', { name: /cancel/i }));

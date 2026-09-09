@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from './index';
 import {
   associations,
@@ -60,10 +60,15 @@ export const listAssociationsBySymbolAttachments = async ({
   symbolAttachmentIds: number[];
 }): Promise<Association[]> => {
   if (symbolAttachmentIds.length === 0) return [];
-  return db
-    .select()
-    .from(associations)
-    .where(inArray(associations.symbolAttachmentId, symbolAttachmentIds));
+  return (
+    db
+      .select()
+      .from(associations)
+      .where(inArray(associations.symbolAttachmentId, symbolAttachmentIds))
+      // Explicit creation order - without it Postgres returns physical tuple order, which
+      // shifts when an edit rewrites a row.
+      .orderBy(asc(associations.createdAt), asc(associations.id))
+  );
 };
 
 export const updateAssociation = async ({

@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from './index';
 import { symbolAttachments, symbols, anchors, dreams, SymbolAttachment } from './schema';
 
@@ -16,6 +16,20 @@ export const createSymbolAttachment = async ({
     throw new Error('Insert did not return a row');
   }
   return created;
+};
+
+export const findSymbolAttachment = async ({
+  symbolId,
+  anchorId,
+}: {
+  symbolId: number;
+  anchorId: number;
+}): Promise<SymbolAttachment | undefined> => {
+  const [row] = await db
+    .select()
+    .from(symbolAttachments)
+    .where(and(eq(symbolAttachments.symbolId, symbolId), eq(symbolAttachments.anchorId, anchorId)));
+  return row;
 };
 
 // Joins through anchors and dreams to verify the requesting user owns the dream at the
@@ -48,17 +62,22 @@ export const listSymbolAttachmentsByAnchors = async ({
   anchorIds: number[];
 }): Promise<SymbolAttachmentWithName[]> => {
   if (anchorIds.length === 0) return [];
-  return db
-    .select({
-      id: symbolAttachments.id,
-      symbolId: symbolAttachments.symbolId,
-      anchorId: symbolAttachments.anchorId,
-      createdAt: symbolAttachments.createdAt,
-      symbolName: symbols.name,
-    })
-    .from(symbolAttachments)
-    .innerJoin(symbols, eq(symbolAttachments.symbolId, symbols.id))
-    .where(inArray(symbolAttachments.anchorId, anchorIds));
+  return (
+    db
+      .select({
+        id: symbolAttachments.id,
+        symbolId: symbolAttachments.symbolId,
+        anchorId: symbolAttachments.anchorId,
+        createdAt: symbolAttachments.createdAt,
+        symbolName: symbols.name,
+      })
+      .from(symbolAttachments)
+      .innerJoin(symbols, eq(symbolAttachments.symbolId, symbols.id))
+      .where(inArray(symbolAttachments.anchorId, anchorIds))
+      // Explicit creation order - without it Postgres returns physical tuple order, which
+      // shifts when a row is rewritten.
+      .orderBy(asc(symbolAttachments.createdAt), asc(symbolAttachments.id))
+  );
 };
 
 export const deleteSymbolAttachment = async ({ id }: { id: number }): Promise<boolean> => {

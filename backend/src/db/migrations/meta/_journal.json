@@ -50,6 +50,13 @@
       "when": 1788910260406,
       "tag": "0006_fearless_smiling_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788913938535,
+      "tag": "0007_violet_warbird",
+      "breakpoints": true
     }
   ]
 }

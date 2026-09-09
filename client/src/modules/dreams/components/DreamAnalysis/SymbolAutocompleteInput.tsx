@@ -8,7 +8,7 @@ const MAX_SUGGESTIONS = 5;
 export interface SymbolAutocompleteInputProps {
   // The user's existing Symbol vocabulary (all dreams), already-cased as first typed.
   vocabulary: string[];
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string) => void | Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
 }
@@ -23,6 +23,7 @@ export function SymbolAutocompleteInput({
   submitLabel = 'Tag',
 }: SymbolAutocompleteInputProps) {
   const [query, setQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const trimmed = query.trim();
   const suggestions =
     trimmed.length > 0
@@ -31,9 +32,18 @@ export function SymbolAutocompleteInput({
           .slice(0, MAX_SUGGESTIONS)
       : [];
 
-  const submit = (name: string) => {
-    if (!name.trim()) return;
-    onSubmit(name.trim());
+  const submit = async (name: string) => {
+    const cleaned = name.trim();
+    if (!cleaned || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(cleaned);
+    } catch {
+      // Failures aren't field-attributable here; the global toast interceptor in
+      // api/client.ts already surfaced them - staying open lets the user retry.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,10 +63,10 @@ export function SymbolAutocompleteInput({
         }}
       />
       <Stack direction="row" gap="1">
-        <Button type="button" size="xs" onClick={() => submit(query)}>
+        <Button type="button" size="xs" loading={isSubmitting} onClick={() => submit(query)}>
           {submitLabel}
         </Button>
-        <Button type="button" size="xs" variant="ghost" onClick={onCancel}>
+        <Button type="button" size="xs" variant="ghost" disabled={isSubmitting} onClick={onCancel}>
           Cancel
         </Button>
       </Stack>
@@ -84,6 +94,7 @@ export function SymbolAutocompleteInput({
               variant="ghost"
               justifyContent="flex-start"
               borderRadius="0"
+              disabled={isSubmitting}
               onClick={() => submit(name)}
             >
               {name}

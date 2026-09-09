@@ -40,6 +40,12 @@ export const updateAssociation = async (
       content: content.trim(),
       kind: kind ?? existing.kind,
     });
+    // The row can vanish between the ownership check and the UPDATE (concurrent delete);
+    // report that as not-found rather than a 200 with no association.
+    if (!association) {
+      res.status(404).json({ error: 'Association not found' } satisfies ApiErrorResponse);
+      return;
+    }
     res.status(200).json({ association });
   } catch (err) {
     next(err);

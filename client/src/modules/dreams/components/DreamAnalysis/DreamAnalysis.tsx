@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MouseEvent as ReactMouseEvent,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import type { Editor } from '@tiptap/react';
 import type {
   AnalysisPass,
@@ -99,6 +92,15 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
   const symbols = useSymbols();
 
   const isWide = useMediaQuery(WIDE_VIEWPORT_QUERY);
+
+  // The server stays the source of truth for the narrative between attachment flows:
+  // refetches can legitimately change it (sanitization altering the saved HTML, an edit
+  // from another tab), and without this resync the stale local copy would be written
+  // back on the next attachment, silently reverting those changes.
+  useEffect(() => {
+    setNarrative(dream.narrative);
+  }, [dream.narrative]);
+
   const excerpts = useMemo(() => anchorExcerpts(narrative), [narrative]);
   const symbolVocabulary = useMemo(
     () => (symbols.data ?? []).map((symbol) => symbol.name),
@@ -110,7 +112,7 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
     () => [narrative, anchors, form, activeAnchorId],
     [narrative, anchors, form, activeAnchorId],
   );
-  const { tops, registerNote } = useMarginNoteLayout({
+  const { tops, columnHeight, registerNote } = useMarginNoteLayout({
     manuscriptRef,
     anchorIds,
     enabled: isWide,
@@ -123,26 +125,70 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
     setOverlappingAnchorId(null);
   };
 
-  const handleSelectionUpdate = useCallback((editor: Editor) => {
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      setSelectionRect(null);
-      setSelectionRange(null);
-      setOverlappingAnchorId(null);
-      return;
-    }
-    // ProseMirror updates its state selection on mousedown, before the browser has
-    // applied the corresponding DOM selection (observable on double-click word
-    // selection over an anchored span, where the activation re-render shifts the
-    // timing) - defer the rect read a frame so the DOM selection has settled.
-    requestAnimationFrame(() => {
+  // Retires the visual text selection by collapsing it rather than removeAllRanges():
+  // an emptied selection never reaches ProseMirror's selectionchange handler, which
+  // leaves its DOM-selection cache stale - an identical re-selection of the same passage
+  // would then compare equal to the cache and be silently ignored (dead toolbar). A
+  // collapse is observed, resyncing both the cache and the editor state selection.
+  const collapseDomSelection = () => {
+    const domSelection = window.getSelection();
+    if (domSelection && domSelection.rangeCount > 0) domSelection.collapseToEnd();
+  };
+
+  // Fully abandons a parked pending selection: cancelling its dialog (or completing the
+  // flow) must also retire the composer's '(selected passage)' option, or a stale
+  // anchorSelection of 'pending' would point at a range the user believed was discarded.
+  const clearPendingSelection = () => {
+    setPendingRange(null);
+    setPendingExcerpt(null);
+    setAnchorSelection((current) =>
+      current === PENDING_ANCHOR_OPTION ? WHOLE_DREAM_OPTION : current,
+    );
+    collapseDomSelection();
+  };
+
+  // The toolbar tracks the document's native selectionchange event rather than Tiptap's
+  // selectionUpdate: ProseMirror keeps a cache of the last DOM selection it observed and
+  // silently ignores any new selection that compares equal to it - which happens whenever
+  // focus leaves the editor mid-flow (a dialog's focus trap parks the caret in its input)
+  // and the user then re-selects the same passage. The native event fires for every user
+  // selection unconditionally; PM positions are recovered from the DOM range via posAtDOM.
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const editor = editorRef.current;
+      const manuscript = manuscriptRef.current;
+      if (!editor || !manuscript) return;
+      const clear = () => {
+        setSelectionRect(null);
+        setSelectionRange(null);
+        setOverlappingAnchorId(null);
+      };
       const domSelection = window.getSelection();
-      const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
-      const rect = range?.getBoundingClientRect() ?? null;
-      setSelectionRect(rect && rect.width > 0 ? rect : null);
-      setSelectionRange({ from, to });
-      setOverlappingAnchorId(anchorIdsInRange(editor, from, to)[0] ?? null);
-    });
+      const range =
+        domSelection && domSelection.rangeCount > 0 && !domSelection.isCollapsed
+          ? domSelection.getRangeAt(0)
+          : null;
+      if (!range || !manuscript.contains(range.commonAncestorContainer)) {
+        clear();
+        return;
+      }
+      try {
+        const from = editor.view.posAtDOM(range.startContainer, range.startOffset);
+        const to = editor.view.posAtDOM(range.endContainer, range.endOffset);
+        if (from < 0 || to < 0 || from === to) {
+          clear();
+          return;
+        }
+        setSelectionRect(range.getBoundingClientRect());
+        setSelectionRange({ from, to });
+        setOverlappingAnchorId(anchorIdsInRange(editor, from, to)[0] ?? null);
+      } catch {
+        // posAtDOM throws for DOM nodes it cannot map into the document.
+        clear();
+      }
+    };
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, []);
 
   // The toolbar's caller-owned dismissal: Escape clears the selection state (outside
@@ -179,7 +225,7 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
         setAnchorSelection(String(anchorId));
         scrollToAnalysis();
       }
-      window.getSelection()?.removeAllRanges();
+      collapseDomSelection();
       clearSelectionState();
       return;
     }
@@ -199,42 +245,44 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
     clearSelectionState();
   };
 
-  // Creates the Anchor for the pending selection, applies + persists its mark, then runs
-  // the attachment; any failure rolls the mark and the Anchor row back before rethrowing
-  // so the calling form stays open for a retry.
+  // Creates the Anchor for the pending selection, runs the attachment, then marks the
+  // passage and persists the marked narrative - in that order, so the narrative save is
+  // the last step and no failure can leave an anchor span in the stored narrative
+  // pointing at a rolled-back Anchor row. Rollback deletes the Anchor (cascading the
+  // just-created attachment) before rethrowing so the calling form stays open for retry.
   const attachToPendingSelection = async (attach: (anchorId: number) => Promise<unknown>) => {
     const range = pendingRange;
-    if (!range) return;
+    if (!range) {
+      // The pending selection was consumed by another flow; reject rather than resolve so
+      // the caller keeps its input instead of treating this as a successful save.
+      throw new Error('The selected passage is no longer available - select it again.');
+    }
     const anchor = await createAnchor.mutateAsync();
+    try {
+      await attach(anchor.id);
+    } catch (error) {
+      await deleteAnchor.mutateAsync(anchor.id).catch(() => {});
+      throw error;
+    }
     const editor = editorRef.current;
-    let markedNarrative = narrative;
     if (editor) {
       editor
         .chain()
         .setTextSelection(range)
         .setMark(ANCHOR_MARK_NAME, { anchorId: anchor.id })
         .run();
-      markedNarrative = editor.getHTML();
+      const markedNarrative = editor.getHTML();
       setNarrative(markedNarrative);
-    }
-    try {
-      await updateDream.mutateAsync({ date: dream.date, narrative: markedNarrative });
-      await attach(anchor.id);
-    } catch (error) {
-      if (editor) {
+      try {
+        await updateDream.mutateAsync({ date: dream.date, narrative: markedNarrative });
+      } catch (error) {
         editor.chain().setTextSelection(range).unsetMark(ANCHOR_MARK_NAME).run();
-        const revertedNarrative = editor.getHTML();
-        setNarrative(revertedNarrative);
-        await updateDream
-          .mutateAsync({ date: dream.date, narrative: revertedNarrative })
-          .catch(() => {});
+        setNarrative(editor.getHTML());
+        await deleteAnchor.mutateAsync(anchor.id).catch(() => {});
+        throw error;
       }
-      await deleteAnchor.mutateAsync(anchor.id).catch(() => {});
-      throw error;
     }
-    window.getSelection()?.removeAllRanges();
-    setPendingRange(null);
-    setPendingExcerpt(null);
+    clearPendingSelection();
     setActiveAnchorId(anchor.id);
   };
 
@@ -258,10 +306,10 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
       return;
     }
     if (anchorSelection === PENDING_ANCHOR_OPTION) {
+      // clearPendingSelection (called on success inside) resets the picker to whole-dream.
       await attachToPendingSelection((anchorId) =>
         createAnalysisPass.mutateAsync({ type: 'analytic', content, anchorId }),
       );
-      setAnchorSelection(WHOLE_DREAM_OPTION);
       return;
     }
     await createAnalysisPass.mutateAsync({
@@ -377,7 +425,6 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
             value={narrative}
             onChange={setNarrative}
             extraExtensions={ANCHOR_EXTENSIONS}
-            onSelectionUpdate={handleSelectionUpdate}
           />
         </Stack>
 
@@ -387,7 +434,9 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
           w={isWide ? '20rem' : undefined}
           alignSelf={isWide ? undefined : 'stretch'}
           position={isWide ? 'relative' : undefined}
-          minH={isWide && anchors.length > 0 ? '30rem' : undefined}
+          // Absolutely-positioned notes contribute no flow height; reserve the measured
+          // stack height so a tall column can't overflow onto the Analysis section.
+          minH={isWide && anchors.length > 0 ? `${Math.max(columnHeight, 480)}px` : undefined}
           flexShrink={0}
           gap={isWide ? undefined : '4'}
         >
@@ -420,7 +469,10 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
       <EmotionalBeatDialog
         open={beatDialogOpen}
         title="Add an emotional beat"
-        onClose={() => setBeatDialogOpen(false)}
+        onClose={() => {
+          setBeatDialogOpen(false);
+          clearPendingSelection();
+        }}
         onSubmit={handlePendingBeat}
       />
       <EmotionalBeatDialog
@@ -433,7 +485,10 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
       <SymbolTagDialog
         open={symbolDialogOpen}
         vocabulary={symbolVocabulary}
-        onClose={() => setSymbolDialogOpen(false)}
+        onClose={() => {
+          setSymbolDialogOpen(false);
+          clearPendingSelection();
+        }}
         onSubmit={handlePendingSymbol}
       />
     </Stack>

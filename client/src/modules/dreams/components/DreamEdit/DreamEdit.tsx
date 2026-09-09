@@ -77,6 +77,17 @@ export function DreamEdit({ dream, anchors, onSaved, onCancel }: DreamEditProps)
     (total, anchor) => total + anchor.symbolAttachments.length,
     0,
   );
+  // Associations cascade-delete with their symbol tags; the warning must count them too
+  // or it would understate the loss.
+  const lostAssociationsCount = missingAnchors.reduce(
+    (total, anchor) =>
+      total +
+      anchor.symbolAttachments.reduce(
+        (subtotal, attachment) => subtotal + attachment.associations.length,
+        0,
+      ),
+    0,
+  );
 
   return (
     <>
@@ -106,9 +117,10 @@ export function DreamEdit({ dream, anchors, onSaved, onCancel }: DreamEditProps)
       >
         <Text fontFamily="body" color="inkSoft">
           The text you removed carried {countLabel(missingAnchors.length, 'anchor', 'anchors')} with{' '}
-          {countLabel(lostBeatsCount, 'emotional beat', 'emotional beats')} and{' '}
-          {countLabel(lostSymbolTagsCount, 'symbol tag', 'symbol tags')}. Saving will delete them
-          permanently.
+          {countLabel(lostBeatsCount, 'emotional beat', 'emotional beats')},{' '}
+          {countLabel(lostSymbolTagsCount, 'symbol tag', 'symbol tags')} and{' '}
+          {countLabel(lostAssociationsCount, 'association', 'associations')}. Saving will delete
+          them permanently.
         </Text>
       </Dialog>
     </>

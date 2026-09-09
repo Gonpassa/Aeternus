@@ -18,6 +18,9 @@ export interface UseMarginNoteLayoutOptions {
 
 export interface MarginNoteLayout {
   tops: Record<number, number>;
+  // Total height the absolutely-positioned notes occupy - the column must reserve at
+  // least this much flow height, or a tall stack would overflow onto content below.
+  columnHeight: number;
   registerNote: (anchorId: number, element: HTMLDivElement | null) => void;
 }
 
@@ -33,6 +36,7 @@ export function useMarginNoteLayout({
 }: UseMarginNoteLayoutOptions): MarginNoteLayout {
   const noteElements = useRef(new Map<number, HTMLDivElement>());
   const [tops, setTops] = useState<Record<number, number>>({});
+  const [columnHeight, setColumnHeight] = useState(0);
   const [fontsTick, setFontsTick] = useState(0);
 
   useLayoutEffect(() => {
@@ -42,6 +46,7 @@ export function useMarginNoteLayout({
   useLayoutEffect(() => {
     if (!enabled) {
       setTops({});
+      setColumnHeight(0);
       return;
     }
     const root = manuscriptRef.current;
@@ -49,6 +54,7 @@ export function useMarginNoteLayout({
     const rootTop = root.getBoundingClientRect().top;
     const next: Record<number, number> = {};
     let floor = 0;
+    let bottom = 0;
     anchorIds
       .map((id) => {
         const span = root.querySelector(`span[data-anchor-id="${id}"]`);
@@ -60,9 +66,11 @@ export function useMarginNoteLayout({
         const height = noteElement ? noteElement.offsetHeight : FALLBACK_NOTE_HEIGHT;
         const placed = Math.max(top, floor);
         next[id] = placed;
-        floor = placed + height + NOTE_GAP;
+        bottom = placed + height;
+        floor = bottom + NOTE_GAP;
       });
     setTops(next);
+    setColumnHeight(bottom);
   }, [enabled, manuscriptRef, anchorIds, layoutKey, fontsTick]);
 
   const registerNote = useCallback((anchorId: number, element: HTMLDivElement | null) => {
@@ -73,5 +81,5 @@ export function useMarginNoteLayout({
     }
   }, []);
 
-  return { tops, registerNote };
+  return { tops, columnHeight, registerNote };
 }

@@ -3,6 +3,8 @@ import { sql } from 'drizzle-orm';
 import { runMigrations } from '../../db/migrate';
 import { db, pool } from '../../db';
 import { createUser } from '../../db/users';
+import { createSymbolAttachment } from '../../db/symbolAttachments';
+import { isUniqueViolation } from '../../db/errors';
 import { createApp } from '../../app';
 
 describe('dream analysis routes (integration)', () => {
@@ -100,6 +102,51 @@ describe('dream analysis routes (integration)', () => {
       const { anchorId } = await createDreamWithAnchor(aliceAgent);
       const res = await aliceAgent.post(`/api/anchors/${anchorId}/symbols`).send({ name: '   ' });
       expect(res.status).toBe(400);
+    });
+
+    it('returns the existing tag instead of duplicating when the symbol is tagged again', async () => {
+      const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
+      const first = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'Water' });
+      await aliceAgent
+        .post(`/api/symbol-attachments/${first.body.symbolAttachment.id}/associations`)
+        .send({ content: 'depth' });
+
+      const again = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'water' });
+
+      expect(again.status).toBe(200);
+      expect(again.body.symbolAttachment.id).toBe(first.body.symbolAttachment.id);
+      expect(again.body.symbolAttachment.associations).toEqual([
+        expect.objectContaining({ content: 'depth' }),
+      ]);
+
+      const detail = await aliceAgent.get(`/api/dreams/${dreamId}`);
+      expect(detail.body.anchors[0].symbolAttachments).toHaveLength(1);
+    });
+
+    it('recognizes a real duplicate-insert error as a unique violation (race fallback)', async () => {
+      // The controller's race fallback cannot be triggered over HTTP (the pre-check wins),
+      // so prove its premise directly: a duplicate insert through the same DB layer must
+      // satisfy isUniqueViolation despite Drizzle wrapping the pg error as `cause`.
+      const { anchorId } = await createDreamWithAnchor(aliceAgent);
+      const first = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'Water' });
+      let thrown: unknown;
+      try {
+        await createSymbolAttachment({
+          symbolId: first.body.symbolAttachment.symbolId,
+          anchorId,
+        });
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).toBeDefined();
+      expect(isUniqueViolation(thrown)).toBe(true);
+      expect(isUniqueViolation(new Error('unrelated'))).toBe(false);
     });
 
     it("404s when tagging another user's anchor", async () => {
@@ -407,6 +454,36 @@ describe('dream analysis routes (integration)', () => {
       expect(res.body.analysisPasses).toEqual([
         expect.objectContaining({ type: 'synthetic', content: 'Toward the open.' }),
       ]);
+    });
+
+    it('keeps associations in creation order after one is edited', async () => {
+      const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
+      const tagRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'Water' });
+      const attachmentId: number = tagRes.body.symbolAttachment.id;
+      const first = await aliceAgent
+        .post(`/api/symbol-attachments/${attachmentId}/associations`)
+        .send({ content: 'depth' });
+      await aliceAgent
+        .post(`/api/symbol-attachments/${attachmentId}/associations`)
+        .send({ content: 'the lake' });
+      await aliceAgent
+        .post(`/api/symbol-attachments/${attachmentId}/associations`)
+        .send({ content: 'drowning' });
+
+      // A PATCH rewrites the row's physical tuple; without an explicit ORDER BY the
+      // edited association would jump to the end of the refetched list.
+      await aliceAgent
+        .patch(`/api/associations/${first.body.association.id}`)
+        .send({ content: 'depth, revised' });
+
+      const res = await aliceAgent.get(`/api/dreams/${dreamId}`);
+      expect(
+        res.body.anchors[0].symbolAttachments[0].associations.map(
+          (association: { content: string }) => association.content,
+        ),
+      ).toEqual(['depth, revised', 'the lake', 'drowning']);
     });
 
     it('deleting an anchor cascades its symbol attachments but keeps its passes, unanchored', async () => {

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "symbol_attachments_symbol_id_anchor_id_unique" ON "symbol_attachments" USING btree ("symbol_id","anchor_id");

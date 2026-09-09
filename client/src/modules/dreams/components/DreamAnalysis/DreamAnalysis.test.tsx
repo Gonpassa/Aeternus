@@ -13,18 +13,16 @@ const setMarkSpy = vi.fn();
 const unsetMarkSpy = vi.fn();
 const runSpy = vi.fn();
 
+// jsdom implements the Selection/Range APIs but not layout, so Range lacks
+// getBoundingClientRect - polyfill it for the selectionchange handler's rect read.
+if (typeof Range.prototype.getBoundingClientRect !== 'function') {
+  Range.prototype.getBoundingClientRect = () => new DOMRect(0, 0, 100, 20);
+}
+
 vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({
   RichTextEditor: forwardRef(
     (
-      {
-        value,
-        onChange,
-        onSelectionUpdate,
-      }: {
-        value: string;
-        onChange?: (html: string) => void;
-        onSelectionUpdate?: (editor: unknown) => void;
-      },
+      { value, onChange }: { value: string; onChange?: (html: string) => void },
       ref: Ref<unknown>,
     ) => {
       const chain = {
@@ -48,6 +46,12 @@ vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({
           };
         },
         chain: () => chain,
+        view: {
+          // Maps the simulated DOM range endpoints back to the fake PM positions:
+          // selectNodeContents produces startOffset 0 and a non-zero endOffset.
+          posAtDOM: (_node: unknown, offset: number) =>
+            offset === 0 ? currentSelection.from : currentSelection.to,
+        },
       };
       useImperativeHandle(ref, () => fakeEditor);
 
@@ -60,9 +64,17 @@ vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({
           />
           <button
             type="button"
-            onClick={() => {
+            onClick={(event) => {
               currentSelection = { from: 2, to: 8 };
-              onSelectionUpdate?.(fakeEditor);
+              // Select this mock's contents so the range sits inside the manuscript
+              // wrapper, then fire the native event DreamAnalysis listens to.
+              const container = event.currentTarget.parentElement as HTMLElement;
+              const range = document.createRange();
+              range.selectNodeContents(container);
+              const selection = window.getSelection();
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+              document.dispatchEvent(new Event('selectionchange'));
             }}
           >
             Simulate selection
@@ -194,15 +206,9 @@ const activateAnchor = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // jsdom has no real selection-range support to drive from a simulated selection - stub
-  // window.getSelection so the toolbar's positioning lookup finds a range to measure.
-  vi.spyOn(window, 'getSelection').mockReturnValue({
-    rangeCount: 1,
-    getRangeAt: () => ({
-      getBoundingClientRect: () => ({ top: 100, left: 50, width: 40, height: 20 }),
-    }),
-    removeAllRanges: () => {},
-  } as unknown as Selection);
+  // The component reads the real jsdom Selection API (see the Simulate selection mock
+  // above); start each test with no live selection.
+  window.getSelection()?.removeAllRanges();
   currentSelection = { from: 0, to: 0 };
   mockAnchorIdsInRange.mockReturnValue([]);
 });
@@ -257,7 +263,7 @@ describe('DreamAnalysis', () => {
     );
   });
 
-  it('rolls back the mark and the anchor when the first attachment fails', async () => {
+  it('rolls back the anchor when the first attachment fails, never touching the narrative', async () => {
     createEmotionalBeatMutateAsync.mockRejectedValueOnce(new Error('boom'));
     renderAnalysis({ anchors: [] });
 
@@ -269,9 +275,32 @@ describe('DreamAnalysis', () => {
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() => expect(deleteAnchorMutateAsync).toHaveBeenCalledWith(99));
-    expect(unsetMarkSpy).toHaveBeenCalledWith('anchor');
+    // The mark is only applied after the attachment succeeds, so the stored narrative
+    // never carried the anchor span and there is nothing to unset or revert.
+    expect(setMarkSpy).not.toHaveBeenCalled();
+    expect(updateDreamMutateAsync).not.toHaveBeenCalled();
     // The dialog stays open for a retry.
     expect(screen.getByLabelText(/what emotion did this moment carry/i)).toBeInTheDocument();
+  });
+
+  it('retires the pending selection when its dialog is cancelled', async () => {
+    renderAnalysis({ anchors: [] });
+
+    fireEvent.click(screen.getByText('Simulate selection'));
+    fireEvent.click(await screen.findByText('Add emotional beat'));
+    // The dialog mounts in a portal; wait for it before reaching for its Cancel button.
+    await screen.findByLabelText(/what emotion did this moment carry/i);
+    // Parking the selection offers it in the composer's anchor picker...
+    expect(screen.queryAllByText(/selected passage/).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByText('Cancel'));
+
+    // ...and cancelling the dialog retires it everywhere, so the picker cannot later
+    // anchor a pass to a range the user believed was discarded.
+    await waitFor(() => {
+      expect(screen.queryByText(/selected passage/)).not.toBeInTheDocument();
+    });
+    expect(createAnchorMutateAsync).not.toHaveBeenCalled();
   });
 
   it('reuses the overlapped anchor and opens its inline beat form instead of creating a new anchor', async () => {

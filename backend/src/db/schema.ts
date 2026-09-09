@@ -122,16 +122,28 @@ export const symbols = pgTable(
 export type DreamSymbol = typeof symbols.$inferSelect;
 export type NewDreamSymbol = typeof symbols.$inferInsert;
 
-export const symbolAttachments = pgTable('symbol_attachments', {
-  id: serial('id').primaryKey(),
-  symbolId: integer('symbol_id')
-    .notNull()
-    .references(() => symbols.id, { onDelete: 'cascade' }),
-  anchorId: integer('anchor_id')
-    .notNull()
-    .references(() => anchors.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-});
+// Unique per (symbol, anchor): tagging the same symbol onto an anchor twice is
+// meaningless, and without the constraint a double-submit would show duplicate specimen
+// labels each with its own association list.
+export const symbolAttachments = pgTable(
+  'symbol_attachments',
+  {
+    id: serial('id').primaryKey(),
+    symbolId: integer('symbol_id')
+      .notNull()
+      .references(() => symbols.id, { onDelete: 'cascade' }),
+    anchorId: integer('anchor_id')
+      .notNull()
+      .references(() => anchors.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    symbolAnchorUnique: uniqueIndex('symbol_attachments_symbol_id_anchor_id_unique').on(
+      table.symbolId,
+      table.anchorId,
+    ),
+  }),
+);
 
 export type SymbolAttachment = typeof symbolAttachments.$inferSelect;
 export type NewSymbolAttachment = typeof symbolAttachments.$inferInsert;
