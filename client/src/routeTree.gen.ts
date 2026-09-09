@@ -19,6 +19,7 @@ import { Route as DreamsNewRouteImport } from './routes/dreams/new'
 import { Route as JournalIndexRouteImport } from './routes/journal/index'
 import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
+import { Route as DreamsDreamIdEditRouteImport } from './routes/dreams/$dreamId_.edit'
 import { Route as JournalEntryIdEditRouteImport } from './routes/journal/$entryId_.edit'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const JournalNewRoute = JournalNewRouteImport.update({
   path: '/journal/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DreamsDreamIdEditRoute = DreamsDreamIdEditRouteImport.update({
+  id: '/dreams/$dreamId_/edit',
+  path: '/dreams/$dreamId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JournalEntryIdEditRoute = JournalEntryIdEditRouteImport.update({
   id: '/journal/$entryId_/edit',
   path: '/journal/$entryId/edit',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/journal/new': typeof JournalNewRoute
   '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
+  '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/journal/new': typeof JournalNewRoute
   '/dreams': typeof DreamsIndexRoute
   '/journal': typeof JournalIndexRoute
+  '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/journal/new': typeof JournalNewRoute
   '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
+  '/dreams/$dreamId_/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId_/edit': typeof JournalEntryIdEditRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/journal/new'
     | '/dreams/'
     | '/journal/'
+    | '/dreams/$dreamId/edit'
     | '/journal/$entryId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/journal/new'
     | '/dreams'
     | '/journal'
+    | '/dreams/$dreamId/edit'
     | '/journal/$entryId/edit'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/journal/new'
     | '/dreams/'
     | '/journal/'
+    | '/dreams/$dreamId_/edit'
     | '/journal/$entryId_/edit'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   JournalNewRoute: typeof JournalNewRoute
   DreamsIndexRoute: typeof DreamsIndexRoute
   JournalIndexRoute: typeof JournalIndexRoute
+  DreamsDreamIdEditRoute: typeof DreamsDreamIdEditRoute
   JournalEntryIdEditRoute: typeof JournalEntryIdEditRoute
 }
 
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JournalNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dreams/$dreamId_/edit': {
+      id: '/dreams/$dreamId_/edit'
+      path: '/dreams/$dreamId/edit'
+      fullPath: '/dreams/$dreamId/edit'
+      preLoaderRoute: typeof DreamsDreamIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/journal/$entryId_/edit': {
       id: '/journal/$entryId_/edit'
       path: '/journal/$entryId/edit'
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   JournalNewRoute: JournalNewRoute,
   DreamsIndexRoute: DreamsIndexRoute,
   JournalIndexRoute: JournalIndexRoute,
+  DreamsDreamIdEditRoute: DreamsDreamIdEditRoute,
   JournalEntryIdEditRoute: JournalEntryIdEditRoute,
 }
 export const routeTree = rootRouteImport

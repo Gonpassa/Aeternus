@@ -20,7 +20,7 @@ function NewDreamPage() {
       <Heading as="h1" mb="4" variant="page">
         Record a dream
       </Heading>
-      <DreamForm onCreate={handleCreate} onDiscard={() => navigate({ to: '/dreams' })} />
+      <DreamForm onSubmit={handleCreate} onDiscard={() => navigate({ to: '/dreams' })} />
     </PageContainer>
   );
 }

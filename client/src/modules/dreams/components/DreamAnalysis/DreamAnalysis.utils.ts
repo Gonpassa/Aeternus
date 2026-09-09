@@ -1,12 +1,3 @@
-// Anchors previously known to exist (per the server) whose id no longer appears anywhere
-// in the current document - i.e. their marked text was deleted from the narrative. Drives
-// the on-save cascade-delete-with-warning behavior (see ADR-0007, CONTEXT.md's Anchor
-// deletion-on-text-removal rule).
-export const computeMissingAnchorIds = (knownIds: number[], presentIds: number[]): number[] => {
-  const presentSet = new Set(presentIds);
-  return knownIds.filter((id) => !presentSet.has(id));
-};
-
 // The text carried by each Anchor's mark span(s) in the narrative HTML, keyed by anchor
 // id. Parsed straight from the stored HTML (see ADR-0007: the mark renders as
 // `<span data-anchor-id>`), so it needs no live editor instance - margin notes and

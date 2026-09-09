@@ -33,9 +33,9 @@ const selectDate = async (iso: string) => {
 };
 
 describe('DreamForm', () => {
-  it('saves the dream and calls onCreate with the narrative and date', async () => {
-    const onCreate = vi.fn().mockResolvedValue(undefined);
-    render(<DreamForm onCreate={onCreate} />);
+  it('saves the dream and calls onSubmit with the narrative and date', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<DreamForm onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText(/narrative/i), {
       target: { value: '<p>I was flying over a city made of glass.</p>' },
@@ -43,34 +43,34 @@ describe('DreamForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /save dream/i }));
 
     await waitFor(() => {
-      expect(onCreate).toHaveBeenCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         expect.objectContaining({ narrative: '<p>I was flying over a city made of glass.</p>' }),
       );
     });
   });
 
   it('blocks submission with an inline error when the narrative is empty', async () => {
-    const onCreate = vi.fn().mockResolvedValue(undefined);
-    render(<DreamForm onCreate={onCreate} />);
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<DreamForm onSubmit={onSubmit} />);
 
     fireEvent.click(screen.getByRole('button', { name: /save dream/i }));
 
     const error = await screen.findByRole('alert');
     expect(error).toHaveTextContent('Narrative is required');
-    expect(onCreate).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('clears the recovery buffer after a successful save', async () => {
     window.localStorage.clear();
-    const onCreate = vi.fn().mockResolvedValue(undefined);
-    render(<DreamForm onCreate={onCreate} />);
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<DreamForm onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText(/narrative/i), {
       target: { value: '<p>A dream worth remembering.</p>' },
     });
     fireEvent.click(screen.getByRole('button', { name: /save dream/i }));
 
-    await waitFor(() => expect(onCreate).toHaveBeenCalled());
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
 
     const { result } = renderHook(() => useRecoveryBuffer('new'));
     expect(result.current.read()).toBeNull();
@@ -81,7 +81,7 @@ describe('DreamForm', () => {
     const { result } = renderHook(() => useRecoveryBuffer('new'));
     result.current.write({ date: isoB, narrative: '<p>Restored from a previous session.</p>' });
 
-    render(<DreamForm onCreate={vi.fn()} />);
+    render(<DreamForm onSubmit={vi.fn()} />);
 
     expect(screen.getByLabelText(/narrative/i)).toHaveValue(
       '<p>Restored from a previous session.</p>',
@@ -90,7 +90,7 @@ describe('DreamForm', () => {
 
   it('confirms via a dialog before discarding when the form is dirty', async () => {
     const onDiscard = vi.fn();
-    render(<DreamForm onCreate={vi.fn()} onDiscard={onDiscard} />);
+    render(<DreamForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
 
     await selectDate(isoB);
     fireEvent.click(screen.getByRole('button', { name: /discard/i }));
@@ -108,11 +108,46 @@ describe('DreamForm', () => {
 
   it('does not confirm before discarding when nothing changed', () => {
     const onDiscard = vi.fn();
-    render(<DreamForm onCreate={vi.fn()} onDiscard={onDiscard} />);
+    render(<DreamForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
 
     fireEvent.click(screen.getByRole('button', { name: /discard/i }));
 
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(onDiscard).toHaveBeenCalled();
+  });
+
+  it('prefills from initialValues in edit mode, ignoring any recovery buffer', () => {
+    window.localStorage.clear();
+    const { result } = renderHook(() => useRecoveryBuffer('new'));
+    result.current.write({ date: isoB, narrative: '<p>A buffered new dream.</p>' });
+
+    render(
+      <DreamForm
+        onSubmit={vi.fn()}
+        initialValues={{ date: '2026-08-01', narrative: '<p>The saved narrative.</p>' }}
+        submitLabel="Save narrative"
+      />,
+    );
+
+    expect(screen.getByLabelText(/narrative/i)).toHaveValue('<p>The saved narrative.</p>');
+    expect(screen.getByRole('button', { name: /save narrative/i })).toBeInTheDocument();
+  });
+
+  it('does not write edits into the recovery buffer in edit mode', async () => {
+    window.localStorage.clear();
+    render(
+      <DreamForm
+        onSubmit={vi.fn()}
+        initialValues={{ date: '2026-08-01', narrative: '<p>The saved narrative.</p>' }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/narrative/i), {
+      target: { value: '<p>An edited narrative.</p>' },
+    });
+    fireEvent.blur(screen.getByLabelText(/narrative/i));
+
+    const { result } = renderHook(() => useRecoveryBuffer('new'));
+    await waitFor(() => expect(result.current.read()).toBeNull());
   });
 });
