@@ -86,11 +86,13 @@ vi.mock('../../../../atoms/RichTextEditor/RichTextEditor.tsx', () => ({
 }));
 
 const mockAnchorIdsInRange = vi.fn(() => [] as number[]);
+const mockAnchorMarkRanges = vi.fn(() => [{ from: 2, to: 8 }]);
 vi.mock('../../tiptap/AnchorMark.ts', () => ({
   AnchorMark: {},
   ANCHOR_MARK_NAME: 'anchor',
   anchorIdsInRange: () => mockAnchorIdsInRange(),
   anchorIdsInDocument: () => [] as number[],
+  anchorMarkRanges: () => mockAnchorMarkRanges(),
 }));
 
 const createAnchorMutateAsync = vi.fn(async () => ({ id: 99, dreamId: 1, createdAt: '' }));
@@ -208,6 +210,15 @@ const renderAnalysis = (
 const activateAnchor = () =>
   fireEvent.click(screen.getByRole('button', { name: /highlight anchored passage/i }));
 
+const openRemoveDialog = async () => {
+  activateAnchor();
+  fireEvent.click(screen.getByRole('button', { name: /remove note on/i }));
+  // The dialog renders through a portal, so it lands a tick after the click.
+  await screen.findByRole('alertdialog');
+};
+
+const confirmRemoval = () => fireEvent.click(screen.getByRole('button', { name: 'Remove note' }));
+
 beforeEach(() => {
   vi.clearAllMocks();
   // The component reads the real jsdom Selection API (see the Simulate selection mock
@@ -215,6 +226,7 @@ beforeEach(() => {
   window.getSelection()?.removeAllRanges();
   currentSelection = { from: 0, to: 0 };
   mockAnchorIdsInRange.mockReturnValue([]);
+  mockAnchorMarkRanges.mockReturnValue([{ from: 2, to: 8 }]);
 });
 
 describe('DreamAnalysis', () => {
@@ -500,5 +512,62 @@ describe('DreamAnalysis', () => {
         anchorId: 99,
       }),
     );
+  });
+
+  describe('removing a margin note', () => {
+    it('names what the removal will destroy along with the Anchor', async () => {
+      renderAnalysis();
+      await openRemoveDialog();
+
+      expect(screen.getByText(/1 emotional beat/)).toBeInTheDocument();
+      expect(screen.getByText(/1 symbol/)).toBeInTheDocument();
+    });
+
+    it('removes nothing until the confirmation is accepted', async () => {
+      renderAnalysis();
+      await openRemoveDialog();
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      expect(deleteAnchorMutateAsync).not.toHaveBeenCalled();
+      expect(unsetMarkSpy).not.toHaveBeenCalled();
+      expect(updateDreamMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('unmarks the passage and saves the narrative before deleting the Anchor', async () => {
+      renderAnalysis();
+      await openRemoveDialog();
+      confirmRemoval();
+
+      await waitFor(() => expect(deleteAnchorMutateAsync).toHaveBeenCalledWith(7));
+      expect(unsetMarkSpy).toHaveBeenCalledWith('anchor');
+      // The stored narrative must never reference an Anchor row that is already gone, so
+      // the save has to land first.
+      expect(updateDreamMutateAsync.mock.invocationCallOrder[0]).toBeLessThan(
+        deleteAnchorMutateAsync.mock.invocationCallOrder[0] as number,
+      );
+    });
+
+    it('keeps the Anchor and restores the mark when saving the unmarked narrative fails', async () => {
+      updateDreamMutateAsync.mockRejectedValueOnce(new Error('offline'));
+      renderAnalysis();
+      await openRemoveDialog();
+      confirmRemoval();
+
+      await waitFor(() => expect(setMarkSpy).toHaveBeenCalledWith('anchor', { anchorId: 7 }));
+      expect(deleteAnchorMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('deletes the Anchor without a narrative save when its passage is already unmarked', async () => {
+      // An Anchor whose span the user removed while editing the narrative: there is no
+      // mark left to unset, so touching the narrative would be a pointless write.
+      mockAnchorMarkRanges.mockReturnValue([]);
+      renderAnalysis();
+      await openRemoveDialog();
+      confirmRemoval();
+
+      await waitFor(() => expect(deleteAnchorMutateAsync).toHaveBeenCalledWith(7));
+      expect(updateDreamMutateAsync).not.toHaveBeenCalled();
+      expect(unsetMarkSpy).not.toHaveBeenCalled();
+    });
   });
 });

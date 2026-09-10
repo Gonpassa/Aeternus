@@ -38,7 +38,15 @@ export interface AnchorAttachments {
     kind: AssociationKind,
   ) => Promise<void>;
   deleteAssociation: (associationId: number) => void;
+  // Removes the whole note: unmarks the passage, then deletes the Anchor and everything
+  // cascading off it. Rejects if the narrative save fails, leaving the note intact.
+  removeNote: (anchorId: number) => Promise<void>;
 }
+
+// Everything above except the one entry that needs the Tiptap editor. useAnchorAttachments
+// assembles this much from the API hooks alone; DreamAnalysis, which owns the editor ref,
+// completes it with removeNote before providing it.
+export type AnchorAttachmentsWithoutRemoval = Omit<AnchorAttachments, 'removeNote'>;
 
 const AnchorAttachmentsContext = createContext<AnchorAttachments | null>(null);
 

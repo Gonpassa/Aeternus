@@ -3,7 +3,8 @@ import type { Editor } from '@tiptap/react';
 import type { AnchorWithAttachments, CreateDreamRequest, Dream } from '@nee3/shared-types';
 import { useDeleteAnchor, useUpdateDream } from '../../api/dreamHooks.ts';
 import { AnchorMark, anchorIdsInDocument } from '../../tiptap/AnchorMark.ts';
-import { computeMissingAnchorIds, countLabel } from './DreamEdit.utils.ts';
+import { countLabel } from '../../utils/countLabel.ts';
+import { computeMissingAnchorIds } from './DreamEdit.utils.ts';
 import { DreamForm } from '../DreamForm/DreamForm.tsx';
 import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
 import { useDialogState } from '../../../../atoms/Dialog/useDialogState.ts';
@@ -31,8 +32,8 @@ export function DreamEdit({ dream, anchors, onSaved, onCancel }: DreamEditProps)
   const [missingAnchorIds, setMissingAnchorIds] = useState<number[] | null>(null);
   const deleteWarningDialog = useDialogState();
 
-  const updateDream = useUpdateDream(dream.id);
-  const deleteAnchor = useDeleteAnchor(dream.id);
+  const { mutateAsync: updateDream } = useUpdateDream(dream.id);
+  const { mutateAsync: deleteAnchor } = useDeleteAnchor(dream.id);
 
   const handleSubmit = async (input: CreateDreamRequest) => {
     const editor = editorRef.current;
@@ -47,7 +48,7 @@ export function DreamEdit({ dream, anchors, onSaved, onCancel }: DreamEditProps)
         return;
       }
     }
-    await updateDream.mutateAsync(input);
+    await updateDream(input);
     onSaved();
   };
 
@@ -59,8 +60,8 @@ export function DreamEdit({ dream, anchors, onSaved, onCancel }: DreamEditProps)
 
   const confirmSaveWithDeletions = async () => {
     if (!pendingInput || !missingAnchorIds) return;
-    await Promise.all(missingAnchorIds.map((id) => deleteAnchor.mutateAsync(id)));
-    await updateDream.mutateAsync(pendingInput);
+    await Promise.all(missingAnchorIds.map((id) => deleteAnchor(id)));
+    await updateDream(pendingInput);
     closeWarning();
     onSaved();
   };
