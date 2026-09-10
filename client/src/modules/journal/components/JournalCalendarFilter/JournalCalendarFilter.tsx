@@ -135,7 +135,7 @@ export function JournalCalendarFilter({
               setVisibleMonth(new Date(visibleMonth.getFullYear(), Number(details.value[0]), 1))
             }
           >
-            <SelectTrigger borderRadius="0">
+            <SelectTrigger borderRadius="0" minW="9.5ch" justifyContent="center">
               <SelectValue />
             </SelectTrigger>
             <SelectContent borderRadius="0" boxShadow="none">
