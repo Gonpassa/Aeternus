@@ -21,11 +21,15 @@ import {
   useUpdateDream,
   useUpdateEmotionalBeat,
 } from '../../api/dreamHooks.ts';
-import type { AnchorAttachments, MarginFormState } from './AnchorAttachmentsContext.tsx';
+import type {
+  AnchorAttachmentsWithoutRemoval,
+  MarginFormState,
+} from './AnchorAttachmentsContext.tsx';
 
 export interface AnchorAttachmentsState {
-  // What every margin note needs, published through AnchorAttachmentsProvider.
-  margin: AnchorAttachments;
+  // What every margin note needs, bar the removal that needs the editor - DreamAnalysis
+  // adds that before publishing this through AnchorAttachmentsProvider.
+  margin: AnchorAttachmentsWithoutRemoval;
   // Anchor lifecycle and narrative persistence, for the pending-selection flow.
   createAnchor: () => Promise<Anchor>;
   deleteAnchor: (anchorId: number) => Promise<void>;
@@ -54,28 +58,30 @@ export function useAnchorAttachments(dream: Dream): AnchorAttachmentsState {
   const [form, setForm] = useState<MarginFormState | null>(null);
   const [editingBeat, setEditingBeat] = useState<EmotionalBeat | null>(null);
 
-  const updateDream = useUpdateDream(dream.id);
-  const createAnchor = useCreateAnchor(dream.id);
-  const deleteAnchor = useDeleteAnchor(dream.id);
-  const createEmotionalBeat = useCreateEmotionalBeat(dream.id);
-  const updateEmotionalBeat = useUpdateEmotionalBeat(dream.id);
-  const deleteEmotionalBeat = useDeleteEmotionalBeat(dream.id);
-  const tagSymbol = useTagSymbol(dream.id);
-  const untagSymbol = useUntagSymbol(dream.id);
-  const createAssociation = useCreateAssociation(dream.id);
-  const updateAssociation = useUpdateAssociation(dream.id);
-  const deleteAssociation = useDeleteAssociation(dream.id);
-  const createAnalysisPass = useCreateAnalysisPass(dream.id);
-  const symbols = useSymbols();
+  // Destructured to the one function each hook contributes: it names the call site
+  // (`createEmotionalBeat(...)`, not `createEmotionalBeat.mutateAsync(...)`), and it keeps
+  // the memo dependencies below stable - a mutation object is a new identity on every
+  // pending/success transition, so depending on those would rebuild the context value, and
+  // re-render every margin note, each time any one of these mutations ran.
+  const { mutateAsync: updateDream } = useUpdateDream(dream.id);
+  const { mutateAsync: createAnchor } = useCreateAnchor(dream.id);
+  const { mutateAsync: deleteAnchor } = useDeleteAnchor(dream.id);
+  const { mutateAsync: createEmotionalBeat } = useCreateEmotionalBeat(dream.id);
+  const { mutateAsync: updateEmotionalBeat } = useUpdateEmotionalBeat(dream.id);
+  const { mutate: deleteEmotionalBeat } = useDeleteEmotionalBeat(dream.id);
+  const { mutateAsync: tagSymbol } = useTagSymbol(dream.id);
+  const { mutate: untagSymbol } = useUntagSymbol(dream.id);
+  const { mutateAsync: createAssociation } = useCreateAssociation(dream.id);
+  const { mutateAsync: updateAssociation } = useUpdateAssociation(dream.id);
+  const { mutate: deleteAssociation } = useDeleteAssociation(dream.id);
+  const { mutateAsync: createAnalysisPass } = useCreateAnalysisPass(dream.id);
+  const { data: symbols } = useSymbols();
 
-  const symbolVocabulary = useMemo(
-    () => (symbols.data ?? []).map((symbol) => symbol.name),
-    [symbols.data],
-  );
+  const symbolVocabulary = useMemo(() => (symbols ?? []).map((symbol) => symbol.name), [symbols]);
 
   const closeForm = useCallback(() => setForm(null), []);
 
-  const margin = useMemo<AnchorAttachments>(
+  const margin = useMemo<AnchorAttachmentsWithoutRemoval>(
     () => ({
       activeAnchorId,
       toggleAnchor: (anchorId) =>
@@ -85,29 +91,29 @@ export function useAnchorAttachments(dream: Dream): AnchorAttachmentsState {
       closeForm,
       symbolVocabulary,
       addBeat: async (anchorId: number, label: string) => {
-        await createEmotionalBeat.mutateAsync({ anchorId, input: { label } });
+        await createEmotionalBeat({ anchorId, input: { label } });
         closeForm();
       },
       editBeat: setEditingBeat,
-      deleteBeat: (beatId: number) => deleteEmotionalBeat.mutate(beatId),
+      deleteBeat: deleteEmotionalBeat,
       tagSymbol: async (anchorId: number, name: string) => {
-        await tagSymbol.mutateAsync({ anchorId, input: { name } });
+        await tagSymbol({ anchorId, input: { name } });
         closeForm();
       },
-      untagSymbol: (symbolAttachmentId: number) => untagSymbol.mutate(symbolAttachmentId),
+      untagSymbol,
       addAssociation: async (
         symbolAttachmentId: number,
         content: string,
         kind: AssociationKind,
       ) => {
-        await createAssociation.mutateAsync({ symbolAttachmentId, input: { content, kind } });
+        await createAssociation({ symbolAttachmentId, input: { content, kind } });
         closeForm();
       },
       updateAssociation: async (association, content: string, kind: AssociationKind) => {
-        await updateAssociation.mutateAsync({ id: association.id, input: { content, kind } });
+        await updateAssociation({ id: association.id, input: { content, kind } });
         closeForm();
       },
-      deleteAssociation: (associationId: number) => deleteAssociation.mutate(associationId),
+      deleteAssociation,
     }),
     [
       activeAnchorId,
@@ -126,17 +132,17 @@ export function useAnchorAttachments(dream: Dream): AnchorAttachmentsState {
 
   return {
     margin,
-    createAnchor: () => createAnchor.mutateAsync(),
-    deleteAnchor: (anchorId: number) => deleteAnchor.mutateAsync(anchorId),
+    createAnchor,
+    deleteAnchor,
     saveNarrative: async (narrative: string) => {
-      await updateDream.mutateAsync({ date: dream.date, narrative });
+      await updateDream({ date: dream.date, narrative });
     },
-    createPass: (input: CreateAnalysisPassRequest) => createAnalysisPass.mutateAsync(input),
+    createPass: createAnalysisPass,
     editingBeat,
     closeBeatEditor: () => setEditingBeat(null),
     saveEditedBeat: async (label: string) => {
       if (!editingBeat) return;
-      await updateEmotionalBeat.mutateAsync({ id: editingBeat.id, input: { label } });
+      await updateEmotionalBeat({ id: editingBeat.id, input: { label } });
       setEditingBeat(null);
     },
     activateAnchor: setActiveAnchorId,

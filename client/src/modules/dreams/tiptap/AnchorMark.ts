@@ -54,3 +54,27 @@ export const anchorIdsInRange = (editor: Editor, from: number, to: number): numb
 
 export const anchorIdsInDocument = (editor: Editor): number[] =>
   anchorIdsInRange(editor, 0, editor.state.doc.content.size);
+
+export interface AnchorMarkRange {
+  from: number;
+  to: number;
+}
+
+// Every contiguous run of text carrying one Anchor's mark. An Anchor can hold more than one
+// run - other marks inside the anchored passage (a bolded word) break it into several text
+// nodes, and those are rejoined here - so removing an Anchor unmarks each run rather than
+// everything between the first and the last, which would also strip any *other* Anchor
+// sitting in a gap between them.
+export const anchorMarkRanges = (editor: Editor, anchorId: number): AnchorMarkRange[] => {
+  const ranges: AnchorMarkRange[] = [];
+  editor.state.doc.descendants((node, pos) => {
+    const carriesAnchor = node.marks.some(
+      (mark) => mark.type.name === ANCHOR_MARK_NAME && mark.attrs.anchorId === anchorId,
+    );
+    if (!node.isText || !carriesAnchor) return;
+    const previous = ranges[ranges.length - 1];
+    if (previous && previous.to === pos) previous.to = pos + node.nodeSize;
+    else ranges.push({ from: pos, to: pos + node.nodeSize });
+  });
+  return ranges;
+};

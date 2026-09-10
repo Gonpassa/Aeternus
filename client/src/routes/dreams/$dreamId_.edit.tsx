@@ -12,7 +12,7 @@ const routeApi = getRouteApi('/dreams/$dreamId_/edit');
 function DreamEditPage() {
   const { dreamId } = routeApi.useParams();
   const navigate = useNavigate();
-  const dreamDetail = useDream(Number(dreamId));
+  const { data: dreamDetail, isPending } = useDream(Number(dreamId));
 
   const backToAnalysis = () => {
     navigate({ to: '/dreams/$dreamId', params: { dreamId } });
@@ -20,11 +20,9 @@ function DreamEditPage() {
 
   return (
     <PageContainer maxW="4xl" centered>
-      {dreamDetail.isPending && <LoadingGate minH="30vh" />}
-      {!dreamDetail.isPending && !dreamDetail.data && (
-        <Text variant="muted">This dream could not be found.</Text>
-      )}
-      {dreamDetail.data && (
+      {isPending && <LoadingGate minH="30vh" />}
+      {!isPending && !dreamDetail && <Text variant="muted">This dream could not be found.</Text>}
+      {dreamDetail && (
         <>
           <Heading as="h1" mb="4" variant="page">
             Edit narrative
@@ -34,9 +32,9 @@ function DreamEditPage() {
               already cached, so the isPending gate never re-triggers) - without it,
               DreamForm's internal RHF state would keep the first dream's values. */}
           <DreamEdit
-            key={dreamDetail.data.dream.id}
-            dream={dreamDetail.data.dream}
-            anchors={dreamDetail.data.anchors}
+            key={dreamDetail.dream.id}
+            dream={dreamDetail.dream}
+            anchors={dreamDetail.anchors}
             onSaved={backToAnalysis}
             onCancel={backToAnalysis}
           />

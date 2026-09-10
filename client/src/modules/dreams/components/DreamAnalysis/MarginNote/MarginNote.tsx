@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Trash2, X } from 'lucide-react';
 import type { AnchorWithAttachments } from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { Dot } from '../../../../../atoms/Dot/Dot.tsx';
@@ -11,6 +11,7 @@ import { useAnchorAttachmentsContext } from '../AnchorAttachmentsContext.tsx';
 import { truncateExcerpt } from '../DreamAnalysis.utils.ts';
 import { SymbolAutocompleteInput } from '../SymbolAutocompleteInput/SymbolAutocompleteInput.tsx';
 import { BeatForm } from './BeatForm/BeatForm.tsx';
+import { RemoveNoteDialog } from './RemoveNoteDialog/RemoveNoteDialog.tsx';
 import { SymbolAttachmentItem } from './SymbolAttachmentItem/SymbolAttachmentItem.tsx';
 
 export interface MarginNoteProps {
@@ -36,8 +37,12 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
     editBeat,
     deleteBeat,
     tagSymbol,
+    removeNote,
   } = useAnchorAttachmentsContext();
   const noteRef = useRef<HTMLDivElement>(null);
+  // Per-note, so it stays local rather than joining the one-at-a-time form state: the
+  // confirmation belongs to the note the user is removing, not to the margin.
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const active = anchor.id === activeAnchorId;
   const beatFormOpen = form?.kind === 'addBeat' && form.anchorId === anchor.id;
   const symbolFormOpen = form?.kind === 'addSymbol' && form.anchorId === anchor.id;
@@ -137,8 +142,26 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
           >
             + symbol
           </Button>
+          <IconButton
+            type="button"
+            icon={Trash2}
+            size="xs"
+            variant="ghost"
+            color="rust"
+            ml="auto"
+            aria-label={`Remove note on ${truncateExcerpt(excerpt)}`}
+            onClick={() => setRemoveDialogOpen(true)}
+          />
         </Stack>
       )}
+
+      <RemoveNoteDialog
+        open={removeDialogOpen}
+        anchor={anchor}
+        excerpt={truncateExcerpt(excerpt)}
+        onClose={() => setRemoveDialogOpen(false)}
+        onConfirm={() => removeNote(anchor.id)}
+      />
     </RuledNote>
   );
 }

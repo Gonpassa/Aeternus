@@ -20,6 +20,7 @@ import { Manuscript } from './Manuscript/Manuscript.tsx';
 import { MarginNote } from './MarginNote/MarginNote.tsx';
 import { SymbolTagDialog } from './SymbolTagDialog/SymbolTagDialog.tsx';
 import { useAnchorAttachments } from './useAnchorAttachments.ts';
+import { useAnchorRemoval } from './useAnchorRemoval.ts';
 import { collapseDomSelection, useManuscriptSelection } from './useManuscriptSelection.ts';
 import { usePendingAttachment } from './usePendingAttachment.ts';
 
@@ -56,6 +57,19 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
       ),
     onAnchorCreated: attachments.activateAnchor,
   });
+  const removeNote = useAnchorRemoval({
+    editorRef,
+    deleteAnchor: attachments.deleteAnchor,
+    saveNarrative: attachments.saveNarrative,
+    onNarrativeChange: setNarrative,
+  });
+
+  // Removal is the one margin action that needs the editor, which lives here rather than in
+  // useAnchorAttachments; completing the value here keeps the margin's context surface whole.
+  const margin = useMemo(
+    () => ({ ...attachments.margin, removeNote }),
+    [attachments.margin, removeNote],
+  );
 
   // The server stays the source of truth for the narrative between attachment flows:
   // refetches can legitimately change it (sanitization altering the saved HTML, an edit
@@ -168,7 +182,7 @@ export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisP
           flexShrink={0}
           gap="4"
         >
-          <AnchorAttachmentsProvider value={attachments.margin}>
+          <AnchorAttachmentsProvider value={margin}>
             {orderedAnchors.map((anchor) => (
               <MarginNote key={anchor.id} anchor={anchor} excerpt={excerpts[anchor.id] ?? ''} />
             ))}
