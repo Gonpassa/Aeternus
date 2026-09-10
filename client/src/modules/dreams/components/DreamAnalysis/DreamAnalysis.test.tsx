@@ -191,11 +191,15 @@ const syntheticPass: AnalysisPass = {
 };
 
 const renderAnalysis = (
-  overrides: { anchors?: AnchorWithAttachments[]; analysisPasses?: AnalysisPass[] } = {},
+  overrides: {
+    dream?: Dream;
+    anchors?: AnchorWithAttachments[];
+    analysisPasses?: AnalysisPass[];
+  } = {},
 ) =>
   render(
     <DreamAnalysis
-      dream={dream}
+      dream={overrides.dream ?? dream}
       anchors={overrides.anchors ?? [anchor]}
       analysisPasses={overrides.analysisPasses ?? []}
     />,
@@ -223,6 +227,32 @@ describe('DreamAnalysis', () => {
     expect(screen.getByText('dread')).toBeInTheDocument();
     expect(screen.getByText('Ocean')).toBeInTheDocument();
     expect(screen.getByText(/guardian figure/)).toBeInTheDocument();
+  });
+
+  it('orders margin notes by where their passage appears, not by the order anchors arrive', () => {
+    // The API returns anchors in creation order - here the closing passage was anchored
+    // first - but the column has to read top-to-bottom with the manuscript (ADR-0008).
+    const twoAnchorDream: Dream = {
+      ...dream,
+      narrative:
+        '<p>I was <span data-anchor-id="7">flying over</span> a city.</p>' +
+        '<p>Then it <span data-anchor-id="8">came apart</span>.</p>',
+    };
+    const closing: AnchorWithAttachments = {
+      id: 8,
+      dreamId: 1,
+      createdAt: '2026-08-01T00:00:00.000Z',
+      emotionalBeats: [],
+      symbolAttachments: [],
+    };
+
+    renderAnalysis({ dream: twoAnchorDream, anchors: [closing, anchor] });
+
+    const excerptButtons = screen.getAllByRole('button', { name: /highlight anchored passage/i });
+    expect(excerptButtons.map((button) => button.textContent)).toEqual([
+      '“flying over”',
+      '“came apart”',
+    ]);
   });
 
   it('offers beat, symbol, and analytic note actions over a text selection', async () => {

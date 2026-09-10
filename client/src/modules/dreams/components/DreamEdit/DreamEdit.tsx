@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/react';
 import type { AnchorWithAttachments, CreateDreamRequest, Dream } from '@nee3/shared-types';
 import { useDeleteAnchor, useUpdateDream } from '../../api/dreamHooks.ts';
 import { AnchorMark, anchorIdsInDocument } from '../../tiptap/AnchorMark.ts';
-import { computeMissingAnchorIds } from './DreamEdit.utils.ts';
+import { computeMissingAnchorIds, countLabel } from './DreamEdit.utils.ts';
 import { DreamForm } from '../DreamForm/DreamForm.tsx';
 import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
 import { useDialogState } from '../../../../atoms/Dialog/useDialogState.ts';
@@ -19,9 +19,6 @@ export interface DreamEditProps {
   onSaved: () => void;
   onCancel?: () => void;
 }
-
-const countLabel = (count: number, singular: string, plural: string) =>
-  `${count} ${count === 1 ? singular : plural}`;
 
 // The dedicated narrative-editing page for a recorded Dream, split off the (now read-only)
 // Analysis page. Owns the on-save anchor diff: deleting anchored text warns about the

@@ -1,5 +1,5 @@
-import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
-import { SymbolAutocompleteInput } from './SymbolAutocompleteInput.tsx';
+import { Dialog } from '../../../../../atoms/Dialog/Dialog.tsx';
+import { SymbolAutocompleteInput } from '../SymbolAutocompleteInput/SymbolAutocompleteInput.tsx';
 
 export interface SymbolTagDialogProps {
   open: boolean;

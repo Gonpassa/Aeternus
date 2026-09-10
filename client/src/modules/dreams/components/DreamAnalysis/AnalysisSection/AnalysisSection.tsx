@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import type { AnalysisPass, AnalysisPassType, AnchorWithAttachments } from '@nee3/shared-types';
-import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Card } from '../../../../atoms/Card/Card.tsx';
-import { Heading } from '../../../../atoms/Heading/Heading.tsx';
-import { RuledNote } from '../../../../atoms/RuledNote/RuledNote.tsx';
+import { Button } from '../../../../../atoms/Button/Button.tsx';
+import { Card } from '../../../../../atoms/Card/Card.tsx';
+import { Heading } from '../../../../../atoms/Heading/Heading.tsx';
+import { RuledNote } from '../../../../../atoms/RuledNote/RuledNote.tsx';
 import {
   Select,
   SelectContent,
@@ -12,12 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
   createListCollection,
-} from '../../../../atoms/Select/Select.tsx';
-import { Stack } from '../../../../atoms/Stack/Stack.tsx';
-import { Tabs } from '../../../../atoms/Tabs/Tabs.tsx';
-import { Text } from '../../../../atoms/Text/Text.tsx';
-import { Textarea } from '../../../../atoms/Textarea/Textarea.tsx';
-import { truncateExcerpt } from './DreamAnalysis.utils.ts';
+} from '../../../../../atoms/Select/Select.tsx';
+import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
+import { Tabs } from '../../../../../atoms/Tabs/Tabs.tsx';
+import { Text } from '../../../../../atoms/Text/Text.tsx';
+import { Textarea } from '../../../../../atoms/Textarea/Textarea.tsx';
+import { truncateExcerpt } from '../DreamAnalysis.utils.ts';
 
 // The anchor picker's non-anchor values: whole dream (no anchor) and the still-pending
 // text selection the "add analytic note" toolbar action carried here.

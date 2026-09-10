@@ -12,6 +12,9 @@ import { FormFieldDemo } from './FormFieldDemo.tsx';
 import { TooltipDemo } from './TooltipDemo.tsx';
 import { PopoverDemo } from './PopoverDemo.tsx';
 import { SelectDemo } from './SelectDemo.tsx';
+import { TextareaDemo } from './TextareaDemo.tsx';
+import { SelectionToolbarDemo } from './SelectionToolbarDemo.tsx';
+import { RuledNoteDemo } from './RuledNoteDemo.tsx';
 import { IndexCardDemo } from './IndexCardDemo.tsx';
 import { DieCutTabDemo } from './DieCutTabDemo.tsx';
 import { CalendarDemo } from './CalendarDemo.tsx';
@@ -42,6 +45,9 @@ export function ComponentsShowcase() {
       <TooltipDemo />
       <PopoverDemo />
       <SelectDemo />
+      <TextareaDemo />
+      <SelectionToolbarDemo />
+      <RuledNoteDemo />
       <IndexCardDemo />
       <DieCutTabDemo />
       <CalendarDemo />

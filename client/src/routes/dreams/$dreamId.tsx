@@ -15,15 +15,13 @@ const routeApi = getRouteApi('/dreams/$dreamId');
 
 function DreamAnalysisPage() {
   const { dreamId } = routeApi.useParams();
-  const dreamDetail = useDream(Number(dreamId));
+  const { data: dreamDetail, isPending } = useDream(Number(dreamId));
 
   return (
     <PageContainer maxW="4xl" centered>
-      {dreamDetail.isPending && <LoadingGate minH="30vh" />}
-      {!dreamDetail.isPending && !dreamDetail.data && (
-        <Text variant="muted">This dream could not be found.</Text>
-      )}
-      {dreamDetail.data && (
+      {isPending && <LoadingGate minH="30vh" />}
+      {!isPending && !dreamDetail && <Text variant="muted">This dream could not be found.</Text>}
+      {dreamDetail && (
         <>
           <Stack justify="space-between" align="flex-start" mb="1">
             <Heading as="h1" variant="page">
@@ -36,12 +34,12 @@ function DreamAnalysisPage() {
             </Button>
           </Stack>
           <Text variant="muted" mb="4">
-            {format(parseIsoDate(dreamDetail.data.dream.date), 'MMM d, yyyy')}
+            {format(parseIsoDate(dreamDetail.dream.date), 'MMM d, yyyy')}
           </Text>
           <DreamAnalysis
-            dream={dreamDetail.data.dream}
-            anchors={dreamDetail.data.anchors}
-            analysisPasses={dreamDetail.data.analysisPasses}
+            dream={dreamDetail.dream}
+            anchors={dreamDetail.anchors}
+            analysisPasses={dreamDetail.analysisPasses}
           />
         </>
       )}

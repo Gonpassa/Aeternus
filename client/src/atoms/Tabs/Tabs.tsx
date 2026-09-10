@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useRef, type KeyboardEvent } from 'react';
 import { Flex, chakra } from '@chakra-ui/react';
 
 export interface TabOption {
@@ -19,7 +19,7 @@ export interface TabsProps {
 // button-styled options. Controlled; arrow keys move the selection (selection follows
 // focus, per the tabs pattern for a small, static set of views).
 export function Tabs({ options, value, onChange, 'aria-label': ariaLabel }: TabsProps) {
-  const listRef = React.useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const moveSelection = (delta: number) => {
     const index = options.findIndex((option) => option.value === value);
@@ -32,7 +32,7 @@ export function Tabs({ options, value, onChange, 'aria-label': ariaLabel }: Tabs
     buttons?.[nextIndex]?.focus();
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') {
       event.preventDefault();
       moveSelection(1);

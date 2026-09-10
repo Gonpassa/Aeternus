@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function RuledNote` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 
 // The rule's color carries meaning: hairline for a resting margin note, rust for the
@@ -22,7 +22,7 @@ const ruleColor: Record<RuledNoteRule, string> = {
 
 // A content block with a colored left rule - the annotated-block look shared by margin
 // notes and analysis-pass entries, defined once.
-export const RuledNote = React.forwardRef<HTMLDivElement, RuledNoteProps>(function RuledNote(
+export const RuledNote = forwardRef<HTMLDivElement, RuledNoteProps>(function RuledNote(
   { rule = 'hairline', ...props },
   ref,
 ) {

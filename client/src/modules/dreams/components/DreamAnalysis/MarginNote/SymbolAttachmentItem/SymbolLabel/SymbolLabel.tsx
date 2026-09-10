@@ -1,6 +1,7 @@
-import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Stack } from '../../../../atoms/Stack/Stack.tsx';
-import { Text } from '../../../../atoms/Text/Text.tsx';
+import { X } from 'lucide-react';
+import { IconButton } from '../../../../../../../atoms/IconButton/IconButton.tsx';
+import { Stack } from '../../../../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../../../../atoms/Text/Text.tsx';
 
 export interface SymbolLabelProps {
   name: string;
@@ -28,16 +29,15 @@ export function SymbolLabel({ name, showRemove, onRemove }: SymbolLabelProps) {
         {name}
       </Text>
       {showRemove && (
-        <Button
+        <IconButton
           type="button"
+          icon={X}
           size="xs"
           variant="ghost"
           color="rust"
           aria-label={`Remove symbol ${name}`}
           onClick={onRemove}
-        >
-          ×
-        </Button>
+        />
       )}
     </Stack>
   );

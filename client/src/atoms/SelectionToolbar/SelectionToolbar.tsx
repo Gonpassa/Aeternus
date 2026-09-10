@@ -1,7 +1,13 @@
 /* eslint-disable react/jsx-props-no-spreading --
    Variant styling is forwarded via `{...variantStyles[variant]}` to the underlying Chakra
    primitives, mirroring the thin-wrapper pattern of the other atoms. */
-import * as React from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+} from 'react';
 import { Box, chakra, type BoxProps } from '@chakra-ui/react';
 
 export type SelectionToolbarAction = {
@@ -26,7 +32,7 @@ export interface SelectionToolbarProps {
 const SELECTION_GAP = 8;
 const VIEWPORT_MARGIN = 8;
 
-type ActionStyleProps = React.ComponentProps<typeof chakra.button>;
+type ActionStyleProps = ComponentProps<typeof chakra.button>;
 
 const variantStyles: Record<
   SelectionToolbarVariant,
@@ -57,12 +63,12 @@ export function SelectionToolbar({
   variant = 'ink',
   'aria-label': ariaLabel,
 }: SelectionToolbarProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [placement, setPlacement] = React.useState<{ top: number; left: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState<{ top: number; left: number } | null>(null);
   // Roving tabindex per the WAI-ARIA toolbar pattern: one tab stop, arrows move focus.
-  const [focusedIndex, setFocusedIndex] = React.useState(0);
+  const [focusedIndex, setFocusedIndex] = useState(0);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     setFocusedIndex(0);
     if (!rect) {
       setPlacement(null);
@@ -91,7 +97,7 @@ export function SelectionToolbar({
     buttons?.[next]?.focus();
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') {
       event.preventDefault();
       moveFocus(1);

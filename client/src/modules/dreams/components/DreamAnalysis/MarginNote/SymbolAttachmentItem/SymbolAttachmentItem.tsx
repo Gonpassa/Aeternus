@@ -1,41 +1,31 @@
-import type { Association, AssociationKind, SymbolAttachmentDetail } from '@nee3/shared-types';
-import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Stack } from '../../../../atoms/Stack/Stack.tsx';
-import { Text } from '../../../../atoms/Text/Text.tsx';
-import { AssociationForm } from './AssociationForm.tsx';
-import type { MarginFormState } from './MarginNote.types.ts';
-import { SymbolLabel } from './SymbolLabel.tsx';
+import { X } from 'lucide-react';
+import type { SymbolAttachmentDetail } from '@nee3/shared-types';
+import { Button } from '../../../../../../atoms/Button/Button.tsx';
+import { IconButton } from '../../../../../../atoms/IconButton/IconButton.tsx';
+import { Stack } from '../../../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../../../atoms/Text/Text.tsx';
+import { useAnchorAttachmentsContext } from '../../AnchorAttachmentsContext.tsx';
+import { AssociationForm } from './AssociationForm/AssociationForm.tsx';
+import { SymbolLabel } from './SymbolLabel/SymbolLabel.tsx';
 
 export interface SymbolAttachmentItemProps {
   attachment: SymbolAttachmentDetail;
   // Whether this attachment's anchor is the active one - edit affordances only then.
   active: boolean;
-  form: MarginFormState | null;
-  onOpenForm: (form: MarginFormState) => void;
-  onCloseForm: () => void;
-  onUntag: () => void;
-  onAddAssociation: (content: string, kind: AssociationKind) => Promise<void>;
-  onUpdateAssociation: (
-    association: Association,
-    content: string,
-    kind: AssociationKind,
-  ) => Promise<void>;
-  onDeleteAssociation: (associationId: number) => void;
 }
 
 // One Symbol tag inside a margin note: the specimen label, its nested Associations, and
 // (while the anchor is active) the affordances to grow or prune them.
-export function SymbolAttachmentItem({
-  attachment,
-  active,
-  form,
-  onOpenForm,
-  onCloseForm,
-  onUntag,
-  onAddAssociation,
-  onUpdateAssociation,
-  onDeleteAssociation,
-}: SymbolAttachmentItemProps) {
+export function SymbolAttachmentItem({ attachment, active }: SymbolAttachmentItemProps) {
+  const {
+    form,
+    openForm,
+    closeForm,
+    untagSymbol,
+    addAssociation,
+    updateAssociation,
+    deleteAssociation,
+  } = useAnchorAttachmentsContext();
   const addFormOpen = form?.kind === 'addAssociation' && form.symbolAttachmentId === attachment.id;
   const editingAssociation =
     form?.kind === 'editAssociation' &&
@@ -45,7 +35,11 @@ export function SymbolAttachmentItem({
 
   return (
     <Stack direction="column" gap="1" mt="2" align="stretch">
-      <SymbolLabel name={attachment.symbolName} showRemove={active} onRemove={onUntag} />
+      <SymbolLabel
+        name={attachment.symbolName}
+        showRemove={active}
+        onRemove={() => untagSymbol(attachment.id)}
+      />
       {attachment.associations.map((association) =>
         editingAssociation?.id === association.id ? (
           <AssociationForm
@@ -53,8 +47,8 @@ export function SymbolAttachmentItem({
             initialContent={association.content}
             initialKind={association.kind}
             submitLabel="Save"
-            onSubmit={(content, kind) => onUpdateAssociation(association, content, kind)}
-            onCancel={onCloseForm}
+            onSubmit={(content, kind) => updateAssociation(association, content, kind)}
+            onCancel={closeForm}
           />
         ) : (
           <Stack key={association.id} direction="row" align="baseline" gap="2">
@@ -68,27 +62,30 @@ export function SymbolAttachmentItem({
                   size="xs"
                   variant="ghost"
                   aria-label={`Edit association ${association.content}`}
-                  onClick={() => onOpenForm({ kind: 'editAssociation', association })}
+                  onClick={() => openForm({ kind: 'editAssociation', association })}
                 >
                   Edit
                 </Button>
-                <Button
+                <IconButton
                   type="button"
+                  icon={X}
                   size="xs"
                   variant="ghost"
                   color="rust"
                   aria-label={`Delete association ${association.content}`}
-                  onClick={() => onDeleteAssociation(association.id)}
-                >
-                  ×
-                </Button>
+                  onClick={() => deleteAssociation(association.id)}
+                />
               </>
             )}
           </Stack>
         ),
       )}
       {addFormOpen && (
-        <AssociationForm submitLabel="Add" onSubmit={onAddAssociation} onCancel={onCloseForm} />
+        <AssociationForm
+          submitLabel="Add"
+          onSubmit={(content, kind) => addAssociation(attachment.id, content, kind)}
+          onCancel={closeForm}
+        />
       )}
       {active && !addFormOpen && (
         <Stack direction="row">
@@ -96,9 +93,7 @@ export function SymbolAttachmentItem({
             type="button"
             size="xs"
             variant="ghost"
-            onClick={() =>
-              onOpenForm({ kind: 'addAssociation', symbolAttachmentId: attachment.id })
-            }
+            onClick={() => openForm({ kind: 'addAssociation', symbolAttachmentId: attachment.id })}
           >
             + association
           </Button>

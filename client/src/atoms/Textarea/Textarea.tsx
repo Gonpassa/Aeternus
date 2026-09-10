@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Textarea` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import {
   Textarea as ChakraTextarea,
   type TextareaProps as ChakraTextareaProps,
@@ -10,7 +10,7 @@ import {
 
 export type TextareaProps = ChakraTextareaProps;
 
-export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   function Textarea(props, ref) {
     return (
       <ChakraTextarea

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { AssociationKind } from '@nee3/shared-types';
-import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Input } from '../../../../atoms/Input/Input.tsx';
-import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Button } from '../../../../../../../atoms/Button/Button.tsx';
+import { Input } from '../../../../../../../atoms/Input/Input.tsx';
+import { Stack } from '../../../../../../../atoms/Stack/Stack.tsx';
 import {
   ToggleButtonGroup,
   ToggleButtonGroupItem,
-} from '../../../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
+} from '../../../../../../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
 
 export interface AssociationFormProps {
   initialContent?: string;
