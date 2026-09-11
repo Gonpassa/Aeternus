@@ -54,8 +54,6 @@ export function Tabs({ value, onChange, 'aria-label': ariaLabel, children }: Tab
     };
   }, []);
 
-  const onTabFocus = useCallback((tabValue: string) => setFocusedValue(tabValue), []);
-
   // Focus moving from one tab to the next fires blur before focus, so the guard keeps the
   // departing tab from clearing a tab stop the arriving one has already claimed.
   const onTabBlur = useCallback((tabValue: string) => {
@@ -63,8 +61,8 @@ export function Tabs({ value, onChange, 'aria-label': ariaLabel, children }: Tab
   }, []);
 
   const contextValue = useMemo<TabsContextValue>(
-    () => ({ value, rovingValue, onChange, onTabFocus, onTabBlur, register }),
-    [value, rovingValue, onChange, onTabFocus, onTabBlur, register],
+    () => ({ value, rovingValue, onChange, onTabFocus: setFocusedValue, onTabBlur, register }),
+    [value, rovingValue, onChange, onTabBlur, register],
   );
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
