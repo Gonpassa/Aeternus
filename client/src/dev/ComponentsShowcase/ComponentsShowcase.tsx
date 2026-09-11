@@ -8,6 +8,7 @@ import { IconButtonDemo } from './IconButtonDemo.tsx';
 import { ToggleButtonDemo } from './ToggleButtonDemo.tsx';
 import { ToggleButtonGroupDemo } from './ToggleButtonGroupDemo.tsx';
 import { ToolbarActionButtonDemo } from './ToolbarActionButtonDemo.tsx';
+import { TabsDemo } from './TabsDemo.tsx';
 import { FormFieldDemo } from './FormFieldDemo.tsx';
 import { TooltipDemo } from './TooltipDemo.tsx';
 import { PopoverDemo } from './PopoverDemo.tsx';
@@ -41,6 +42,7 @@ export function ComponentsShowcase() {
       <ToggleButtonDemo />
       <ToggleButtonGroupDemo />
       <ToolbarActionButtonDemo />
+      <TabsDemo />
       <FormFieldDemo />
       <TooltipDemo />
       <PopoverDemo />
