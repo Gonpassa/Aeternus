@@ -153,6 +153,17 @@ const anchor: AnchorWithAttachments = {
       updatedAt: '2026-08-01T00:00:00.000Z',
     },
   ],
+  associations: [
+    {
+      id: 100,
+      anchorId: 7,
+      symbolAttachmentId: null,
+      content: 'a charged moment, not yet named',
+      kind: 'personal',
+      createdAt: '2026-08-01T00:00:00.000Z',
+      updatedAt: '2026-08-01T00:00:00.000Z',
+    },
+  ],
   symbolAttachments: [
     {
       id: 200,
@@ -163,6 +174,7 @@ const anchor: AnchorWithAttachments = {
       associations: [
         {
           id: 300,
+          anchorId: 7,
           symbolAttachmentId: 200,
           content: 'guardian figure',
           kind: 'personal',
@@ -255,6 +267,7 @@ describe('DreamAnalysis', () => {
       dreamId: 1,
       createdAt: '2026-08-01T00:00:00.000Z',
       emotionalBeats: [],
+      associations: [],
       symbolAttachments: [],
     };
 
@@ -395,11 +408,11 @@ describe('DreamAnalysis', () => {
     expect(untagSymbolMutate).toHaveBeenCalledWith(200);
   });
 
-  it('adds an association with a chosen kind', async () => {
+  it('adds an association naming a symbol tag', async () => {
     renderAnalysis();
 
     activateAnchor();
-    fireEvent.click(screen.getByText('+ association'));
+    fireEvent.click(screen.getByLabelText('Add association to Ocean'));
 
     fireEvent.change(screen.getByLabelText('Association'), {
       target: { value: 'the sea as the unconscious' },
@@ -409,8 +422,41 @@ describe('DreamAnalysis', () => {
 
     await waitFor(() =>
       expect(createAssociationMutateAsync).toHaveBeenCalledWith({
-        symbolAttachmentId: 200,
-        input: { content: 'the sea as the unconscious', kind: 'cultural' },
+        anchorId: 7,
+        input: {
+          content: 'the sea as the unconscious',
+          kind: 'cultural',
+          symbolAttachmentId: 200,
+        },
+      }),
+    );
+  });
+
+  it('adds an anchor-level association without naming a symbol, above the symbol tags', async () => {
+    renderAnalysis();
+
+    // Anchor-level associations render above the anchor's Symbol tags (issue #52).
+    const associationTexts = screen
+      .getAllByText(/a charged moment, not yet named|Ocean/)
+      .map((el) => el.textContent);
+    expect(associationTexts).toEqual(['• a charged moment, not yet named', 'Ocean']);
+
+    activateAnchor();
+    fireEvent.click(screen.getByLabelText(/Add association to .*flying over/i));
+
+    fireEvent.change(screen.getByLabelText('Association'), {
+      target: { value: 'something charged I cannot yet name' },
+    });
+    fireEvent.click(screen.getByText('Add'));
+
+    await waitFor(() =>
+      expect(createAssociationMutateAsync).toHaveBeenCalledWith({
+        anchorId: 7,
+        input: {
+          content: 'something charged I cannot yet name',
+          kind: 'personal',
+          symbolAttachmentId: null,
+        },
       }),
     );
   });

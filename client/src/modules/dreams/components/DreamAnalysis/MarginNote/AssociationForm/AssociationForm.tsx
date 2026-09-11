@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { AssociationKind } from '@nee3/shared-types';
-import { Button } from '../../../../../../../atoms/Button/Button.tsx';
-import { Input } from '../../../../../../../atoms/Input/Input.tsx';
-import { Stack } from '../../../../../../../atoms/Stack/Stack.tsx';
+import { Button } from '../../../../../../atoms/Button/Button.tsx';
+import { Input } from '../../../../../../atoms/Input/Input.tsx';
+import { Stack } from '../../../../../../atoms/Stack/Stack.tsx';
 import {
   ToggleButtonGroup,
   ToggleButtonGroupItem,
-} from '../../../../../../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
+} from '../../../../../../atoms/ToggleButtonGroup/ToggleButtonGroup.tsx';
 
 export interface AssociationFormProps {
   initialContent?: string;
@@ -16,8 +16,8 @@ export interface AssociationFormProps {
   onCancel: () => void;
 }
 
-// Inline composer shared by the add and edit flows for a Symbol's Associations - a
-// freeform line of content plus its personal/cultural kind.
+// Inline composer shared by the add and edit flows for both an Anchor's and a Symbol's
+// Associations - a freeform line of content plus its personal/cultural kind.
 export function AssociationForm({
   initialContent = '',
   initialKind = 'personal',

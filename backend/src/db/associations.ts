@@ -1,26 +1,21 @@
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from './index';
-import {
-  associations,
-  symbolAttachments,
-  anchors,
-  dreams,
-  Association,
-  NewAssociation,
-} from './schema';
+import { associations, anchors, dreams, Association, NewAssociation } from './schema';
 
 export const createAssociation = async ({
+  anchorId,
   symbolAttachmentId,
   content,
   kind,
 }: {
-  symbolAttachmentId: number;
+  anchorId: number;
+  symbolAttachmentId: number | null;
   content: string;
   kind: NewAssociation['kind'];
 }): Promise<Association> => {
   const [created] = await db
     .insert(associations)
-    .values({ symbolAttachmentId, content, kind })
+    .values({ anchorId, symbolAttachmentId, content, kind })
     .returning();
   if (!created) {
     throw new Error('Insert did not return a row');
@@ -28,8 +23,9 @@ export const createAssociation = async ({
   return created;
 };
 
-// Joins through symbol attachments, anchors, and dreams to verify the requesting user
-// owns the dream at the top of this association's ownership chain.
+// Joins through anchors and dreams to verify the requesting user owns the dream at the
+// top of this association's ownership chain - every association carries its anchorId
+// directly, so this no longer needs to go through symbol attachments.
 export const findAssociationOwnedByUser = async ({
   id,
   userId,
@@ -40,6 +36,7 @@ export const findAssociationOwnedByUser = async ({
   const [row] = await db
     .select({
       id: associations.id,
+      anchorId: associations.anchorId,
       symbolAttachmentId: associations.symbolAttachmentId,
       content: associations.content,
       kind: associations.kind,
@@ -47,24 +44,23 @@ export const findAssociationOwnedByUser = async ({
       updatedAt: associations.updatedAt,
     })
     .from(associations)
-    .innerJoin(symbolAttachments, eq(associations.symbolAttachmentId, symbolAttachments.id))
-    .innerJoin(anchors, eq(symbolAttachments.anchorId, anchors.id))
+    .innerJoin(anchors, eq(associations.anchorId, anchors.id))
     .innerJoin(dreams, eq(anchors.dreamId, dreams.id))
     .where(and(eq(associations.id, id), eq(dreams.userId, userId)));
   return row;
 };
 
-export const listAssociationsBySymbolAttachments = async ({
-  symbolAttachmentIds,
+export const listAssociationsByAnchors = async ({
+  anchorIds,
 }: {
-  symbolAttachmentIds: number[];
+  anchorIds: number[];
 }): Promise<Association[]> => {
-  if (symbolAttachmentIds.length === 0) return [];
+  if (anchorIds.length === 0) return [];
   return (
     db
       .select()
       .from(associations)
-      .where(inArray(associations.symbolAttachmentId, symbolAttachmentIds))
+      .where(inArray(associations.anchorId, anchorIds))
       // Explicit creation order - without it Postgres returns physical tuple order, which
       // shifts when an edit rewrites a row.
       .orderBy(asc(associations.createdAt), asc(associations.id))

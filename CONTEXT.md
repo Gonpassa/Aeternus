@@ -52,7 +52,9 @@ A freeform, self-classified emotion label a user attaches to an Anchor, marking 
 _Avoid_: Mood, tag
 
 **Symbol**:
-The name of a recurring dream image, drawn from a controlled-but-growing vocabulary (autocomplete-suggested from names used in prior Dreams, exact match, case-insensitive) so recurrence can be tracked reliably. Attached to an Anchor; an Association is always attached to a Symbol.
+The name of a recurring dream image, drawn from a controlled-but-growing vocabulary (autocomplete-suggested from names used in prior Dreams, exact match, case-insensitive) so recurrence can be tracked reliably.
+Attached to an Anchor.
+Naming a Symbol is an interpretive move made downstream of gathering Associations, so a Symbol is not a precondition for recording one.
 _Avoid_: Tag, image (ambiguous with a picture)
 
 **Analytic (reductive) analysis**:
@@ -68,5 +70,7 @@ One instance of Analytic or Synthetic analysis added to a Dream. Append-only - r
 _Avoid_: Interpretation, reading (too generic - always specify Analytic or Synthetic)
 
 **Association** (amplification):
-The dreamer's personal associations to a specific Symbol at an Anchor, optionally widened with cultural/mythological/archetypal parallels. Distinct from Analytic/Synthetic analysis - associations are raw material gathered per-Symbol, not a conclusion drawn about the dream.
+The dreamer's personal associations to an Anchor, optionally widened with cultural/mythological/archetypal parallels.
+Attached to the Anchor directly; naming the Symbol it belongs to is optional, added once the dreamer names a recurring image rather than as a precondition for recording the association.
+Distinct from Analytic/Synthetic analysis - associations are raw material gathered per-Anchor, not a conclusion drawn about the dream.
 _Avoid_: Interpretation, meaning

@@ -175,14 +175,10 @@ export const useUntagSymbol = (dreamId: number) => {
 
 export const useCreateAssociation = (dreamId: number) => {
   const queryClient = useQueryClient();
-  return useMutation<
-    Association,
-    Error,
-    { symbolAttachmentId: number; input: CreateAssociationRequest }
-  >({
-    mutationFn: async ({ symbolAttachmentId, input }) => {
+  return useMutation<Association, Error, { anchorId: number; input: CreateAssociationRequest }>({
+    mutationFn: async ({ anchorId, input }) => {
       const { data } = await apiClient.post<{ association: Association }>(
-        endpoints.symbolAttachmentAssociations(symbolAttachmentId),
+        endpoints.anchorAssociations(anchorId),
         input,
       );
       return data.association;

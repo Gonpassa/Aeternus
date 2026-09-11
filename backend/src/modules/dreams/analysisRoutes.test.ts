@@ -110,8 +110,8 @@ describe('dream analysis routes (integration)', () => {
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
       await aliceAgent
-        .post(`/api/symbol-attachments/${first.body.symbolAttachment.id}/associations`)
-        .send({ content: 'depth' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: first.body.symbolAttachment.id });
 
       const again = await aliceAgent
         .post(`/api/anchors/${anchorId}/symbols`)
@@ -192,8 +192,8 @@ describe('dream analysis routes (integration)', () => {
         .send({ name: 'Water' });
       const attachmentId = tagRes.body.symbolAttachment.id;
       const assocRes = await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
-        .send({ content: 'The lake at my grandparents house' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'The lake at my grandparents house', symbolAttachmentId: attachmentId });
       const associationId = assocRes.body.association.id;
 
       const deleteRes = await aliceAgent.delete(`/api/symbol-attachments/${attachmentId}`);
@@ -228,20 +228,19 @@ describe('dream analysis routes (integration)', () => {
     });
   });
 
-  describe('POST /api/symbol-attachments/:id/associations', () => {
-    it('creates a personal association by default', async () => {
+  describe('POST /api/anchors/:anchorId/associations', () => {
+    it('creates a personal, anchor-level association by default, with no symbol tag', async () => {
       const { anchorId } = await createDreamWithAnchor(aliceAgent);
-      const tagRes = await aliceAgent
-        .post(`/api/anchors/${anchorId}/symbols`)
-        .send({ name: 'Water' });
 
       const res = await aliceAgent
-        .post(`/api/symbol-attachments/${tagRes.body.symbolAttachment.id}/associations`)
-        .send({ content: 'The lake at my grandparents house' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'Something charged I cannot yet name' });
       expect(res.status).toBe(201);
       expect(res.body.association).toEqual(
         expect.objectContaining({
-          content: 'The lake at my grandparents house',
+          anchorId,
+          symbolAttachmentId: null,
+          content: 'Something charged I cannot yet name',
           kind: 'personal',
         }),
       );
@@ -249,44 +248,78 @@ describe('dream analysis routes (integration)', () => {
 
     it('creates a cultural association when marked as one', async () => {
       const { anchorId } = await createDreamWithAnchor(aliceAgent);
-      const tagRes = await aliceAgent
-        .post(`/api/anchors/${anchorId}/symbols`)
-        .send({ name: 'Water' });
 
       const res = await aliceAgent
-        .post(`/api/symbol-attachments/${tagRes.body.symbolAttachment.id}/associations`)
+        .post(`/api/anchors/${anchorId}/associations`)
         .send({ content: 'The unconscious, in the alchemical bath', kind: 'cultural' });
       expect(res.status).toBe(201);
       expect(res.body.association.kind).toBe('cultural');
     });
 
-    it('returns 400 for blank content or an unknown kind', async () => {
+    it('also names a Symbol tag when a symbolAttachmentId is given', async () => {
       const { anchorId } = await createDreamWithAnchor(aliceAgent);
       const tagRes = await aliceAgent
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
-      const attachmentId = tagRes.body.symbolAttachment.id;
+
+      const res = await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: tagRes.body.symbolAttachment.id });
+      expect(res.status).toBe(201);
+      expect(res.body.association).toEqual(
+        expect.objectContaining({
+          anchorId,
+          symbolAttachmentId: tagRes.body.symbolAttachment.id,
+        }),
+      );
+    });
+
+    it('returns 400 for blank content or an unknown kind', async () => {
+      const { anchorId } = await createDreamWithAnchor(aliceAgent);
 
       const blankRes = await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
+        .post(`/api/anchors/${anchorId}/associations`)
         .send({ content: '  ' });
       expect(blankRes.status).toBe(400);
 
       const kindRes = await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
+        .post(`/api/anchors/${anchorId}/associations`)
         .send({ content: 'fine', kind: 'archetypal' });
       expect(kindRes.status).toBe(400);
     });
 
-    it("404s when attaching to another user's tag", async () => {
-      const { anchorId } = await createDreamWithAnchor(aliceAgent);
+    it('returns 400 when the symbolAttachmentId names a tag on a different anchor', async () => {
+      const first = await createDreamWithAnchor(aliceAgent);
+      const second = await createDreamWithAnchor(aliceAgent);
       const tagRes = await aliceAgent
-        .post(`/api/anchors/${anchorId}/symbols`)
+        .post(`/api/anchors/${first.anchorId}/symbols`)
         .send({ name: 'Water' });
+
+      const res = await aliceAgent
+        .post(`/api/anchors/${second.anchorId}/associations`)
+        .send({ content: 'drifted', symbolAttachmentId: tagRes.body.symbolAttachment.id });
+      expect(res.status).toBe(400);
+    });
+
+    it("404s when attaching to another user's anchor", async () => {
+      const { anchorId } = await createDreamWithAnchor(aliceAgent);
       const res = await bobAgent
-        .post(`/api/symbol-attachments/${tagRes.body.symbolAttachment.id}/associations`)
+        .post(`/api/anchors/${anchorId}/associations`)
         .send({ content: 'hijacked' });
       expect(res.status).toBe(404);
+    });
+
+    it("400s when the symbolAttachmentId names another user's tag", async () => {
+      const aliceSetup = await createDreamWithAnchor(aliceAgent);
+      const bobSetup = await createDreamWithAnchor(bobAgent);
+      const tagRes = await aliceAgent
+        .post(`/api/anchors/${aliceSetup.anchorId}/symbols`)
+        .send({ name: 'Water' });
+
+      const res = await bobAgent
+        .post(`/api/anchors/${bobSetup.anchorId}/associations`)
+        .send({ content: 'hijacked', symbolAttachmentId: tagRes.body.symbolAttachment.id });
+      expect(res.status).toBe(400);
     });
   });
 
@@ -297,8 +330,8 @@ describe('dream analysis routes (integration)', () => {
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
       const assocRes = await aliceAgent
-        .post(`/api/symbol-attachments/${tagRes.body.symbolAttachment.id}/associations`)
-        .send({ content: 'The lake' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'The lake', symbolAttachmentId: tagRes.body.symbolAttachment.id });
       return { dreamId, associationId: assocRes.body.association.id as number };
     };
 
@@ -437,8 +470,12 @@ describe('dream analysis routes (integration)', () => {
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
       await aliceAgent
-        .post(`/api/symbol-attachments/${tagRes.body.symbolAttachment.id}/associations`)
-        .send({ content: 'The lake', kind: 'personal' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({
+          content: 'The lake',
+          kind: 'personal',
+          symbolAttachmentId: tagRes.body.symbolAttachment.id,
+        });
       await aliceAgent
         .post(`/api/dreams/${dreamId}/analysis-passes`)
         .send({ type: 'synthetic', content: 'Toward the open.' });
@@ -456,6 +493,30 @@ describe('dream analysis routes (integration)', () => {
       ]);
     });
 
+    it('lists anchor-level associations above symbol attachments, separate from named ones', async () => {
+      const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
+      const tagRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'Water' });
+      await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'Raw material, not yet named' });
+      await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: tagRes.body.symbolAttachment.id });
+
+      const res = await aliceAgent.get(`/api/dreams/${dreamId}`);
+      expect(res.body.anchors[0].associations).toEqual([
+        expect.objectContaining({
+          content: 'Raw material, not yet named',
+          symbolAttachmentId: null,
+        }),
+      ]);
+      expect(res.body.anchors[0].symbolAttachments[0].associations).toEqual([
+        expect.objectContaining({ content: 'depth' }),
+      ]);
+    });
+
     it('keeps associations in creation order after one is edited', async () => {
       const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
       const tagRes = await aliceAgent
@@ -463,14 +524,14 @@ describe('dream analysis routes (integration)', () => {
         .send({ name: 'Water' });
       const attachmentId: number = tagRes.body.symbolAttachment.id;
       const first = await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
-        .send({ content: 'depth' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: attachmentId });
       await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
-        .send({ content: 'the lake' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'the lake', symbolAttachmentId: attachmentId });
       await aliceAgent
-        .post(`/api/symbol-attachments/${attachmentId}/associations`)
-        .send({ content: 'drowning' });
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'drowning', symbolAttachmentId: attachmentId });
 
       // A PATCH rewrites the row's physical tuple; without an explicit ORDER BY the
       // edited association would jump to the end of the refetched list.
@@ -486,11 +547,17 @@ describe('dream analysis routes (integration)', () => {
       ).toEqual(['depth, revised', 'the lake', 'drowning']);
     });
 
-    it('deleting an anchor cascades its symbol attachments but keeps its passes, unanchored', async () => {
+    it('deleting an anchor cascades its symbol attachments and all its associations, but keeps its passes, unanchored', async () => {
       const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
       const tagRes = await aliceAgent
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
+      const anchorAssocRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'Unnamed as yet' });
+      const symbolAssocRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: tagRes.body.symbolAttachment.id });
       await aliceAgent
         .post(`/api/dreams/${dreamId}/analysis-passes`)
         .send({ type: 'analytic', content: 'Anchored reading.', anchorId });
@@ -501,11 +568,52 @@ describe('dream analysis routes (integration)', () => {
         `/api/symbol-attachments/${tagRes.body.symbolAttachment.id}`,
       );
       expect(attachmentRes.status).toBe(404);
+      expect(
+        (
+          await aliceAgent.patch(`/api/associations/${anchorAssocRes.body.association.id}`).send({
+            content: 'still here?',
+          })
+        ).status,
+      ).toBe(404);
+      expect(
+        (
+          await aliceAgent.patch(`/api/associations/${symbolAssocRes.body.association.id}`).send({
+            content: 'still here?',
+          })
+        ).status,
+      ).toBe(404);
 
       const dreamRes = await aliceAgent.get(`/api/dreams/${dreamId}`);
       expect(dreamRes.body.anchors).toEqual([]);
       expect(dreamRes.body.analysisPasses).toEqual([
         expect.objectContaining({ content: 'Anchored reading.', anchorId: null }),
+      ]);
+    });
+
+    it('deleting a Symbol tag removes only the associations that named it, leaving anchor-level ones', async () => {
+      const { dreamId, anchorId } = await createDreamWithAnchor(aliceAgent);
+      const tagRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/symbols`)
+        .send({ name: 'Water' });
+      const anchorAssocRes = await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'Unnamed as yet' });
+      await aliceAgent
+        .post(`/api/anchors/${anchorId}/associations`)
+        .send({ content: 'depth', symbolAttachmentId: tagRes.body.symbolAttachment.id });
+
+      const deleteRes = await aliceAgent.delete(
+        `/api/symbol-attachments/${tagRes.body.symbolAttachment.id}`,
+      );
+      expect(deleteRes.status).toBe(204);
+
+      const dreamRes = await aliceAgent.get(`/api/dreams/${dreamId}`);
+      expect(dreamRes.body.anchors[0].symbolAttachments).toEqual([]);
+      expect(dreamRes.body.anchors[0].associations).toEqual([
+        expect.objectContaining({
+          id: anchorAssocRes.body.association.id,
+          content: 'Unnamed as yet',
+        }),
       ]);
     });
   });

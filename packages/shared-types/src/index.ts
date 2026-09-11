@@ -148,7 +148,8 @@ export type AssociationKind = 'personal' | 'cultural';
 
 export interface Association {
   id: number;
-  symbolAttachmentId: number;
+  anchorId: number;
+  symbolAttachmentId: number | null;
   content: string;
   kind: AssociationKind;
   createdAt: string;
@@ -169,6 +170,7 @@ export interface CreateSymbolAttachmentRequest {
 export interface CreateAssociationRequest {
   content: string;
   kind?: AssociationKind;
+  symbolAttachmentId?: number | null;
 }
 
 export interface UpdateAssociationRequest {
@@ -194,6 +196,9 @@ export interface CreateAnalysisPassRequest {
 }
 
 export interface AnchorWithAttachments extends AnchorWithBeats {
+  // Associations attached directly to this Anchor, without naming a Symbol - rendered
+  // above the Symbol tags below (issue #52).
+  associations: Association[];
   symbolAttachments: SymbolAttachmentDetail[];
 }
 

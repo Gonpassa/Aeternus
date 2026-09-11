@@ -41,16 +41,26 @@ const isAssociationKind = (value: unknown): value is (typeof ASSOCIATION_KINDS)[
   typeof value === 'string' && (ASSOCIATION_KINDS as readonly string[]).includes(value);
 
 // `kind` is optional in both create (defaults to personal) and update (keeps the stored
-// kind); when present it must be a known kind.
+// kind); when present it must be a known kind. `symbolAttachmentId` is only meaningful on
+// create - naming the Symbol tag this Association also belongs to is optional, since every
+// Association already belongs to an Anchor via the URL param.
 export const validateAssociationInput = (input: {
   content?: unknown;
   kind?: unknown;
+  symbolAttachmentId?: unknown;
 }): ValidationResult => {
   if (!isNonEmptyString(input.content)) {
     return { valid: false, error: 'Association content is required.' };
   }
   if (input.kind !== undefined && !isAssociationKind(input.kind)) {
     return { valid: false, error: 'Association kind must be personal or cultural.' };
+  }
+  if (
+    input.symbolAttachmentId !== undefined &&
+    input.symbolAttachmentId !== null &&
+    typeof input.symbolAttachmentId !== 'number'
+  ) {
+    return { valid: false, error: 'symbolAttachmentId must be a number.' };
   }
   return { valid: true };
 };

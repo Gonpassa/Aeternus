@@ -78,6 +78,23 @@ describe('validateAssociationInput', () => {
       error: 'Association kind must be personal or cultural.',
     });
   });
+
+  it('accepts an optional symbolAttachmentId, with or without one', () => {
+    expect(validateAssociationInput({ content: 'depth', symbolAttachmentId: 4 })).toEqual({
+      valid: true,
+    });
+    expect(validateAssociationInput({ content: 'depth', symbolAttachmentId: null })).toEqual({
+      valid: true,
+    });
+    expect(validateAssociationInput({ content: 'depth' })).toEqual({ valid: true });
+  });
+
+  it('rejects a non-numeric symbolAttachmentId', () => {
+    expect(validateAssociationInput({ content: 'depth', symbolAttachmentId: '4' })).toEqual({
+      valid: false,
+      error: 'symbolAttachmentId must be a number.',
+    });
+  });
 });
 
 describe('validateAnalysisPassInput', () => {
