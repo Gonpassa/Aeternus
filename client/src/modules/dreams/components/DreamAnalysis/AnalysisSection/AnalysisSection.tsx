@@ -14,6 +14,7 @@ import {
   createListCollection,
 } from '../../../../../atoms/Select/Select.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
+import { Tab } from '../../../../../atoms/Tab/Tab.tsx';
 import { Tabs } from '../../../../../atoms/Tabs/Tabs.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { Textarea } from '../../../../../atoms/Textarea/Textarea.tsx';
@@ -23,11 +24,6 @@ import { truncateExcerpt } from '../DreamAnalysis.utils.ts';
 // text selection the "add analytic note" toolbar action carried here.
 export const WHOLE_DREAM_OPTION = '';
 export const PENDING_ANCHOR_OPTION = 'pending';
-
-const TAB_OPTIONS = [
-  { value: 'analytic', label: 'Analytic' },
-  { value: 'synthetic', label: 'Synthetic' },
-];
 
 const TAB_DESCRIPTIONS: Record<AnalysisPassType, string> = {
   analytic: 'Tracing elements backward to their sources',
@@ -122,11 +118,13 @@ export function AnalysisSection({
       </Text>
 
       <Tabs
-        options={TAB_OPTIONS}
         value={tab}
         onChange={(value) => onTabChange(value as AnalysisPassType)}
         aria-label="Analysis pass views"
-      />
+      >
+        <Tab value="analytic" label="Analytic" />
+        <Tab value="synthetic" label="Synthetic" />
+      </Tabs>
       <Text textStyle="label" color="inkSoft" mt="2" mb="6">
         {TAB_DESCRIPTIONS[tab]}
       </Text>
