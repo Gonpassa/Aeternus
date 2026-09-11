@@ -20,9 +20,9 @@ export const endpoints = {
   anchor: (id: number) => `/anchors/${id}`,
   anchorEmotionalBeats: (id: number) => `/anchors/${id}/emotional-beats`,
   anchorSymbols: (id: number) => `/anchors/${id}/symbols`,
+  anchorAssociations: (id: number) => `/anchors/${id}/associations`,
   emotionalBeat: (id: number) => `/emotional-beats/${id}`,
   symbols: '/symbols',
   symbolAttachment: (id: number) => `/symbol-attachments/${id}`,
-  symbolAttachmentAssociations: (id: number) => `/symbol-attachments/${id}/associations`,
   association: (id: number) => `/associations/${id}`,
 } as const;

@@ -74,6 +74,7 @@ const anchors: AnchorWithAttachments[] = [
         updatedAt: '2026-08-01T08:06:00.000Z',
       },
     ],
+    associations: [],
     symbolAttachments: [
       {
         id: 200,
@@ -84,6 +85,7 @@ const anchors: AnchorWithAttachments[] = [
         associations: [
           {
             id: 300,
+            anchorId: 7,
             symbolAttachmentId: 200,
             content: 'the unconscious rising',
             kind: 'personal',

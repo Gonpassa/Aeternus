@@ -102,11 +102,12 @@ export function useAnchorAttachments(dream: Dream): AnchorAttachmentsState {
       },
       untagSymbol,
       addAssociation: async (
-        symbolAttachmentId: number,
+        anchorId: number,
+        symbolAttachmentId: number | null,
         content: string,
         kind: AssociationKind,
       ) => {
-        await createAssociation({ symbolAttachmentId, input: { content, kind } });
+        await createAssociation({ anchorId, input: { content, kind, symbolAttachmentId } });
         closeForm();
       },
       updateAssociation: async (association, content: string, kind: AssociationKind) => {

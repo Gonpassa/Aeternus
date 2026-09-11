@@ -6,7 +6,8 @@ import type { Association, AssociationKind, EmotionalBeat } from '@nee3/shared-t
 export type MarginFormState =
   | { kind: 'addBeat'; anchorId: number }
   | { kind: 'addSymbol'; anchorId: number }
-  | { kind: 'addAssociation'; symbolAttachmentId: number }
+  // symbolAttachmentId is null for an anchor-level Association (no Symbol named yet).
+  | { kind: 'addAssociation'; anchorId: number; symbolAttachmentId: number | null }
   | { kind: 'editAssociation'; association: Association };
 
 // Everything a margin note needs that is the same for every margin note. What varies per
@@ -28,7 +29,8 @@ export interface AnchorAttachments {
   tagSymbol: (anchorId: number, name: string) => Promise<void>;
   untagSymbol: (symbolAttachmentId: number) => void;
   addAssociation: (
-    symbolAttachmentId: number,
+    anchorId: number,
+    symbolAttachmentId: number | null,
     content: string,
     kind: AssociationKind,
   ) => Promise<void>;

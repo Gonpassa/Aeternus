@@ -20,7 +20,7 @@ import {
 } from '../../db/anchors';
 import { listEmotionalBeatsByAnchors } from '../../db/emotionalBeats';
 import { listSymbolAttachmentsByAnchors } from '../../db/symbolAttachments';
-import { listAssociationsBySymbolAttachments } from '../../db/associations';
+import { listAssociationsByAnchors } from '../../db/associations';
 import {
   createAnalysisPass as createAnalysisPassRecord,
   listAnalysisPassesByDream,
@@ -84,13 +84,17 @@ export const getDream = async (req: Request, res: Response, next: NextFunction):
     const anchorIds = dreamAnchors.map((anchor) => anchor.id);
     const beats = await listEmotionalBeatsByAnchors({ anchorIds });
     const attachments = await listSymbolAttachmentsByAnchors({ anchorIds });
-    const associations = await listAssociationsBySymbolAttachments({
-      symbolAttachmentIds: attachments.map((attachment) => attachment.id),
-    });
+    const associations = await listAssociationsByAnchors({ anchorIds });
     const analysisPasses = await listAnalysisPassesByDream({ dreamId });
     const anchors = dreamAnchors.map((anchor) => ({
       ...anchor,
       emotionalBeats: beats.filter((beat) => beat.anchorId === anchor.id),
+      // Anchor-level associations (no named Symbol) render above the anchor's Symbol tags,
+      // matching the order the analysis actually happens (issue #52).
+      associations: associations.filter(
+        (association) =>
+          association.anchorId === anchor.id && association.symbolAttachmentId === null,
+      ),
       symbolAttachments: attachments
         .filter((attachment) => attachment.anchorId === anchor.id)
         .map((attachment) => ({

@@ -10,6 +10,8 @@ import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { useAnchorAttachmentsContext } from '../AnchorAttachmentsContext.tsx';
 import { truncateExcerpt } from '../DreamAnalysis.utils.ts';
 import { SymbolAutocompleteInput } from '../SymbolAutocompleteInput/SymbolAutocompleteInput.tsx';
+import { AssociationForm } from './AssociationForm/AssociationForm.tsx';
+import { AssociationsList } from './AssociationsList/AssociationsList.tsx';
 import { BeatForm } from './BeatForm/BeatForm.tsx';
 import { RemoveNoteDialog } from './RemoveNoteDialog/RemoveNoteDialog.tsx';
 import { SymbolAttachmentItem } from './SymbolAttachmentItem/SymbolAttachmentItem.tsx';
@@ -37,6 +39,7 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
     editBeat,
     deleteBeat,
     tagSymbol,
+    addAssociation,
     removeNote,
   } = useAnchorAttachmentsContext();
   const noteRef = useRef<HTMLDivElement>(null);
@@ -46,6 +49,10 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
   const active = anchor.id === activeAnchorId;
   const beatFormOpen = form?.kind === 'addBeat' && form.anchorId === anchor.id;
   const symbolFormOpen = form?.kind === 'addSymbol' && form.anchorId === anchor.id;
+  const associationFormOpen =
+    form?.kind === 'addAssociation' &&
+    form.anchorId === anchor.id &&
+    form.symbolAttachmentId === null;
 
   // Notes sit in document order rather than level with their passage (ADR-0008), so a
   // note activated from the manuscript can be off-screen. Bring it into view - 'nearest'
@@ -107,6 +114,11 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
         </Stack>
       ))}
 
+      {/* Anchor-level Associations render above the Symbol tags, matching the order the
+          analysis actually happens: passage, raw associations, then named symbols
+          (issue #52). */}
+      <AssociationsList associations={anchor.associations} active={active} />
+
       {anchor.symbolAttachments.map((attachment) => (
         <SymbolAttachmentItem key={attachment.id} attachment={attachment} active={active} />
       ))}
@@ -122,6 +134,13 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
             onCancel={closeForm}
           />
         </Stack>
+      )}
+      {associationFormOpen && (
+        <AssociationForm
+          submitLabel="Add"
+          onSubmit={(content, kind) => addAssociation(anchor.id, null, content, kind)}
+          onCancel={closeForm}
+        />
       )}
 
       {active && !form && (
@@ -141,6 +160,17 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
             onClick={() => openForm({ kind: 'addSymbol', anchorId: anchor.id })}
           >
             + symbol
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            aria-label={`Add association to ${truncateExcerpt(excerpt)}`}
+            onClick={() =>
+              openForm({ kind: 'addAssociation', anchorId: anchor.id, symbolAttachmentId: null })
+            }
+          >
+            + association
           </Button>
           <IconButton
             type="button"

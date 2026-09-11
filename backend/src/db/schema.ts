@@ -9,6 +9,7 @@ import {
   timestamp,
   unique,
   uniqueIndex,
+  foreignKey,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -142,6 +143,13 @@ export const symbolAttachments = pgTable(
       table.symbolId,
       table.anchorId,
     ),
+    // Lets associations.symbol_attachment_id + associations.anchor_id reference this pair
+    // together as a composite FK below, so "this symbol tag belongs to this anchor" is a
+    // declarative constraint rather than a hand-written trigger.
+    idAnchorUnique: uniqueIndex('symbol_attachments_id_anchor_id_unique').on(
+      table.id,
+      table.anchorId,
+    ),
   }),
 );
 
@@ -152,16 +160,33 @@ export type NewSymbolAttachment = typeof symbolAttachments.$inferInsert;
 // amplification so it stays visually and conceptually separate (CONTEXT.md, Association).
 export const associationKindEnum = pgEnum('association_kind', ['personal', 'cultural']);
 
-export const associations = pgTable('associations', {
-  id: serial('id').primaryKey(),
-  symbolAttachmentId: integer('symbol_attachment_id')
-    .notNull()
-    .references(() => symbolAttachments.id, { onDelete: 'cascade' }),
-  content: text('content').notNull(),
-  kind: associationKindEnum('kind').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+// Every Association belongs to exactly one Anchor; naming a Symbol at that Anchor
+// (symbolAttachmentId) is an optional, downstream move, not a precondition - the ownership
+// chain stays a single hop from the Anchor regardless of kind (CONTEXT.md, Association). A
+// composite FK (symbolAttachmentId, anchorId) -> symbolAttachments(id, anchorId) enforces
+// that a non-null symbolAttachmentId names an attachment on this same anchorId; Postgres
+// skips that check entirely when symbolAttachmentId is null (MATCH SIMPLE), which is exactly
+// the anchor-level case.
+export const associations = pgTable(
+  'associations',
+  {
+    id: serial('id').primaryKey(),
+    anchorId: integer('anchor_id')
+      .notNull()
+      .references(() => anchors.id, { onDelete: 'cascade' }),
+    symbolAttachmentId: integer('symbol_attachment_id'),
+    content: text('content').notNull(),
+    kind: associationKindEnum('kind').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    symbolAttachmentAnchorFk: foreignKey({
+      columns: [table.symbolAttachmentId, table.anchorId],
+      foreignColumns: [symbolAttachments.id, symbolAttachments.anchorId],
+    }).onDelete('cascade'),
+  }),
+);
 
 export type Association = typeof associations.$inferSelect;
 export type NewAssociation = typeof associations.$inferInsert;
