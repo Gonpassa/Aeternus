@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { ensureAuth } from '../../middleware/auth';
-import { listDreams, createDream, getDream, updateDream, createAnchor } from './controller';
+import {
+  listDreams,
+  createDream,
+  getDream,
+  updateDream,
+  createAnchor,
+  createAnalysisPass,
+} from './controller';
 
 const router = Router();
 
@@ -11,5 +18,6 @@ router.post('/', createDream);
 router.get('/:dreamId', getDream);
 router.patch('/:dreamId', updateDream);
 router.post('/:dreamId/anchors', createAnchor);
+router.post('/:dreamId/analysis-passes', createAnalysisPass);
 
 export default router;

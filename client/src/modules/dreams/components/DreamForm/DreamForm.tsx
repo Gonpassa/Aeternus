@@ -1,7 +1,8 @@
-import { useEffect, useState, type FormEventHandler } from 'react';
+import { useEffect, useState, type FormEventHandler, type Ref } from 'react';
 import { format } from 'date-fns';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { AnyExtension, Editor } from '@tiptap/react';
 import type { CreateDreamRequest } from '@nee3/shared-types';
 import { useRecoveryBuffer } from '../../hooks/useRecoveryBuffer.ts';
 import { parseIsoDate } from '../../../../utils/isoDate.ts';
@@ -20,8 +21,16 @@ import { dreamSchema, type DreamFormValues, type DreamFormOutput } from './Dream
 const todayIsoDate = (): string => new Date().toISOString().slice(0, 10);
 
 export interface DreamFormProps {
-  onCreate: (input: CreateDreamRequest) => Promise<void>;
+  onSubmit: (input: CreateDreamRequest) => Promise<void>;
   onDiscard?: () => void;
+  // Presence switches the form to edit mode: prefilled from the given dream and with the
+  // new-dream recovery buffer disabled (the server already holds the source of truth).
+  initialValues?: DreamFormValues;
+  submitLabel?: string;
+  // Forwarded to the editor - the edit page adds the Anchor mark (see ADR-0007) so an
+  // anchored narrative round-trips without dropping its marks.
+  extraExtensions?: AnyExtension[];
+  editorRef?: Ref<Editor | null>;
 }
 
 const defaultValuesFor = (): DreamFormValues => ({ date: todayIsoDate(), narrative: '' });
@@ -29,13 +38,21 @@ const defaultValuesFor = (): DreamFormValues => ({ date: todayIsoDate(), narrati
 // Recovery buffer (see CONTEXT.md, ADR-0005), mirroring journal's EntryForm: a
 // same-browser-only, transient snapshot of this in-progress dream recording. There is
 // only ever one in-progress new-dream composition per browser, so a fixed 'new' slot is
-// enough - no by-id or by-date keying, since the Record page never edits an existing Dream.
+// enough - no by-id or by-date keying, since edit mode opts out of the buffer entirely.
 const RECOVERY_KEY = 'new';
 
-export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
+export function DreamForm({
+  onSubmit,
+  onDiscard,
+  initialValues,
+  submitLabel = 'Save dream',
+  extraExtensions,
+  editorRef,
+}: DreamFormProps) {
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const discardDialog = useDialogState();
   const recoveryBuffer = useRecoveryBuffer(RECOVERY_KEY);
+  const isEditing = initialValues !== undefined;
 
   const {
     control,
@@ -43,7 +60,7 @@ export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
     reset,
     formState: { isDirty, isSubmitting },
   } = useForm<DreamFormValues, unknown, DreamFormOutput>({
-    defaultValues: defaultValuesFor(),
+    defaultValues: initialValues ?? defaultValuesFor(),
     resolver: zodResolver(dreamSchema),
     mode: 'onBlur',
     reValidateMode: 'onChange',
@@ -52,23 +69,25 @@ export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
 
   // There's no server data to disagree with in create-only mode, so a buffer found on
   // mount is always restored silently - unlike journal's EntryForm, which also handles
-  // an edit mode where a restored buffer can conflict with what the server has.
+  // an edit mode where a restored buffer can conflict with what the server has. Edit mode
+  // here sidesteps that conflict by not using the buffer at all.
   useEffect(() => {
+    if (isEditing) return;
     const buffered = recoveryBuffer.read();
     if (buffered) reset(buffered);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!isDirty) return;
+    if (isEditing || !isDirty) return;
     recoveryBuffer.write(watchedValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDirty, watchedValues]);
+  }, [isEditing, isDirty, watchedValues]);
 
   const onValid = async (values: DreamFormOutput) => {
     try {
-      await onCreate(values);
-      recoveryBuffer.clear();
+      await onSubmit(values);
+      if (!isEditing) recoveryBuffer.clear();
     } catch {
       // Save failures aren't field-attributable here; the global toast interceptor in
       // api/client.ts already surfaced it - nothing more to do.
@@ -80,13 +99,13 @@ export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
       discardDialog.openDialog();
       return;
     }
-    recoveryBuffer.clear();
+    if (!isEditing) recoveryBuffer.clear();
     onDiscard?.();
   };
 
   const confirmDiscard = () => {
     discardDialog.closeDialog();
-    recoveryBuffer.clear();
+    if (!isEditing) recoveryBuffer.clear();
     onDiscard?.();
   };
 
@@ -147,9 +166,11 @@ export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
         render={({ field, fieldState }) => (
           <Stack direction="column" gap="1">
             <RichTextEditor
+              ref={editorRef}
               value={field.value}
               onChange={field.onChange}
               placeholder="What happened in the dream?"
+              extraExtensions={extraExtensions}
             />
             {fieldState.error && (
               <Text variant="formError" role="alert">
@@ -180,7 +201,7 @@ export function DreamForm({ onCreate, onDiscard }: DreamFormProps) {
           </Text>
         </Dialog>
         <Button type="submit" loading={isSubmitting}>
-          Save dream
+          {submitLabel}
         </Button>
       </Stack>
     </Card>

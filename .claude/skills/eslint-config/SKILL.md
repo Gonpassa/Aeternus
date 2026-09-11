@@ -18,4 +18,9 @@ Both `client/` and `backend/` pin **ESLint 8.57.1** (flat config via `typescript
 - `react/require-default-props` off — deprecated pattern for function components; TS interfaces already express optionality, defaults handled via destructuring.
 - `import/prefer-default-export` off.
 
+The client config also carries two **boundary rules**, each in its own config block with a `files`/`ignores` pair naming the layer allowed to cross the boundary:
+
+- `no-restricted-imports` bans `@chakra-ui/react` outside `atoms/` (plus `theme.ts`, `main.tsx`, `test/setup.tsx`, which wire the system up). See `docs/adr/0002-chakra-import-boundary.md`.
+- `no-restricted-syntax` bans raw `min-width:`/`max-width:` strings in `.ts`/`.tsx` outside `src/styling/breakpoints.ts`, so a viewport width is always either a responsive style prop (`{ base, lg }`) or a `breakpoints.from`/`.until` call. This is the clearest case of the no-merge behavior above: `no-restricted-syntax` replaces its options wholesale, so that block has to re-list Airbnb's four selectors (`ForInStatement`, `ForOfStatement`, `LabeledStatement`, `WithStatement`) verbatim alongside the two new ones, or Airbnb's would silently stop applying. If you add another restricted selector, add it to that same array rather than a new block.
+
 If a rule seems to misfire on a valid pattern, check this list and the config file's inline comments before disabling it ad hoc — it's likely one of these known Airbnb/TS interactions.

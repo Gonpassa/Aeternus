@@ -1,219 +1,228 @@
-import { useCallback, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
-import type { AnchorWithBeats, Dream, EmotionalBeat } from '@nee3/shared-types';
-import {
-  useCreateAnchor,
-  useCreateEmotionalBeat,
-  useDeleteAnchor,
-  useDeleteEmotionalBeat,
-  useUpdateDream,
-  useUpdateEmotionalBeat,
-} from '../../api/dreamHooks.ts';
-import { AnchorMark, anchorIdsInDocument, anchorIdsInRange } from '../../tiptap/AnchorMark.ts';
-import { computeMissingAnchorIds } from './DreamAnalysis.utils.ts';
-import { AnchorToolbar } from './AnchorToolbar.tsx';
-import { EmotionalBeatDialog } from './EmotionalBeatDialog.tsx';
-import { EmotionalBeatsList } from './EmotionalBeatsList.tsx';
-import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
-import { useDialogState } from '../../../../atoms/Dialog/useDialogState.ts';
-import { RichTextEditor } from '../../../../atoms/RichTextEditor/RichTextEditor.tsx';
+import type {
+  AnalysisPass,
+  AnalysisPassType,
+  AnchorWithAttachments,
+  Dream,
+} from '@nee3/shared-types';
+import { SelectionToolbar } from '../../../../atoms/SelectionToolbar/SelectionToolbar.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
-import { Text } from '../../../../atoms/Text/Text.tsx';
-
-// Stable reference - useEditor re-initializes the editor whenever the extensions array
-// identity changes, so this must not be recreated on every render.
-const ANCHOR_EXTENSIONS = [AnchorMark];
+import {
+  AnalysisSection,
+  PENDING_ANCHOR_OPTION,
+  WHOLE_DREAM_OPTION,
+} from './AnalysisSection/AnalysisSection.tsx';
+import { AnchorAttachmentsProvider } from './AnchorAttachmentsContext.tsx';
+import { anchorsInDocumentOrder, parseNarrativeAnchors } from './DreamAnalysis.utils.ts';
+import { EmotionalBeatDialog } from './EmotionalBeatDialog/EmotionalBeatDialog.tsx';
+import { Manuscript } from './Manuscript/Manuscript.tsx';
+import { MarginNote } from './MarginNote/MarginNote.tsx';
+import { SymbolTagDialog } from './SymbolTagDialog/SymbolTagDialog.tsx';
+import { useAnchorAttachments } from './useAnchorAttachments.ts';
+import { collapseDomSelection, useManuscriptSelection } from './useManuscriptSelection.ts';
+import { usePendingAttachment } from './usePendingAttachment.ts';
 
 export interface DreamAnalysisProps {
   dream: Dream;
-  anchors: AnchorWithBeats[];
+  anchors: AnchorWithAttachments[];
+  analysisPasses: AnalysisPass[];
 }
 
-interface SelectionRange {
-  from: number;
-  to: number;
-}
+type ToolbarActionKind = 'beat' | 'symbol' | 'note';
 
-export function DreamAnalysis({ dream, anchors }: DreamAnalysisProps) {
+// The Analysis page: the dream as a read-only manuscript, its Anchors annotated in the
+// margin beside it, and the append-only record of Analytic and Synthetic passes below.
+// Selecting a passage offers the three ways to attach something to it.
+export function DreamAnalysis({ dream, anchors, analysisPasses }: DreamAnalysisProps) {
   const editorRef = useRef<Editor | null>(null);
   const [narrative, setNarrative] = useState(dream.narrative);
-  const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
-  const [selectionRange, setSelectionRange] = useState<SelectionRange | null>(null);
-  const [overlappingAnchorId, setOverlappingAnchorId] = useState<number | null>(null);
-  const [composerOpen, setComposerOpen] = useState(false);
-  const [editingBeat, setEditingBeat] = useState<EmotionalBeat | null>(null);
-  const [missingAnchorIds, setMissingAnchorIds] = useState<number[] | null>(null);
-  const deleteWarningDialog = useDialogState();
+  const [beatDialogOpen, setBeatDialogOpen] = useState(false);
+  const [symbolDialogOpen, setSymbolDialogOpen] = useState(false);
+  const [tab, setTab] = useState<AnalysisPassType>('analytic');
+  const [anchorSelection, setAnchorSelection] = useState(WHOLE_DREAM_OPTION);
 
-  const updateDream = useUpdateDream(dream.id);
-  const createAnchor = useCreateAnchor(dream.id);
-  const deleteAnchor = useDeleteAnchor(dream.id);
-  const createEmotionalBeat = useCreateEmotionalBeat(dream.id);
-  const updateEmotionalBeat = useUpdateEmotionalBeat(dream.id);
-  const deleteEmotionalBeat = useDeleteEmotionalBeat(dream.id);
+  const attachments = useAnchorAttachments(dream);
+  const selection = useManuscriptSelection(editorRef);
+  const pending = usePendingAttachment({
+    editorRef,
+    createAnchor: attachments.createAnchor,
+    deleteAnchor: attachments.deleteAnchor,
+    saveNarrative: attachments.saveNarrative,
+    onNarrativeChange: setNarrative,
+    onPendingRetired: () =>
+      setAnchorSelection((current) =>
+        current === PENDING_ANCHOR_OPTION ? WHOLE_DREAM_OPTION : current,
+      ),
+    onAnchorCreated: attachments.activateAnchor,
+  });
 
-  const clearSelectionState = () => {
-    setSelectionRect(null);
-    setSelectionRange(null);
-    setOverlappingAnchorId(null);
+  // The server stays the source of truth for the narrative between attachment flows:
+  // refetches can legitimately change it (sanitization altering the saved HTML, an edit
+  // from another tab), and without this resync the stale local copy would be written
+  // back on the next attachment, silently reverting those changes.
+  useEffect(() => {
+    setNarrative(dream.narrative);
+  }, [dream.narrative]);
+
+  const { excerpts, documentOrder } = useMemo(() => parseNarrativeAnchors(narrative), [narrative]);
+
+  // Margin notes read top-to-bottom with the manuscript, so the column follows the
+  // narrative rather than the creation order the API returns (ADR-0008).
+  const orderedAnchors = useMemo(
+    () => anchorsInDocumentOrder(anchors, documentOrder),
+    [anchors, documentOrder],
+  );
+
+  const scrollToAnalysis = () => {
+    document.getElementById('analysis-section')?.scrollIntoView?.({ behavior: 'smooth' });
   };
 
-  const handleSelectionUpdate = useCallback((editor: Editor) => {
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      setSelectionRect(null);
-      setSelectionRange(null);
-      setOverlappingAnchorId(null);
+  const handleToolbarAction = (kind: ToolbarActionKind) => {
+    const editor = editorRef.current;
+    if (!editor || !selection.range) return;
+
+    // A selection touching an existing Anchor reuses it - no new Anchor, straight to the
+    // reused anchor's margin-note form (or the composer, for an analytic note).
+    if (selection.overlappingAnchorId !== null) {
+      const anchorId = selection.overlappingAnchorId;
+      attachments.activateAnchor(anchorId);
+      if (kind === 'beat') attachments.margin.openForm({ kind: 'addBeat', anchorId });
+      if (kind === 'symbol') attachments.margin.openForm({ kind: 'addSymbol', anchorId });
+      if (kind === 'note') {
+        setTab('analytic');
+        setAnchorSelection(String(anchorId));
+        scrollToAnalysis();
+      }
+      collapseDomSelection();
+      selection.clear();
       return;
     }
-    const domSelection = window.getSelection();
-    const range = domSelection && domSelection.rangeCount > 0 ? domSelection.getRangeAt(0) : null;
-    const rect = range?.getBoundingClientRect() ?? null;
-    setSelectionRect(rect && rect.width > 0 ? rect : null);
-    setSelectionRange({ from, to });
-    setOverlappingAnchorId(anchorIdsInRange(editor, from, to)[0] ?? null);
-  }, []);
 
-  const handleCreateBeat = async (label: string) => {
-    let anchorId = overlappingAnchorId;
-    let createdAnchorId: number | null = null;
-    if (anchorId === null) {
-      const anchor = await createAnchor.mutateAsync();
-      anchorId = anchor.id;
-      createdAnchorId = anchor.id;
-      const editor = editorRef.current;
-      if (editor && selectionRange) {
-        editor.chain().setTextSelection(selectionRange).setMark('anchor', { anchorId }).run();
-        setNarrative(editor.getHTML());
-      }
+    // Fresh selection: park it as pending. The Anchor is created only when the first
+    // attachment is submitted (an Anchor must never persist without the attachment that
+    // justified it - see CONTEXT.md's Anchor definition).
+    pending.park(
+      selection.range,
+      editor.state.doc.textBetween(selection.range.from, selection.range.to, ' '),
+    );
+    if (kind === 'beat') setBeatDialogOpen(true);
+    if (kind === 'symbol') setSymbolDialogOpen(true);
+    if (kind === 'note') {
+      setTab('analytic');
+      setAnchorSelection(PENDING_ANCHOR_OPTION);
+      scrollToAnalysis();
     }
-    try {
-      await createEmotionalBeat.mutateAsync({ anchorId, input: { label } });
-    } catch (error) {
-      // A freshly-created Anchor must never persist without the attachment that justified
-      // it (see CONTEXT.md's Anchor definition) - if the beat failed, undo both the Anchor
-      // row and the mark just applied to the editor, then let the caller's own catch
-      // (EmotionalBeatDialog) handle leaving the dialog open for a retry.
-      if (createdAnchorId !== null) {
-        const editor = editorRef.current;
-        if (editor && selectionRange) {
-          editor.chain().setTextSelection(selectionRange).unsetMark('anchor').run();
-          setNarrative(editor.getHTML());
-        }
-        await deleteAnchor.mutateAsync(createdAnchorId).catch(() => {});
-      }
-      throw error;
-    }
-    setComposerOpen(false);
-    clearSelectionState();
+    selection.clear();
   };
 
-  const handleUpdateBeat = async (label: string) => {
-    if (!editingBeat) return;
-    await updateEmotionalBeat.mutateAsync({ id: editingBeat.id, input: { label } });
-    setEditingBeat(null);
+  const handlePendingBeat = async (label: string) => {
+    await pending.attach((anchorId) => attachments.margin.addBeat(anchorId, label));
+    setBeatDialogOpen(false);
   };
 
-  const handleSave = async () => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    const presentIds = anchorIdsInDocument(editor);
-    const knownIds = anchors.map((anchor) => anchor.id);
-    const missing = computeMissingAnchorIds(knownIds, presentIds);
-    if (missing.length > 0) {
-      setMissingAnchorIds(missing);
-      deleteWarningDialog.openDialog();
+  const handlePendingSymbol = async (name: string) => {
+    await pending.attach((anchorId) => attachments.margin.tagSymbol(anchorId, name));
+    setSymbolDialogOpen(false);
+  };
+
+  const handleCreatePass = async (content: string) => {
+    if (tab === 'synthetic') {
+      await attachments.createPass({ type: 'synthetic', content });
       return;
     }
-    await updateDream.mutateAsync({ date: dream.date, narrative: editor.getHTML() });
-  };
-
-  const confirmSaveWithDeletions = async () => {
-    if (!missingAnchorIds) return;
-    await Promise.all(missingAnchorIds.map((id) => deleteAnchor.mutateAsync(id)));
-    const editor = editorRef.current;
-    if (editor) {
-      await updateDream.mutateAsync({ date: dream.date, narrative: editor.getHTML() });
+    if (anchorSelection === PENDING_ANCHOR_OPTION) {
+      // pending.clear (called on success inside) resets the picker to whole-dream.
+      await pending.attach((anchorId) =>
+        attachments.createPass({ type: 'analytic', content, anchorId }),
+      );
+      return;
     }
-    setMissingAnchorIds(null);
-    deleteWarningDialog.closeDialog();
+    await attachments.createPass({
+      type: 'analytic',
+      content,
+      anchorId: anchorSelection === WHOLE_DREAM_OPTION ? null : Number(anchorSelection),
+    });
+    setAnchorSelection(WHOLE_DREAM_OPTION);
   };
-
-  const lostBeatsCount = (missingAnchorIds ?? []).reduce((total, id) => {
-    const anchor = anchors.find((candidate) => candidate.id === id);
-    return total + (anchor?.emotionalBeats.length ?? 0);
-  }, 0);
 
   return (
-    <Stack direction="column" gap="6">
-      <RichTextEditor
-        ref={editorRef}
-        value={narrative}
-        onChange={setNarrative}
-        extraExtensions={ANCHOR_EXTENSIONS}
-        onSelectionUpdate={handleSelectionUpdate}
-        placeholder="Revisit the dream..."
-      />
-      <AnchorToolbar rect={selectionRect} onAddEmotionalBeat={() => setComposerOpen(true)} />
+    <Stack direction="column" align="stretch">
+      {/* Manuscript beside margin from lg up, stacked below that - pure CSS, no
+          JavaScript media query (ADR-0008). */}
+      <Stack direction={{ base: 'column', lg: 'row' }} gap="8" align="flex-start">
+        <Manuscript
+          narrative={narrative}
+          onNarrativeChange={setNarrative}
+          editorRef={editorRef}
+          containerRef={selection.manuscriptRef}
+          activeAnchorId={attachments.margin.activeAnchorId}
+          onAnchorClick={attachments.margin.toggleAnchor}
+        />
 
-      <EmotionalBeatsList
-        anchors={anchors}
-        onEdit={setEditingBeat}
-        onDelete={(id) => deleteEmotionalBeat.mutate(id)}
-      />
-
-      <Stack justify="flex-end">
-        <Button type="button" onClick={handleSave} loading={updateDream.isPending}>
-          Save narrative
-        </Button>
+        <Stack
+          direction="column"
+          align="stretch"
+          w={{ base: 'auto', lg: '20rem' }}
+          alignSelf={{ base: 'stretch', lg: 'auto' }}
+          flexShrink={0}
+          gap="4"
+        >
+          <AnchorAttachmentsProvider value={attachments.margin}>
+            {orderedAnchors.map((anchor) => (
+              <MarginNote key={anchor.id} anchor={anchor} excerpt={excerpts[anchor.id] ?? ''} />
+            ))}
+          </AnchorAttachmentsProvider>
+        </Stack>
       </Stack>
 
-      <EmotionalBeatDialog
-        open={composerOpen}
-        title="Add an emotional beat"
-        onClose={() => setComposerOpen(false)}
-        onSubmit={handleCreateBeat}
-      />
-      <EmotionalBeatDialog
-        open={editingBeat !== null}
-        title="Edit emotional beat"
-        initialLabel={editingBeat?.label}
-        onClose={() => setEditingBeat(null)}
-        onSubmit={handleUpdateBeat}
+      <SelectionToolbar
+        rect={selection.rect}
+        aria-label="Attach to selected passage"
+        actions={[
+          { label: 'Add emotional beat', onSelect: () => handleToolbarAction('beat') },
+          { label: 'Tag symbol', onSelect: () => handleToolbarAction('symbol') },
+          { label: 'Add analytic note', onSelect: () => handleToolbarAction('note') },
+        ]}
       />
 
-      <Dialog
-        open={deleteWarningDialog.open}
+      <AnalysisSection
+        passes={analysisPasses}
+        anchors={anchors}
+        excerpts={excerpts}
+        tab={tab}
+        onTabChange={setTab}
+        anchorSelection={anchorSelection}
+        onAnchorSelectionChange={setAnchorSelection}
+        pendingExcerpt={pending.excerpt}
+        onCreatePass={handleCreatePass}
+      />
+
+      <EmotionalBeatDialog
+        open={beatDialogOpen}
+        title="Add an emotional beat"
         onClose={() => {
-          setMissingAnchorIds(null);
-          deleteWarningDialog.closeDialog();
+          setBeatDialogOpen(false);
+          pending.clear();
         }}
-        variant="small"
-        role="alertdialog"
-        header={{ title: 'Delete anchored passages?' }}
-        footer={{
-          secondary: {
-            label: 'Cancel',
-            onClick: () => {
-              setMissingAnchorIds(null);
-              deleteWarningDialog.closeDialog();
-            },
-          },
-          primary: {
-            label: 'Delete and save',
-            variant: 'destructive',
-            onClick: confirmSaveWithDeletions,
-          },
+        onSubmit={handlePendingBeat}
+      />
+      <EmotionalBeatDialog
+        open={attachments.editingBeat !== null}
+        title="Edit emotional beat"
+        initialLabel={attachments.editingBeat?.label}
+        onClose={attachments.closeBeatEditor}
+        onSubmit={attachments.saveEditedBeat}
+      />
+      <SymbolTagDialog
+        open={symbolDialogOpen}
+        vocabulary={attachments.margin.symbolVocabulary}
+        onClose={() => {
+          setSymbolDialogOpen(false);
+          pending.clear();
         }}
-      >
-        <Text fontFamily="body" color="inkSoft">
-          The text you removed carried {(missingAnchorIds ?? []).length}{' '}
-          {(missingAnchorIds ?? []).length === 1 ? 'anchor' : 'anchors'} and {lostBeatsCount}{' '}
-          {lostBeatsCount === 1 ? 'emotional beat' : 'emotional beats'}. Saving will delete them
-          permanently.
-        </Text>
-      </Dialog>
+        onSubmit={handlePendingSymbol}
+      />
     </Stack>
   );
 }

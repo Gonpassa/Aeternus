@@ -92,6 +92,59 @@ export default tseslint.config(
     },
   },
   {
+    // Breakpoint boundary: viewport widths live in one place. `styling/breakpoints.ts`
+    // mirrors Chakra's stock breakpoint tokens, so `breakpoints.from('lg')` and an
+    // `{ base, lg }` responsive style prop resolve to the same pixel value; a
+    // hand-written '(min-width: 64em)' silently drifts from both (DreamAnalysis.tsx
+    // carried exactly that until ADR-0008 removed it). Responsive style props are the
+    // first choice, `breakpoints.from`/`.until` the fallback when a JavaScript media
+    // query is genuinely needed (Nav.tsx), and a raw query string is never right.
+    //
+    // Only TS/TSX is in scope: CSS modules write their breakpoints as `@media` rules,
+    // which ESLint does not parse and which have no token indirection to route through.
+    files: ['**/*.{ts,tsx}'],
+    // The module that defines the queries is necessarily where the strings live.
+    ignores: ['src/styling/breakpoints.ts'],
+    rules: {
+      // Airbnb's four selectors are re-listed here because no-restricted-syntax replaces
+      // its options wholesale rather than merging them (see the ESLint 8 note above).
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ForInStatement',
+          message:
+            'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
+        },
+        {
+          selector: 'ForOfStatement',
+          message:
+            'iterators/generators require regenerator-runtime, which is too heavyweight for this guide to allow them. Separately, loops should be avoided in favor of array iterations.',
+        },
+        {
+          selector: 'LabeledStatement',
+          message:
+            'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+        },
+        {
+          selector: 'WithStatement',
+          message:
+            '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
+        },
+        {
+          selector: 'Literal[value=/(min|max)-width\\s*:/]',
+          message:
+            'Raw media query: use a responsive style prop ({ base, lg }) or styling/breakpoints.ts.',
+        },
+        {
+          // The template-literal form, which is how a parameterized query gets written.
+          selector: 'TemplateElement[value.raw=/(min|max)-width\\s*:/]',
+          message:
+            'Raw media query: use a responsive style prop ({ base, lg }) or styling/breakpoints.ts.',
+        },
+      ],
+    },
+  },
+  {
     // Chakra encapsulation boundary: `atoms/` is the only layer allowed to import
     // `@chakra-ui/react` directly (see docs/adr/0002-chakra-import-boundary.md).
     // Everywhere else should compose the shared atoms/ components instead.

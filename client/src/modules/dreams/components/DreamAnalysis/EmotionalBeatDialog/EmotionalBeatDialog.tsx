@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';
-import { FieldLabel } from '../../../../atoms/FieldLabel/FieldLabel.tsx';
-import { Input } from '../../../../atoms/Input/Input.tsx';
+import { Dialog } from '../../../../../atoms/Dialog/Dialog.tsx';
+import { FieldLabel } from '../../../../../atoms/FieldLabel/FieldLabel.tsx';
+import { Input } from '../../../../../atoms/Input/Input.tsx';
 
 export interface EmotionalBeatDialogProps {
   open: boolean;

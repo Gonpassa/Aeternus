@@ -27,3 +27,59 @@ export const validateEmotionalBeatInput = (input: { label?: unknown }): Validati
   }
   return { valid: true };
 };
+
+export const validateSymbolTagInput = (input: { name?: unknown }): ValidationResult => {
+  if (!isNonEmptyString(input.name)) {
+    return { valid: false, error: 'A symbol name is required.' };
+  }
+  return { valid: true };
+};
+
+const ASSOCIATION_KINDS = ['personal', 'cultural'] as const;
+
+const isAssociationKind = (value: unknown): value is (typeof ASSOCIATION_KINDS)[number] =>
+  typeof value === 'string' && (ASSOCIATION_KINDS as readonly string[]).includes(value);
+
+// `kind` is optional in both create (defaults to personal) and update (keeps the stored
+// kind); when present it must be a known kind.
+export const validateAssociationInput = (input: {
+  content?: unknown;
+  kind?: unknown;
+}): ValidationResult => {
+  if (!isNonEmptyString(input.content)) {
+    return { valid: false, error: 'Association content is required.' };
+  }
+  if (input.kind !== undefined && !isAssociationKind(input.kind)) {
+    return { valid: false, error: 'Association kind must be personal or cultural.' };
+  }
+  return { valid: true };
+};
+
+const ANALYSIS_PASS_TYPES = ['analytic', 'synthetic'] as const;
+
+const isAnalysisPassType = (value: unknown): value is (typeof ANALYSIS_PASS_TYPES)[number] =>
+  typeof value === 'string' && (ANALYSIS_PASS_TYPES as readonly string[]).includes(value);
+
+export const validateAnalysisPassInput = (input: {
+  type?: unknown;
+  content?: unknown;
+  anchorId?: unknown;
+}): ValidationResult => {
+  if (!isAnalysisPassType(input.type)) {
+    return { valid: false, error: 'Pass type must be analytic or synthetic.' };
+  }
+  if (!isNonEmptyString(input.content)) {
+    return { valid: false, error: 'Pass content is required.' };
+  }
+  const hasAnchor = input.anchorId !== undefined && input.anchorId !== null;
+  if (hasAnchor && typeof input.anchorId !== 'number') {
+    return { valid: false, error: 'anchorId must be a number.' };
+  }
+  if (hasAnchor && input.type === 'synthetic') {
+    return {
+      valid: false,
+      error: 'A synthetic pass always reads the whole dream and cannot be anchored.',
+    };
+  }
+  return { valid: true };
+};

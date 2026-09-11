@@ -8,20 +8,22 @@ import styles from './RichTextEditor.module.css';
 
 export interface RichTextEditorProps {
   value: string;
-  onChange: (html: string) => void;
+  onChange?: (html: string) => void;
   placeholder?: string;
   // Extends the shared StarterKit set below with module-specific Tiptap extensions - e.g.
   // dreams' Analysis page adds the Anchor mark (see ADR-0007). Kept out of the base
   // extension list so journal's editor isn't affected.
   extraExtensions?: AnyExtension[];
-  // Fires on every selection change, not just content edits (onChange/onUpdate only fires
-  // on the latter) - the Analysis page's selection-triggered anchor popover needs this.
-  onSelectionUpdate?: (editor: Editor) => void;
+  // Renders the document without editing chrome (no menu bar, no card frame) and with
+  // typing disabled. Programmatic commands via the ref still work - the dreams Analysis
+  // page uses them to apply Anchor marks to a document the user cannot type into.
+  readOnly?: boolean;
 }
 
 export const RichTextEditor = forwardRef<Editor | null, RichTextEditorProps>(
-  ({ value, onChange, placeholder, extraExtensions = [], onSelectionUpdate }, ref) => {
+  ({ value, onChange, placeholder, extraExtensions = [], readOnly }, ref) => {
     const editor = useEditor({
+      editable: !readOnly,
       extensions: [
         StarterKit.configure({
           // Kept in sync with each consuming module's backend sanitize.ts allow-list
@@ -37,10 +39,7 @@ export const RichTextEditor = forwardRef<Editor | null, RichTextEditorProps>(
         ...extraExtensions,
       ],
       content: value,
-      onUpdate: ({ editor: activeEditor }) => onChange(activeEditor.getHTML()),
-      onSelectionUpdate: onSelectionUpdate
-        ? ({ editor: activeEditor }) => onSelectionUpdate(activeEditor)
-        : undefined,
+      onUpdate: ({ editor: activeEditor }) => onChange?.(activeEditor.getHTML()),
     });
 
     useImperativeHandle(ref, () => editor, [editor]);
@@ -50,6 +49,14 @@ export const RichTextEditor = forwardRef<Editor | null, RichTextEditorProps>(
         editor.commands.setContent(value, { emitUpdate: false });
       }
     }, [value, editor]);
+
+    if (readOnly) {
+      return (
+        <Prose>
+          <EditorContent editor={editor} />
+        </Prose>
+      );
+    }
 
     return (
       <Card

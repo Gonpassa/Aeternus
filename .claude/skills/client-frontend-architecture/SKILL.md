@@ -21,6 +21,8 @@ Colocate `.module.css` and `.test.tsx` in that same folder when they exist. Alwa
 
 No barrel (`index.ts`) files. Import the full path (`atoms/Button/Button.tsx`), matching existing usage across the codebase.
 
+**Every new atom ships with a demo** in `client/src/dev/ComponentsShowcase/<Name>Demo.tsx`, wired into `ComponentsShowcase.tsx` and reachable at `/dev/components`. This is a hard rule, not a nice-to-have: the showcase is the only place an atom's full variant and size matrix is visible at once, and an atom that never appears there gets re-invented by the next person who needs it.
+
 **Atoms** live in `client/src/atoms/` (branded "Adams" as the UI library name) - the generic, design-system-level primitives (Button, Calendar, Popover, Select, Tooltip, VisuallyHidden), plus cross-module molecules built purely from those primitives (e.g. `MarkedRangeCalendar`). There is no separate top-level `components/` folder - `atoms/` is the only cross-module UI location. **Module-scoped molecules** live in `client/src/modules/<module>/components/<Name>/` (e.g. `EntryForm`, `MoodPicker`).
 
 ## When to split a component
@@ -28,9 +30,20 @@ No barrel (`index.ts`) files. Import the full path (`atoms/Button/Button.tsx`), 
 Line count (~200 lines) is a smell that tells you to look, not the rule itself. The actual test: can you name a sub-piece with its own concern (e.g. "the button that renders a marked day")? If so, it's a split candidate.
 
 - One component per file, always. Never define multiple components (even small presentational ones) inside a single file just because they're related or only used by each other - once a sub-piece is named and split out, it gets its own file, not a spot lower in the parent file.
-- Extracted sub-pieces stay flat sibling files in the parent's folder (`MarkedRangeCalendar/MarkedDayButton.tsx`), not their own nested folder - unless that piece later grows enough to need its own split (its own test/css/utils).
-- Component-local helper logic goes in a local `<name>.utils.ts` in the same folder.
+- An extracted sub-piece is a component, so it gets its own folder nested inside the parent's folder (`DreamAnalysis/MarginNote/MarginNote.tsx`), with its own test, styles, and utils colocated there. There is no flat-sibling exception - the folder-per-component rule above applies at every depth.
+- Component-local helper logic goes in a `<Name>.utils.ts` in that component's own folder. Keep the component's name in the filename rather than a bare `utils.ts`, so editor tabs and grep stay useful once a dozen of them exist.
+- **Hooks and context files are not components** and stay flat siblings of the component that owns them (`DreamAnalysis/useManuscriptSelection.ts`, `DreamAnalysis/AnchorAttachmentsContext.tsx`). A folder exists because a component accretes a test, styles, and utils; a single hook file does not.
 - Promote to a shared location only when the logic is genuinely reused or reusable beyond that one component (see Promotion below).
+
+The nesting rule replaced an earlier one that kept extracted sub-pieces as flat siblings, so two components still sit in the old shape: `MoodPicker/MoodSwatchButton.tsx` and `MoodPicker/EmotionPillButton.tsx`. Like the Routes rule below, this is forward-looking - nest those when you next have reason to touch `MoodPicker`, not as a standalone migration.
+
+## Props or context
+
+When a parent drills the same values through several layers to reach a leaf, the fix is context, but only for the right half of what it's drilling. The rule:
+
+**Props carry what varies per instance. Context carries what is identical for every instance.**
+
+So in a list of margin notes, the anchor each note renders is a prop, while the attachment handlers and the currently-active anchor id go in context - every note gets the same ones. Applied this way, context stays a named, bounded surface (`AnchorAttachmentsContext`) rather than becoming a junk drawer that gradually absorbs the parent's entire state.
 
 ## When to split a hook
 

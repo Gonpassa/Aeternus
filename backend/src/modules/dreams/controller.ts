@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiErrorResponse, CreateDreamRequest, UpdateDreamRequest } from '@nee3/shared-types';
-import { validateDreamInput } from './validation';
+import {
+  ApiErrorResponse,
+  CreateAnalysisPassRequest,
+  CreateDreamRequest,
+  UpdateDreamRequest,
+} from '@nee3/shared-types';
+import { validateAnalysisPassInput, validateDreamInput } from './validation';
 import { sanitizeDreamNarrative } from './sanitize';
 import {
   createDream as createDreamRecord,
@@ -8,8 +13,18 @@ import {
   findDreamById,
   updateDream as updateDreamRecord,
 } from '../../db/dreams';
-import { createAnchor as createAnchorRecord, listAnchorsByDream } from '../../db/anchors';
+import {
+  createAnchor as createAnchorRecord,
+  findAnchorOwnedByUser,
+  listAnchorsByDream,
+} from '../../db/anchors';
 import { listEmotionalBeatsByAnchors } from '../../db/emotionalBeats';
+import { listSymbolAttachmentsByAnchors } from '../../db/symbolAttachments';
+import { listAssociationsBySymbolAttachments } from '../../db/associations';
+import {
+  createAnalysisPass as createAnalysisPassRecord,
+  listAnalysisPassesByDream,
+} from '../../db/analysisPasses';
 import { getUserId } from '../../types/request';
 
 const parseDreamId = (req: Request): number | null => {
@@ -66,14 +81,26 @@ export const getDream = async (req: Request, res: Response, next: NextFunction):
       return;
     }
     const dreamAnchors = await listAnchorsByDream({ dreamId });
-    const beats = await listEmotionalBeatsByAnchors({
-      anchorIds: dreamAnchors.map((anchor) => anchor.id),
+    const anchorIds = dreamAnchors.map((anchor) => anchor.id);
+    const beats = await listEmotionalBeatsByAnchors({ anchorIds });
+    const attachments = await listSymbolAttachmentsByAnchors({ anchorIds });
+    const associations = await listAssociationsBySymbolAttachments({
+      symbolAttachmentIds: attachments.map((attachment) => attachment.id),
     });
+    const analysisPasses = await listAnalysisPassesByDream({ dreamId });
     const anchors = dreamAnchors.map((anchor) => ({
       ...anchor,
       emotionalBeats: beats.filter((beat) => beat.anchorId === anchor.id),
+      symbolAttachments: attachments
+        .filter((attachment) => attachment.anchorId === anchor.id)
+        .map((attachment) => ({
+          ...attachment,
+          associations: associations.filter(
+            (association) => association.symbolAttachmentId === attachment.id,
+          ),
+        })),
     }));
-    res.status(200).json({ dream, anchors });
+    res.status(200).json({ dream, anchors, analysisPasses });
   } catch (err) {
     next(err);
   }
@@ -130,6 +157,50 @@ export const createAnchor = async (
     }
     const anchor = await createAnchorRecord({ dreamId });
     res.status(201).json({ anchor });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Create is the only Analysis-pass route - no update or delete exists, by design, so the
+// record of how a dream's understanding evolved stays trustworthy (CONTEXT.md).
+export const createAnalysisPass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const dreamId = parseDreamId(req);
+  if (dreamId === null) {
+    res.status(404).json({ error: 'Dream not found' } satisfies ApiErrorResponse);
+    return;
+  }
+  const validation = validateAnalysisPassInput(req.body);
+  if (!validation.valid) {
+    res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
+    return;
+  }
+  const { type, content, anchorId } = req.body as CreateAnalysisPassRequest;
+  try {
+    const userId = getUserId(req);
+    const dream = await findDreamById({ id: dreamId, userId });
+    if (!dream) {
+      res.status(404).json({ error: 'Dream not found' } satisfies ApiErrorResponse);
+      return;
+    }
+    if (anchorId !== undefined && anchorId !== null) {
+      const anchor = await findAnchorOwnedByUser({ anchorId, userId });
+      if (!anchor || anchor.dreamId !== dreamId) {
+        res.status(404).json({ error: 'Anchor not found' } satisfies ApiErrorResponse);
+        return;
+      }
+    }
+    const analysisPass = await createAnalysisPassRecord({
+      dreamId,
+      anchorId: anchorId ?? null,
+      type,
+      content: content.trim(),
+    });
+    res.status(201).json({ analysisPass });
   } catch (err) {
     next(err);
   }
