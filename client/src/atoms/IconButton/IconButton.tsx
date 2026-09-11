@@ -1,10 +1,10 @@
 /* eslint-disable prefer-arrow-callback, @typescript-eslint/no-shadow, react/jsx-props-no-spreading --
-   `React.forwardRef` is named `function IconButton` for React DevTools/component
+   `forwardRef` is named `function IconButton` for React DevTools/component
    stack display, which arrow functions can't provide and which necessarily
    shadows the outer `IconButton` binding; remaining props are forwarded via
    `{...props}` to the underlying Chakra primitive, which is the point of a
    thin wrapper like this one. */
-import * as React from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   IconButton as ChakraIconButton,
@@ -37,7 +37,7 @@ export interface IconButtonProps extends Omit<ChakraButtonProps, 'variant' | 'si
   size?: IconButtonSize;
 }
 
-export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   { icon: Icon, variant = 'default', size = 'default', onClick, className, ...props },
   ref,
 ) {
@@ -60,7 +60,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
         <span
           key={ripple.key}
           className={styles.ripple}
-          style={{ left: ripple.x, top: ripple.y } as React.CSSProperties}
+          style={{ left: ripple.x, top: ripple.y } as CSSProperties}
           onAnimationEnd={clearRipple}
           aria-hidden="true"
         />

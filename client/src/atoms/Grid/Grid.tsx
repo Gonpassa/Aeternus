@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Grid`/`function GridItem` name the
    ref-forwarding components for DevTools, and remaining props are forwarded via
    `{...props}` to the underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import {
   Grid as ChakraGrid,
   GridItem as ChakraGridItem,
@@ -12,14 +12,12 @@ import {
 
 export type GridProps = ChakraGridProps;
 
-export const Grid = React.forwardRef<HTMLDivElement, GridProps>(function Grid(props, ref) {
+export const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(props, ref) {
   return <ChakraGrid ref={ref} {...props} />;
 });
 
 export type GridItemProps = ChakraGridItemProps;
 
-export const GridItem = React.forwardRef<HTMLDivElement, GridItemProps>(
-  function GridItem(props, ref) {
-    return <ChakraGridItem ref={ref} {...props} />;
-  },
-);
+export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(function GridItem(props, ref) {
+  return <ChakraGridItem ref={ref} {...props} />;
+});

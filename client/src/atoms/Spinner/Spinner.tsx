@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Spinner` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 import styles from './Spinner.module.css';
 
@@ -21,7 +21,7 @@ export interface SpinnerProps extends Omit<BoxProps, 'boxSize'> {
   label?: string;
 }
 
-export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(function Spinner(
+export const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(function Spinner(
   { size = 'default', color = 'accent', thickness = 3.6, label = 'Loading', className, ...props },
   ref,
 ) {

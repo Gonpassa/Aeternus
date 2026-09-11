@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Card` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 
 export type CardVariant = 'default' | 'railed';
@@ -19,7 +19,7 @@ const paddingValue: Record<CardPadding, string> = {
   md: '4',
 };
 
-export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
   { variant = 'default', padding = 'md', ...props },
   ref,
 ) {

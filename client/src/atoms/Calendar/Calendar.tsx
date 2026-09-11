@@ -8,7 +8,7 @@
    customization pattern, hence the locally-shadowed prop names), and
    references CalendarDayButton before its declaration further down the
    file. */
-import * as React from 'react';
+import { useEffect, useRef, type ComponentProps } from 'react';
 import { Box } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { DayPicker, getDefaultClassNames, type DayButton } from 'react-day-picker';
@@ -29,7 +29,7 @@ function Calendar({
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
+}: ComponentProps<typeof DayPicker> & {
   buttonVariant?: ButtonProps['variant'];
 }) {
   const defaultClassNames = getDefaultClassNames();
@@ -110,9 +110,9 @@ function CalendarDayButton({
   day,
   modifiers,
   ...props
-}: React.ComponentProps<typeof DayButton>) {
-  const ref = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => {
+}: ComponentProps<typeof DayButton>) {
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 

@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Input` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import {
   Input as ChakraInput,
   useRecipe,
@@ -16,7 +16,7 @@ export interface InputProps extends Omit<ChakraInputProps, 'variant'> {
   variant?: InputVariant;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { variant = 'default', css, ...props },
   ref,
 ) {

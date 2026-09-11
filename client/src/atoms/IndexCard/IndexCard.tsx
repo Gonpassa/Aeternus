@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function IndexCard` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 import { DieCutTab, type DieCutTabColor } from '../DieCutTab/DieCutTab.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -15,7 +15,7 @@ export interface IndexCardProps extends BoxProps {
   accent?: IndexCardAccent;
 }
 
-export const IndexCard = React.forwardRef<HTMLDivElement, IndexCardProps>(function IndexCard(
+export const IndexCard = forwardRef<HTMLDivElement, IndexCardProps>(function IndexCard(
   { label, catalogNumber, accent = 'rust', children, ...props },
   ref,
 ) {

@@ -1,10 +1,10 @@
 /* eslint-disable prefer-arrow-callback, @typescript-eslint/no-shadow, react/jsx-props-no-spreading --
-   `React.forwardRef` is named `function ToggleButtonGroupItem` for React DevTools/component
+   `forwardRef` is named `function ToggleButtonGroupItem` for React DevTools/component
    stack display, which arrow functions can't provide and which necessarily
    shadows the outer `ToggleButtonGroupItem` binding; remaining props are forwarded via
    `{...props}` to the underlying `RippleButton`, which is the point of a thin
    wrapper like this one. */
-import * as React from 'react';
+import { createContext, forwardRef, useContext, useMemo, type HTMLAttributes } from 'react';
 import { RippleButton, type RippleButtonProps } from '../RippleButton/RippleButton.tsx';
 
 interface ToggleButtonGroupContextValue {
@@ -12,19 +12,16 @@ interface ToggleButtonGroupContextValue {
   onChange: (value: string) => void;
 }
 
-const ToggleButtonGroupContext = React.createContext<ToggleButtonGroupContextValue | null>(null);
+const ToggleButtonGroupContext = createContext<ToggleButtonGroupContextValue | null>(null);
 
-export interface ToggleButtonGroupProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  'onChange'
-> {
+export interface ToggleButtonGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   value: string | null;
   onChange: (value: string) => void;
   'aria-label': string;
 }
 
 function ToggleButtonGroup({ value, onChange, ...props }: ToggleButtonGroupProps) {
-  const contextValue = React.useMemo(() => ({ value, onChange }), [value, onChange]);
+  const contextValue = useMemo(() => ({ value, onChange }), [value, onChange]);
 
   return (
     <ToggleButtonGroupContext.Provider value={contextValue}>
@@ -40,9 +37,9 @@ export interface ToggleButtonGroupItemProps extends Omit<
   value: string;
 }
 
-const ToggleButtonGroupItem = React.forwardRef<HTMLButtonElement, ToggleButtonGroupItemProps>(
+const ToggleButtonGroupItem = forwardRef<HTMLButtonElement, ToggleButtonGroupItemProps>(
   function ToggleButtonGroupItem({ value, ...props }, ref) {
-    const context = React.useContext(ToggleButtonGroupContext);
+    const context = useContext(ToggleButtonGroupContext);
     if (!context) {
       throw new Error('ToggleButtonGroupItem must be rendered inside a ToggleButtonGroup');
     }

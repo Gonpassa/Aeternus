@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { ReactNode } from 'react';
 import { Box, Dialog as ChakraDialog, Portal } from '@chakra-ui/react';
 import { Button, type ButtonVariant } from '../Button/Button.tsx';
 
@@ -32,7 +32,7 @@ export interface DialogProps {
   role?: 'dialog' | 'alertdialog';
   header: { title: string };
   footer?: DialogFooterConfig;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function DialogFooterButton({ config }: { config: DialogFooterButtonConfig }) {

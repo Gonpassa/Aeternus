@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import * as journalHooks from '../../api/journalHooks.ts';
+import { useEntriesByRange } from '../../api/journalHooks.ts';
 import { JournalCalendarFilter, formatRangeLabel } from './JournalCalendarFilter.tsx';
 import { toIsoDate } from '../../../../utils/dateUtils.ts';
 
@@ -8,7 +8,7 @@ vi.mock('../../api/journalHooks.ts', () => ({
   useEntriesByRange: vi.fn(),
 }));
 
-const mockedUseEntriesByRange = vi.mocked(journalHooks.useEntriesByRange);
+const mockedUseEntriesByRange = vi.mocked(useEntriesByRange);
 
 const fakeEntry = (date: string) => ({
   id: 1,
@@ -28,7 +28,7 @@ describe('JournalCalendarFilter', () => {
     const sampleDate = new Date(today.getFullYear(), today.getMonth(), 10);
     mockedUseEntriesByRange.mockReturnValue({
       data: [fakeEntry(toIsoDate(sampleDate))],
-    } as ReturnType<typeof journalHooks.useEntriesByRange>);
+    } as ReturnType<typeof useEntriesByRange>);
 
     const { container } = render(
       <JournalCalendarFilter selectedRange={{}} onRangeChange={vi.fn()} />,
@@ -39,7 +39,7 @@ describe('JournalCalendarFilter', () => {
 
   it('shows a clear-filter link only when a range is active', () => {
     mockedUseEntriesByRange.mockReturnValue({ data: [] } as unknown as ReturnType<
-      typeof journalHooks.useEntriesByRange
+      typeof useEntriesByRange
     >);
 
     const { rerender } = render(
@@ -57,7 +57,7 @@ describe('JournalCalendarFilter', () => {
   it('shows the entry count from the selected range, not the two-month grid data', () => {
     mockedUseEntriesByRange.mockReturnValue({
       data: [fakeEntry('2026-08-01'), fakeEntry('2026-08-15'), fakeEntry('2026-09-01')],
-    } as ReturnType<typeof journalHooks.useEntriesByRange>);
+    } as ReturnType<typeof useEntriesByRange>);
 
     const day = new Date(2026, 7, 15);
     render(

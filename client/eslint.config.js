@@ -95,6 +95,13 @@ export default tseslint.config(
           ],
         },
       ],
+      // Named imports (`import { useRef } from 'react'`) are this codebase's
+      // convention: they tree-shake predictably and read better at the call
+      // site than reaching through a namespace object (`React.useRef`).
+      // Nothing enforced that before this rule, so the namespace form kept
+      // getting copied into new files that used an existing one as a
+      // template (see #55).
+      'import/no-namespace': 'error',
     },
   },
   {

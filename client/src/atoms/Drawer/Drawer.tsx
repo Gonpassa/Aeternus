@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type { ReactNode } from 'react';
 import { Drawer as ChakraDrawer, Portal, type SystemStyleObject } from '@chakra-ui/react';
 import styles from './Drawer.module.css';
 
@@ -31,7 +31,7 @@ export interface DrawerProps {
   /** Accessible name for the drawer region, since it has no visible title. */
   'aria-label': string;
   width?: SystemStyleObject['width'];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Drawer({

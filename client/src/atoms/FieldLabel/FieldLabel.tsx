@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function FieldLabel` names the
    ref-forwarding component for DevTools, and remaining props are forwarded via
    `{...props}` to the underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { chakra, type HTMLChakraProps } from '@chakra-ui/react';
 
 export interface FieldLabelProps extends HTMLChakraProps<'label'> {
@@ -13,7 +13,7 @@ const eyebrowStyle = {
   textStyle: 'label',
 } as const;
 
-export const FieldLabel = React.forwardRef<HTMLLabelElement, FieldLabelProps>(function FieldLabel(
+export const FieldLabel = forwardRef<HTMLLabelElement, FieldLabelProps>(function FieldLabel(
   { eyebrow = false, ...props },
   ref,
 ) {

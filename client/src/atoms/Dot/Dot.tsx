@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function Dot` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import * as React from 'react';
+import { forwardRef } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 
 export type DotSize = '2' | '2.5';
@@ -12,7 +12,7 @@ export interface DotProps extends Omit<BoxProps, 'boxSize' | 'borderRadius' | 'b
   color: string;
 }
 
-export const Dot = React.forwardRef<HTMLDivElement, DotProps>(function Dot(
+export const Dot = forwardRef<HTMLDivElement, DotProps>(function Dot(
   { size = '2', color, ...props },
   ref,
 ) {

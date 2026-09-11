@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, type MouseEvent } from 'react';
 
 export interface Ripple {
   key: number;
@@ -6,10 +6,10 @@ export interface Ripple {
   y: number;
 }
 
-export function useRipple<T extends HTMLElement>(onClick?: (event: React.MouseEvent<T>) => void) {
-  const [ripple, setRipple] = React.useState<Ripple | null>(null);
+export function useRipple<T extends HTMLElement>(onClick?: (event: MouseEvent<T>) => void) {
+  const [ripple, setRipple] = useState<Ripple | null>(null);
 
-  const handleClick = (event: React.MouseEvent<T>) => {
+  const handleClick = (event: MouseEvent<T>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setRipple({
       key: Date.now(),
