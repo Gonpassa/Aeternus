@@ -78,6 +78,12 @@ export default tseslint.config(
       // TS interfaces already express optionality and defaults are handled via
       // destructuring default values.
       'react/require-default-props': 'off',
+      // Render-prop slots in atoms are named `<thing>Slot` (e.g. `Select`'s
+      // `itemSlot`), not `render<Thing>`. They are called during render rather
+      // than mounted as component types, so the instability this rule guards
+      // against does not apply; widen its render-prop pattern to cover both
+      // spellings instead of disabling the rule at every call site.
+      'react/no-unstable-nested-components': ['error', { propNamePattern: '{render*,*Slot}' }],
       'import/no-extraneous-dependencies': [
         'error',
         {

@@ -5,14 +5,7 @@ import { IconButton } from '../../../../atoms/IconButton/IconButton.tsx';
 import { Card } from '../../../../atoms/Card/Card.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
-import {
-  createListCollection,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../../../atoms/Select/Select.tsx';
+import { Select } from '../../../../atoms/Select/Select.tsx';
 import {
   MarkedRangeCalendar,
   type DateRangeValue,
@@ -97,20 +90,8 @@ export function JournalCalendarFilter({
     return Array.from({ length: 11 }, (_, i) => current - 5 + i);
   }, []);
 
-  const monthCollection = useMemo(
-    () =>
-      createListCollection({
-        items: MONTH_LABELS.map((label, index) => ({ value: String(index), label })),
-      }),
-    [],
-  );
-  const yearCollection = useMemo(
-    () =>
-      createListCollection({
-        items: years.map((year) => ({ value: String(year), label: String(year) })),
-      }),
-    [years],
-  );
+  const monthOptions = MONTH_LABELS.map((label, index) => ({ value: String(index), label }));
+  const yearOptions = years.map((year) => ({ value: String(year), label: String(year) }));
 
   const hasFilter = Boolean(selectedRange.from);
 
@@ -129,41 +110,21 @@ export function JournalCalendarFilter({
             _hover={{ bg: 'moss/14', textDecoration: 'none' }}
           />
           <Select
-            collection={monthCollection}
-            value={[String(visibleMonth.getMonth())]}
-            onValueChange={(details) =>
-              setVisibleMonth(new Date(visibleMonth.getFullYear(), Number(details.value[0]), 1))
+            aria-label="Month"
+            items={monthOptions}
+            value={String(visibleMonth.getMonth())}
+            onChange={(value) =>
+              setVisibleMonth(new Date(visibleMonth.getFullYear(), Number(value), 1))
             }
-          >
-            <SelectTrigger borderRadius="0" minW="9.5ch" justifyContent="center">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent borderRadius="0" boxShadow="none">
-              {monthCollection.items.map((item) => (
-                <SelectItem key={item.value} item={item}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
           <Select
-            collection={yearCollection}
-            value={[String(visibleMonth.getFullYear())]}
-            onValueChange={(details) =>
-              setVisibleMonth(new Date(Number(details.value[0]), visibleMonth.getMonth(), 1))
+            aria-label="Year"
+            items={yearOptions}
+            value={String(visibleMonth.getFullYear())}
+            onChange={(value) =>
+              setVisibleMonth(new Date(Number(value), visibleMonth.getMonth(), 1))
             }
-          >
-            <SelectTrigger borderRadius="0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent borderRadius="0" boxShadow="none">
-              {yearCollection.items.map((item) => (
-                <SelectItem key={item.value} item={item}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
           <IconButton
             type="button"
             variant="ghost"
