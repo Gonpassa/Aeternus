@@ -17,6 +17,7 @@ Both `client/` and `backend/` pin **ESLint 8.57.1** (flat config via `typescript
 - `react/react-in-jsx-scope` off, `react/jsx-filename-extension` restricted to `.tsx` — Airbnb predates React 18's automatic JSX runtime and this project's TS/TSX file layout.
 - `react/require-default-props` off — deprecated pattern for function components; TS interfaces already express optionality, defaults handled via destructuring.
 - `import/prefer-default-export` off.
+- `react/no-unstable-nested-components` keeps its `propNamePattern` widened to `{render*,*Slot}` - this repo names render slots `<thing>Slot` (`Select`'s `itemSlot`), and those are called during render rather than mounted as component types, so the remount the rule guards against can't happen. Widened once here rather than disabled at each call site.
 
 The client config also carries two **boundary rules**, each in its own config block with a `files`/`ignores` pair naming the layer allowed to cross the boundary:
 

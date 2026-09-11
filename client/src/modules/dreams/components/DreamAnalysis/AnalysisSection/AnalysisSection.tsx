@@ -1,18 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import type { AnalysisPass, AnalysisPassType, AnchorWithAttachments } from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { Card } from '../../../../../atoms/Card/Card.tsx';
 import { Heading } from '../../../../../atoms/Heading/Heading.tsx';
 import { RuledNote } from '../../../../../atoms/RuledNote/RuledNote.tsx';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  createListCollection,
-} from '../../../../../atoms/Select/Select.tsx';
+import { Select } from '../../../../../atoms/Select/Select.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Tab } from '../../../../../atoms/Tab/Tab.tsx';
 import { Tabs } from '../../../../../atoms/Tabs/Tabs.tsx';
@@ -60,27 +53,21 @@ export function AnalysisSection({
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const anchorCollection = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          { value: WHOLE_DREAM_OPTION, label: 'Whole dream' },
-          ...(pendingExcerpt !== null
-            ? [
-                {
-                  value: PENDING_ANCHOR_OPTION,
-                  label: `“${truncateExcerpt(pendingExcerpt, 30)}” (selected passage)`,
-                },
-              ]
-            : []),
-          ...anchors.map((anchor) => ({
-            value: String(anchor.id),
-            label: `“${truncateExcerpt(excerpts[anchor.id] ?? '', 30)}”`,
-          })),
-        ],
-      }),
-    [anchors, excerpts, pendingExcerpt],
-  );
+  const anchorOptions = [
+    { value: WHOLE_DREAM_OPTION, label: 'Whole dream' },
+    ...(pendingExcerpt !== null
+      ? [
+          {
+            value: PENDING_ANCHOR_OPTION,
+            label: `“${truncateExcerpt(pendingExcerpt, 30)}” (selected passage)`,
+          },
+        ]
+      : []),
+    ...anchors.map((anchor) => ({
+      value: String(anchor.id),
+      label: `“${truncateExcerpt(excerpts[anchor.id] ?? '', 30)}”`,
+    })),
+  ];
 
   const visiblePasses = passes.filter((pass) => pass.type === tab);
 
@@ -157,24 +144,11 @@ export function AnalysisSection({
         {tab === 'analytic' && (
           <Stack direction="row" mb="3">
             <Select
-              collection={anchorCollection}
-              value={[anchorSelection]}
-              onValueChange={(details) =>
-                onAnchorSelectionChange(details.value[0] ?? WHOLE_DREAM_OPTION)
-              }
               aria-label="Anchor for this pass"
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {anchorCollection.items.map((item) => (
-                  <SelectItem key={item.value} item={item}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              items={anchorOptions}
+              value={anchorSelection}
+              onChange={onAnchorSelectionChange}
+            />
           </Stack>
         )}
         <Textarea
