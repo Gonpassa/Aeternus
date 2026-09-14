@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { Dream } from '@nee3/shared-types';
-import { stripHtml } from '../../../../utils/textUtils.ts';
+import { excerpt } from '../../../../utils/textUtils.ts';
 import { groupByMonth, dayLabel } from '../../../../utils/dateGrouping.ts';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
@@ -36,7 +36,7 @@ export function DreamTimeline({ dreams }: DreamTimelineProps) {
                     </Text>
                   </Stack>
                   <Text fontFamily="body" color="ink" flex="1">
-                    {stripHtml(dream.narrative).slice(0, 160)}
+                    {excerpt(dream.narrative, 160)}
                   </Text>
                 </Link>
               </Stack>

@@ -14,6 +14,7 @@ export const endpoints = {
     summary: '/journal/entries/summary',
   },
   dreams: '/dreams',
+  dreamsSummary: '/dreams/summary',
   dream: (id: number) => `/dreams/${id}`,
   dreamAnchors: (id: number) => `/dreams/${id}/anchors`,
   dreamAnalysisPasses: (id: number) => `/dreams/${id}/analysis-passes`,

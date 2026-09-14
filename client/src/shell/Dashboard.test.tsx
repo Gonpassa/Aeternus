@@ -18,6 +18,10 @@ vi.mock('../modules/journal/api/journalHooks.ts', () => ({
   useJournalSummary: () => mockUseJournalSummary(),
 }));
 
+vi.mock('../modules/dreams/api/dreamHooks.ts', () => ({
+  useDreamSummary: () => ({ data: { hasAnyDreams: false, reEncounter: null }, isPending: false }),
+}));
+
 const { Dashboard } = await import('./Dashboard.tsx');
 
 const emptySummary = {

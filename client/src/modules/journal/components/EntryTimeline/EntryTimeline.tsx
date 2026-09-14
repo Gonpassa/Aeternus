@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { Entry } from '@nee3/shared-types';
 import { MOOD_DOT_COLOR, MOOD_LABEL } from '../../moodColors.ts';
-import { stripHtml } from '../../../../utils/textUtils.ts';
+import { excerpt } from '../../../../utils/textUtils.ts';
 import { groupByMonth, dayLabel } from '../../../../utils/dateGrouping.ts';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Heading } from '../../../../atoms/Heading/Heading.tsx';
@@ -49,7 +49,7 @@ export function EntryTimeline({ entries }: EntryTimelineProps) {
                       {entry.title}
                     </Heading>
                     <Text fontFamily="body" color="ink">
-                      {stripHtml(entry.content).slice(0, 160)}
+                      {excerpt(entry.content, 160)}
                     </Text>
                   </Stack>
                 </Link>

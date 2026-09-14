@@ -11,6 +11,7 @@ import type {
   Dream,
   DreamDetailResponse,
   DreamListResponse,
+  DreamSummaryResponse,
   DreamSymbol,
   EmotionalBeat,
   SymbolAttachmentDetail,
@@ -26,6 +27,7 @@ export const dreamKeys = {
   all: ['dreams'] as const,
   list: () => ['dreams', 'list'] as const,
   detail: (id: number) => ['dreams', 'detail', id] as const,
+  summary: (asOf: string) => ['dreams', 'summary', asOf] as const,
   symbols: () => ['dreams', 'symbols'] as const,
 };
 
@@ -35,6 +37,17 @@ export const useDreams = () =>
     queryFn: async () => {
       const { data } = await apiClient.get<DreamListResponse>(endpoints.dreams);
       return data.dreams;
+    },
+  });
+
+export const useDreamSummary = (asOf: string) =>
+  useQuery<DreamSummaryResponse>({
+    queryKey: dreamKeys.summary(asOf),
+    queryFn: async () => {
+      const { data } = await apiClient.get<DreamSummaryResponse>(endpoints.dreamsSummary, {
+        params: { asOf },
+      });
+      return data;
     },
   });
 
