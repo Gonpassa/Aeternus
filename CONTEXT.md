@@ -74,3 +74,8 @@ The dreamer's personal associations to an Anchor, optionally widened with cultur
 Attached to the Anchor directly; naming the Symbol it belongs to is optional, added once the dreamer names a recurring image rather than as a precondition for recording the association.
 Distinct from Analytic/Synthetic analysis - associations are raw material gathered per-Anchor, not a conclusion drawn about the dream.
 _Avoid_: Interpretation, meaning
+
+**Re-encounter**:
+The act of returning to a Dream that has lain untouched since it was recorded, once enough waking time has passed for it to be readable.
+A Dream qualifies while it carries no Anchor and no Analysis pass, and stops qualifying as soon as either exists - a Re-encounter invites beginning analysis, never finishing it, since an Analysis pass is append-only and its absence is not incompleteness.
+_Avoid_: Unread dream, backlog, pending analysis (each implies a task left undone rather than a dream deliberately left to rest)
