@@ -101,6 +101,16 @@ export interface DreamListResponse {
 
 export type UpdateDreamRequest = CreateDreamRequest;
 
+// The dashboard's Dream Journal card. `reEncounter` is the single Dream currently eligible
+// for Re-encounter (see CONTEXT.md and ADR 0010) - no Anchor, no Analysis pass, recorded at
+// least seven nights ago - or null when nothing qualifies. The full narrative comes back
+// rather than a server-truncated snippet, so truncation stays one client-side rule; the card
+// shows the Dream's own `date`, which is why `createdAt` is absent.
+export interface DreamSummaryResponse {
+  hasAnyDreams: boolean;
+  reEncounter: Pick<Dream, 'id' | 'date' | 'narrative'> | null;
+}
+
 export interface Anchor {
   id: number;
   dreamId: number;

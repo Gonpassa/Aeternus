@@ -93,3 +93,17 @@ export const validateAnalysisPassInput = (input: {
   }
   return { valid: true };
 };
+
+export type AsOfResult = { valid: true; asOf: string } | { valid: false; error: string };
+
+const todayUTC = (): string => new Date().toISOString().slice(0, 10);
+
+export const parseAsOf = (query: { asOf?: unknown }): AsOfResult => {
+  if (query.asOf === undefined) {
+    return { valid: true, asOf: todayUTC() };
+  }
+  if (!isValidDate(query.asOf)) {
+    return { valid: false, error: 'asOf must be a valid date.' };
+  }
+  return { valid: true, asOf: query.asOf };
+};

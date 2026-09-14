@@ -469,13 +469,11 @@ describe('dream analysis routes (integration)', () => {
       const tagRes = await aliceAgent
         .post(`/api/anchors/${anchorId}/symbols`)
         .send({ name: 'Water' });
-      await aliceAgent
-        .post(`/api/anchors/${anchorId}/associations`)
-        .send({
-          content: 'The lake',
-          kind: 'personal',
-          symbolAttachmentId: tagRes.body.symbolAttachment.id,
-        });
+      await aliceAgent.post(`/api/anchors/${anchorId}/associations`).send({
+        content: 'The lake',
+        kind: 'personal',
+        symbolAttachmentId: tagRes.body.symbolAttachment.id,
+      });
       await aliceAgent
         .post(`/api/dreams/${dreamId}/analysis-passes`)
         .send({ type: 'synthetic', content: 'Toward the open.' });

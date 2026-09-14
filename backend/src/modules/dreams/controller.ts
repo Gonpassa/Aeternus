@@ -3,15 +3,18 @@ import {
   ApiErrorResponse,
   CreateAnalysisPassRequest,
   CreateDreamRequest,
+  DreamSummaryResponse,
   UpdateDreamRequest,
 } from '@nee3/shared-types';
-import { validateAnalysisPassInput, validateDreamInput } from './validation';
+import { parseAsOf, validateAnalysisPassInput, validateDreamInput } from './validation';
 import { sanitizeDreamNarrative } from './sanitize';
 import {
   createDream as createDreamRecord,
   listDreamsByUser,
   findDreamById,
+  findReEncounterDream,
   updateDream as updateDreamRecord,
+  userHasAnyDreams,
 } from '../../db/dreams';
 import {
   createAnchor as createAnchorRecord,
@@ -27,6 +30,10 @@ import {
 } from '../../db/analysisPasses';
 import { getUserId } from '../../types/request';
 
+// How long a Dream must have rested before it can be offered back for Re-encounter.
+// Seven nights, per ADR 0010; this is the rule's only home.
+const RE_ENCOUNTER_MINIMUM_NIGHTS = 7;
+
 const parseDreamId = (req: Request): number | null => {
   const id = Number(req.params.dreamId);
   return Number.isNaN(id) ? null : id;
@@ -40,6 +47,35 @@ export const listDreams = async (
   try {
     const dreams = await listDreamsByUser({ userId: getUserId(req) });
     res.status(200).json({ dreams });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// `hasAnyDreams` is asked separately rather than inferred from the Re-encounter, so the
+// dashboard can tell a brand new dreamer apart from one with nothing currently eligible.
+export const getDreamSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const asOfResult = parseAsOf(req.query);
+  if (!asOfResult.valid) {
+    res.status(400).json({ error: asOfResult.error } satisfies ApiErrorResponse);
+    return;
+  }
+  try {
+    const userId = getUserId(req);
+    const [hasAnyDreams, reEncounter] = await Promise.all([
+      userHasAnyDreams({ userId }),
+      findReEncounterDream({
+        userId,
+        asOf: asOfResult.asOf,
+        minimumNights: RE_ENCOUNTER_MINIMUM_NIGHTS,
+      }),
+    ]);
+    const response: DreamSummaryResponse = { hasAnyDreams, reEncounter: reEncounter ?? null };
+    res.status(200).json(response);
   } catch (err) {
     next(err);
   }

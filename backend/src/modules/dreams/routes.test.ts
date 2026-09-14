@@ -16,7 +16,7 @@ describe('dreams routes (integration)', () => {
     // rows (e.g. a lingering 'alice' user) since they only truncate in their own
     // beforeEach. Start from a clean slate before seeding this file's fixtures.
     await db.execute(
-      sql`TRUNCATE TABLE dreams, anchors, emotional_beats, users RESTART IDENTITY CASCADE`,
+      sql`TRUNCATE TABLE dreams, anchors, emotional_beats, analysis_passes, users RESTART IDENTITY CASCADE`,
     );
 
     await createUser('alice', 'alice@example.com', 'secret123');
@@ -30,7 +30,9 @@ describe('dreams routes (integration)', () => {
   });
 
   beforeEach(async () => {
-    await db.execute(sql`TRUNCATE TABLE dreams, anchors, emotional_beats RESTART IDENTITY CASCADE`);
+    await db.execute(
+      sql`TRUNCATE TABLE dreams, anchors, emotional_beats, analysis_passes RESTART IDENTITY CASCADE`,
+    );
   });
 
   afterAll(async () => {
@@ -118,6 +120,153 @@ describe('dreams routes (integration)', () => {
       const res = await aliceAgent.get('/api/dreams');
       expect(res.status).toBe(200);
       expect(res.body.dreams).toEqual([]);
+    });
+  });
+
+  describe('GET /api/dreams/summary', () => {
+    // The Re-encounter window runs on the recording clock (created_at), which the API never
+    // exposes, so these cases set it directly and always pass an explicit asOf rather than
+    // depending on the day the suite happens to run.
+    const recordDream = async (
+      agent: ReturnType<typeof request.agent>,
+      { date, narrative, recordedAt }: { date: string; narrative: string; recordedAt: string },
+    ): Promise<number> => {
+      const created = await agent.post('/api/dreams').send({ date, narrative });
+      const dreamId = created.body.dream.id as number;
+      await db.execute(sql`UPDATE dreams SET created_at = ${recordedAt} WHERE id = ${dreamId}`);
+      return dreamId;
+    };
+
+    // Recorded on 2026-09-07, which is exactly seven nights before the asOf every case below
+    // asks for, so the fixture sits on the near edge of eligibility.
+    const eligible = {
+      date: '2026-08-20',
+      narrative: '<p>A corridor of doors, none of which opened.</p>',
+      recordedAt: '2026-09-07T09:00:00',
+    };
+
+    it('requires authentication', async () => {
+      const res = await request(createApp()).get('/api/dreams/summary');
+      expect(res.status).toBe(401);
+    });
+
+    it('reports no dreams and no Re-encounter for a dreamer who has recorded nothing', async () => {
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ hasAnyDreams: false, reEncounter: null });
+    });
+
+    it("returns the eligible dream's id, date and full narrative", async () => {
+      const dreamId = await recordDream(aliceAgent, eligible);
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        hasAnyDreams: true,
+        reEncounter: { id: dreamId, date: eligible.date, narrative: eligible.narrative },
+      });
+    });
+
+    it('does not offer a dream recorded fewer than seven nights ago', async () => {
+      await recordDream(aliceAgent, { ...eligible, recordedAt: '2026-09-11T09:00:00' });
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ hasAnyDreams: true, reEncounter: null });
+    });
+
+    it('offers a dream recorded seven nights before asOf however late in the day it was written', async () => {
+      const dreamId = await recordDream(aliceAgent, {
+        ...eligible,
+        recordedAt: '2026-09-07T23:59:00',
+      });
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body.reEncounter).toEqual(expect.objectContaining({ id: dreamId }));
+    });
+
+    it('does not offer a dream recorded the day after the seven-night boundary', async () => {
+      await recordDream(aliceAgent, { ...eligible, recordedAt: '2026-09-08T00:01:00' });
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body.reEncounter).toBeNull();
+    });
+
+    it('stops offering a dream once it carries an anchor', async () => {
+      const dreamId = await recordDream(aliceAgent, eligible);
+      await aliceAgent.post(`/api/dreams/${dreamId}/anchors`).send({});
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body).toEqual({ hasAnyDreams: true, reEncounter: null });
+    });
+
+    it('stops offering a dream that carries an analysis pass but no anchor', async () => {
+      const dreamId = await recordDream(aliceAgent, eligible);
+      const pass = await aliceAgent
+        .post(`/api/dreams/${dreamId}/analysis-passes`)
+        .send({ type: 'synthetic', content: 'Read once, whole, and left where it was.' });
+      expect(pass.status).toBe(201);
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body).toEqual({ hasAnyDreams: true, reEncounter: null });
+    });
+
+    it('returns the newest eligible dream by the night dreamt', async () => {
+      const older = await recordDream(aliceAgent, { ...eligible, date: '2026-07-01' });
+      const newer = await recordDream(aliceAgent, {
+        ...eligible,
+        date: '2026-08-25',
+        recordedAt: '2026-09-01T09:00:00',
+      });
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body.reEncounter).toEqual(expect.objectContaining({ id: newer }));
+      expect(res.body.reEncounter.id).not.toBe(older);
+    });
+
+    it('does not offer a back-dated dream recorded today', async () => {
+      await recordDream(aliceAgent, {
+        ...eligible,
+        date: '2026-03-02',
+        recordedAt: '2026-09-14T07:00:00',
+      });
+
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.body).toEqual({ hasAnyDreams: true, reEncounter: null });
+    });
+
+    it("never reflects another dreamer's dreams", async () => {
+      await recordDream(aliceAgent, eligible);
+
+      const res = await bobAgent.get('/api/dreams/summary?asOf=2026-09-14');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ hasAnyDreams: false, reEncounter: null });
+    });
+
+    it('rejects a malformed asOf rather than coercing it', async () => {
+      const res = await aliceAgent.get('/api/dreams/summary?asOf=not-a-date');
+      expect(res.status).toBe(400);
+    });
+
+    it('defaults asOf to today when it is absent', async () => {
+      const dreamId = await recordDream(aliceAgent, {
+        ...eligible,
+        recordedAt: '2026-01-05T09:00:00',
+      });
+
+      const res = await aliceAgent.get('/api/dreams/summary');
+
+      expect(res.status).toBe(200);
+      expect(res.body.reEncounter).toEqual(expect.objectContaining({ id: dreamId }));
     });
   });
 

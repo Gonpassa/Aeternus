@@ -1,6 +1,6 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, notExists, sql } from 'drizzle-orm';
 import { db } from './index';
-import { dreams, Dream, NewDream } from './schema';
+import { analysisPasses, anchors, dreams, Dream, NewDream } from './schema';
 
 export type NewDreamInput = Omit<NewDream, 'id' | 'createdAt' | 'updatedAt'>;
 
@@ -49,4 +49,56 @@ export const updateDream = async ({
     .where(and(eq(dreams.id, id), eq(dreams.userId, userId)))
     .returning();
   return updated;
+};
+
+export type ReEncounterDream = Pick<Dream, 'id' | 'date' | 'narrative'>;
+
+// A Dream is eligible for Re-encounter while it carries neither an Anchor nor an Analysis
+// pass, and while it was recorded at least `minimumNights` nights before `asOf` (CONTEXT.md,
+// ADR 0010). The window runs on created_at - when the dreamer wrote the Dream down - so
+// back-dating a Dream recorded today cannot make it eligible on save, and it is compared by
+// whole day so that recording late at night does not shift the threshold by one.
+// The pick is the newest by the night dreamt, hence ordering on `date` rather than created_at.
+export const findReEncounterDream = async ({
+  userId,
+  asOf,
+  minimumNights,
+}: {
+  userId: number;
+  asOf: string;
+  minimumNights: number;
+}): Promise<ReEncounterDream | undefined> => {
+  const [row] = await db
+    .select({ id: dreams.id, date: dreams.date, narrative: dreams.narrative })
+    .from(dreams)
+    .where(
+      and(
+        eq(dreams.userId, userId),
+        sql`${dreams.createdAt}::date <= ${asOf}::date - ${minimumNights}::int`,
+        notExists(
+          db
+            .select({ exists: sql`1` })
+            .from(anchors)
+            .where(eq(anchors.dreamId, dreams.id)),
+        ),
+        notExists(
+          db
+            .select({ exists: sql`1` })
+            .from(analysisPasses)
+            .where(eq(analysisPasses.dreamId, dreams.id)),
+        ),
+      ),
+    )
+    .orderBy(desc(dreams.date), desc(dreams.createdAt))
+    .limit(1);
+  return row;
+};
+
+export const userHasAnyDreams = async ({ userId }: { userId: number }): Promise<boolean> => {
+  const [row] = await db
+    .select({ id: dreams.id })
+    .from(dreams)
+    .where(eq(dreams.userId, userId))
+    .limit(1);
+  return row !== undefined;
 };
