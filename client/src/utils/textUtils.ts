@@ -4,8 +4,10 @@ export const stripHtml = (html: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
-// The one truncation rule for summarised rich text: strip HTML, cut at a word
-// boundary within maxLength, and append an ellipsis only when something was cut.
+// The truncation rule for summarised rich-text content (timelines, dashboard
+// snippets): strip HTML, cut at a word boundary within maxLength, and append an
+// ellipsis only when something was cut. Tight plain-text contexts with a hard
+// length budget (e.g. anchor excerpts in margin notes) have their own rule.
 export const excerpt = (html: string, maxLength: number): string => {
   const text = stripHtml(html);
   if (text.length <= maxLength) return text;

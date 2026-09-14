@@ -20,8 +20,9 @@ export function DreamWidget() {
 
   return (
     <IndexCard label="Dream Journal" catalogNumber="No. 002" accent="moss">
-      {isPending && <LoadingGate w="full" minH="120px" size="sm" />}
-      {data && (
+      {isPending ? (
+        <LoadingGate w="full" minH="120px" size="sm" />
+      ) : (
         <Stack
           direction={{ base: 'column', md: 'row' }}
           gap="6"
@@ -31,7 +32,7 @@ export function DreamWidget() {
             <Text textStyle="cardTitle" color="ink">
               Record last night&rsquo;s dream
             </Text>
-            {!data.hasAnyDreams && (
+            {data && !data.hasAnyDreams && (
               <Text fontFamily="body" color="ink">
                 When a dream follows you into the morning, this is the place to set it down.
               </Text>
@@ -41,7 +42,7 @@ export function DreamWidget() {
             </Button>
           </Stack>
 
-          {data.reEncounter && (
+          {data?.reEncounter && (
             <Stack
               direction="column"
               gap="1"

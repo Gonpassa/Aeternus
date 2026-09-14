@@ -60,6 +60,16 @@ describe('DreamWidget', () => {
     expect(screen.queryByText('See also')).not.toBeInTheDocument();
   });
 
+  it('still offers the record action when the summary request fails', () => {
+    mockUseDreamSummary.mockReturnValue({ data: undefined, isPending: false });
+
+    render(<DreamWidget />);
+
+    expect(screen.getByRole('link', { name: CTA })).toHaveAttribute('href', '/dreams/new');
+    expect(screen.queryByText('See also')).not.toBeInTheDocument();
+    expect(screen.queryByText(FIRST_DREAM_PROMPT)).not.toBeInTheDocument();
+  });
+
   it('shows the first-record prompt and no Re-encounter line when there are no dreams', () => {
     mockUseDreamSummary.mockReturnValue(loaded({ hasAnyDreams: false, reEncounter: null }));
 
