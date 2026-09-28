@@ -104,6 +104,22 @@ _Avoid_: Idea (too generic), zettel (implies Folgezettel numbering, which is not
 A connection between two notes of any kind - Literature or Permanent. The web of Links is the structure of the box; there is no other hierarchy among notes.
 _Avoid_: Backlink (a view of Links, not a separate thing), reference
 
+**Review**:
+The act of returning to a **Literature note** to ask what, if anything, of the user's own is in it. Harvest, not retention: a note comes back because the user has changed since they wrote it and may now have something to say that they did not have then, never because they are at risk of forgetting what they read. Retention is the later AI quiz's concern, not this module's.
+_Avoid_: Revision, study, drill (each implies recall is being tested)
+
+**Answer**:
+What Review asks of one **Literature note**, exactly one of three: nothing of the user's own is here, a **Link** was made from it, or a **Permanent note** was written from it. Recorded on completion rather than on intent - abandoning a Permanent note composer leaves the note unanswered - and append-only, so a note carries a history of Answers rather than a current state. Leaving Review part-way through a note is not an Answer.
+_Avoid_: Grade, rating, score, response (each implies the user is rating themselves or the note)
+
+**Due**:
+Said of a **Literature note** that has never received an **Answer**. Every Literature note is due from creation. Due-ness carries no deadline and no notion of lateness: a note that has been due for a month is due in exactly the same sense as one due since this morning, and nothing accrues in the meantime. Answering a note does not remove it from Review for good - it drops behind the due ones and remains available.
+_Avoid_: Overdue, pending, backlog, unprocessed (each implies a debt that grows)
+
+**Open question**:
+A **Literature note** flagged while reading as something the user was unsure of and left unanswered. Orthogonal to the **Answer**: no Answer resolves it, since an open question is usually settled by later reading rather than by Review, and the user clears the flag explicitly. It stays listed on its **Source** until cleared.
+_Avoid_: Todo, unresolved note
+
 **Topic**:
 A tag carried by a Source or a Permanent note. Literature notes inherit their Source's Topics. A cross-cutting label, never a container: a Source may carry many Topics, and filtering by a Topic collects every note that carries or inherits it.
 _Avoid_: Folder, category, subject
