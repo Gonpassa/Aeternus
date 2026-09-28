@@ -19,6 +19,7 @@ import { Route as DreamsNewRouteImport } from './routes/dreams/new'
 import { Route as JournalIndexRouteImport } from './routes/journal/index'
 import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
+import { Route as PrototypeNotesCaptureRouteImport } from './routes/prototype/notes-capture'
 import { Route as DreamsDreamIdEditRouteImport } from './routes/dreams/$dreamId_.edit'
 import { Route as JournalEntryIdEditRouteImport } from './routes/journal/$entryId_.edit'
 
@@ -72,6 +73,11 @@ const JournalNewRoute = JournalNewRouteImport.update({
   path: '/journal/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeNotesCaptureRoute = PrototypeNotesCaptureRouteImport.update({
+  id: '/prototype/notes-capture',
+  path: '/prototype/notes-capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DreamsDreamIdEditRoute = DreamsDreamIdEditRouteImport.update({
   id: '/dreams/$dreamId_/edit',
   path: '/dreams/$dreamId/edit',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/prototype/notes-capture': typeof PrototypeNotesCaptureRoute
   '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
   '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/prototype/notes-capture': typeof PrototypeNotesCaptureRoute
   '/dreams': typeof DreamsIndexRoute
   '/journal': typeof JournalIndexRoute
   '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/dreams/new': typeof DreamsNewRoute
   '/journal/$entryId': typeof JournalEntryIdRoute
   '/journal/new': typeof JournalNewRoute
+  '/prototype/notes-capture': typeof PrototypeNotesCaptureRoute
   '/dreams/': typeof DreamsIndexRoute
   '/journal/': typeof JournalIndexRoute
   '/dreams/$dreamId_/edit': typeof DreamsDreamIdEditRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/prototype/notes-capture'
     | '/dreams/'
     | '/journal/'
     | '/dreams/$dreamId/edit'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/prototype/notes-capture'
     | '/dreams'
     | '/journal'
     | '/dreams/$dreamId/edit'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/dreams/new'
     | '/journal/$entryId'
     | '/journal/new'
+    | '/prototype/notes-capture'
     | '/dreams/'
     | '/journal/'
     | '/dreams/$dreamId_/edit'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   DreamsNewRoute: typeof DreamsNewRoute
   JournalEntryIdRoute: typeof JournalEntryIdRoute
   JournalNewRoute: typeof JournalNewRoute
+  PrototypeNotesCaptureRoute: typeof PrototypeNotesCaptureRoute
   DreamsIndexRoute: typeof DreamsIndexRoute
   JournalIndexRoute: typeof JournalIndexRoute
   DreamsDreamIdEditRoute: typeof DreamsDreamIdEditRoute
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JournalNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype/notes-capture': {
+      id: '/prototype/notes-capture'
+      path: '/prototype/notes-capture'
+      fullPath: '/prototype/notes-capture'
+      preLoaderRoute: typeof PrototypeNotesCaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dreams/$dreamId_/edit': {
       id: '/dreams/$dreamId_/edit'
       path: '/dreams/$dreamId/edit'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   DreamsNewRoute: DreamsNewRoute,
   JournalEntryIdRoute: JournalEntryIdRoute,
   JournalNewRoute: JournalNewRoute,
+  PrototypeNotesCaptureRoute: PrototypeNotesCaptureRoute,
   DreamsIndexRoute: DreamsIndexRoute,
   JournalIndexRoute: JournalIndexRoute,
   DreamsDreamIdEditRoute: DreamsDreamIdEditRoute,

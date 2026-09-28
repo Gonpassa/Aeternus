@@ -23,6 +23,10 @@ export function NavSections({ onLinkClick }: { onLinkClick?: () => void }) {
           <RailLink to="/dev/components" onClick={onLinkClick}>
             UI components
           </RailLink>
+          {/* PROTOTYPE (issue #73) - remove with modules/notes-capture-prototype/. */}
+          <RailLink to="/prototype/notes-capture" onClick={onLinkClick}>
+            Capture prototype
+          </RailLink>
         </Stack>
       )}
     </>
