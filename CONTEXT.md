@@ -79,3 +79,31 @@ _Avoid_: Interpretation, meaning
 The act of returning to a Dream that has lain untouched since it was recorded, once enough waking time has passed for it to be readable.
 A Dream qualifies while it carries no Anchor and no Analysis pass, and stops qualifying as soon as either exists - a Re-encounter invites beginning analysis, never finishing it, since an Analysis pass is append-only and its absence is not incompleteness.
 _Avoid_: Unread dream, backlog, pending analysis (each implies a task left undone rather than a dream deliberately left to rest)
+
+## Notes
+
+Terminology grounded in the Zettelkasten method as layered by Sönke Ahrens: source-bound notes written while reading, and the user's own ideas as separate notes that must connect to what is already there. The organizing model was chosen by prototype (branch `prototype/notes-organizing-models`) over a topic-folder hierarchy, a flat tagged card grid, and a faithful Luhmann box. Folgezettel numbering and the keyword register were deliberately not adopted.
+
+**Source**:
+A thing being read or watched - a book, an article, a video, or another kind - that Literature notes are bound to. A first-class record, not free text on a note. Carries Topics. Kind is a label only; it changes no fields.
+_Avoid_: Reference (Structured Writing's future term for a citation), book (too narrow)
+
+**Literature note**:
+A brief note in the user's own words, bound to one Source and to a Locator within it, written while reading. Has no title - the Locator and the note's opening words identify it. Inherits its Source's Topics.
+_Avoid_: Highlight, excerpt (those are the source's words, not the user's), summary (a Literature note may cover a paragraph or a chapter)
+
+**Locator**:
+Where in a Source a Literature note comes from - a chapter, a page, a timestamp, a section.
+_Avoid_: Position, reference
+
+**Permanent note**:
+An idea of the user's own, bound to no Source. Titled as a claim - a full sentence stating the idea, not a topic label. Cannot exist without at least one Link: an idea enters the box only by connecting to something already in it. May be written at any time, though the app invites it when re-reading Literature notes rather than while reading a Source.
+_Avoid_: Idea (too generic), zettel (implies Folgezettel numbering, which is not used), evergreen note
+
+**Link**:
+A connection between two notes of any kind - Literature or Permanent. The web of Links is the structure of the box; there is no other hierarchy among notes.
+_Avoid_: Backlink (a view of Links, not a separate thing), reference
+
+**Topic**:
+A tag carried by a Source or a Permanent note. Literature notes inherit their Source's Topics. A cross-cutting label, never a container: a Source may carry many Topics, and filtering by a Topic collects every note that carries or inherits it.
+_Avoid_: Folder, category, subject
