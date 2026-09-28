@@ -14,6 +14,10 @@ Phase 6 (Dream Journal) is built on both sides: dreams CRUD plus anchors, emotio
 
 See `docs/adr/` for architecture decision records (0001 monorepo, 0002 Chakra import boundary, 0003 journal editor toolbar scope, 0004 form handling, 0005 recovery buffer, 0006 entry navigation, 0007 dream anchor mark storage, 0008 margin notes ordering, 0009 Select as a closed atom, 0010 dream widget Re-encounter over metrics), `docs/deploy.md` for how to deploy `main` to production, `docs/deploy-smoke-test.md` and `docs/data-migration-runbook.md` for post-deploy verification and the one-off Mongo data migration, and `README.md` for the full module descriptions and 9-phase build plan (Setup → Backend API core → Auth → Journal → Deployment → Dream Journal → Structured Writing → Calendar → AI learning). Follow that phase order rather than jumping ahead.
 
+## Working on a change
+
+Never commit to `main`. Branch, push, and open a PR against `main` for every change, docs and ADRs included; leave the primary checkout on `main` when the PR is open. Run concurrent tasks in separate git worktrees rather than switching branches under each other. Full workflow in `docs/agents/branching.md`.
+
 ## Commands
 
 Root-level (npm workspaces; run from `Aeternus/`):
@@ -79,6 +83,7 @@ npm test         # vitest run
 
 ## Agent skills
 
+- **Branching and PRs**: every change reaches `main` through a pull request from a `<type>/<slug>-<issue>` branch; parallel work gets its own git worktree under `.claude/worktrees/`. See `docs/agents/branching.md`.
 - **Issue tracker**: Issues and specs live in Aeternus's GitHub Issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
 - **Domain docs**: single-context layout, `CONTEXT.md` + `docs/adr/` at the repo root. `CONTEXT.md` is the glossary and the authority on domain terminology - read it before any journal or dreams work. See `docs/agents/domain.md`.
 - **ESLint config**: rationale and rule overrides for both workspaces' flat configs. See `.claude/skills/eslint-config/SKILL.md`.
