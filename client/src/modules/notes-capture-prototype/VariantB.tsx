@@ -15,6 +15,7 @@ import { Input } from '../../atoms/Input/Input.tsx';
 import { Textarea } from '../../atoms/Textarea/Textarea.tsx';
 import { Card } from '../../atoms/Card/Card.tsx';
 import { IconButton } from '../../atoms/IconButton/IconButton.tsx';
+import { Dialog } from '../../atoms/Dialog/Dialog.tsx';
 import { DieCutTab } from '../../atoms/DieCutTab/DieCutTab.tsx';
 import { IndexCard } from '../../atoms/IndexCard/IndexCard.tsx';
 import { SourceHeader } from './shared/SourceHeader.tsx';
@@ -56,7 +57,10 @@ function BlankCardB({
   const [excerpt, setExcerpt] = useState('');
   const [excerptOpen, setExcerptOpen] = useState(false);
   const [openQuestion, setOpenQuestion] = useState(false);
-  const canSave = body.trim().length > 0 && Boolean(section.trim() || position.trim());
+  // A card with no position cannot be found again in the Source, so the catalog number is
+  // required. The card says so itself, in the slot, and only once there is a body to file.
+  const canSave = body.trim().length > 0 && position.trim().length > 0;
+  const positionMissing = body.trim().length > 0 && position.trim().length === 0;
 
   return (
     <Stack direction="column" gap="3">
@@ -106,7 +110,6 @@ function BlankCardB({
               size="xs"
               h="5"
               px="1"
-              w="6rem"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
               onBlur={() => setEditingPosition(false)}
@@ -116,16 +119,19 @@ function BlankCardB({
                   setEditingPosition(false);
                 }
               }}
-              placeholder="Position"
+              placeholder={positionMissing ? 'Position needed' : 'Position'}
               aria-label="Position"
+              aria-required="true"
               autoFocus={focusPosition || editingPosition}
               textAlign="right"
               bg="transparent"
               borderWidth="0"
               borderBottomWidth="1px"
-              borderColor="line"
+              borderColor={positionMissing ? 'rust' : 'line'}
               borderRadius="0"
               textStyle="label"
+              w={positionMissing ? '9rem' : '6rem'}
+              _placeholder={positionMissing ? { color: 'rust' } : undefined}
               _focusVisible={{ boxShadow: 'none', outline: 'none', borderColor: 'moss' }}
             />
           ) : (
@@ -219,11 +225,21 @@ export function VariantB({ store }: { store: CaptureStore }) {
   const [justSaved, setJustSaved] = useState<string | null>(null);
   const [acting, setActing] = useState<Acting | null>(null);
   const [prelink, setPrelink] = useState<LinkDraft[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const source = sourceById(state, sourceId);
   const notes = notesForSource(state, sourceId);
   const last = lastNoteFor(state, sourceId);
   const actingNote = acting ? notes.find((n) => n.id === acting.noteId) : undefined;
+  const doomedNote = pendingDelete ? notes.find((n) => n.id === pendingDelete) : undefined;
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    if (acting?.noteId === pendingDelete) setActing(null);
+    if (justSaved === pendingDelete) setJustSaved(null);
+    store.deleteLiteratureNote(pendingDelete);
+    setPendingDelete(null);
+  };
 
   const openSource = (id: string) => {
     setSourceId(id);
@@ -418,11 +434,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
                       variant="destructive"
                       size="xs"
                       flexShrink="0"
-                      onClick={() => {
-                        if (acting?.noteId === note.id) setActing(null);
-                        if (justSaved === note.id) setJustSaved(null);
-                        store.deleteLiteratureNote(note.id);
-                      }}
+                      onClick={() => setPendingDelete(note.id)}
                     />
                   </Stack>
                 </Stack>
@@ -431,6 +443,33 @@ export function VariantB({ store }: { store: CaptureStore }) {
           })}
         </Stack>
       </Stack>
+      {/* Deleting is the one move here with no undo, so it is interruptive and names the card
+          being binned by its tab and catalog number rather than saying "this card". */}
+      <Dialog
+        open={doomedNote !== undefined}
+        onClose={() => setPendingDelete(null)}
+        variant="small"
+        role="alertdialog"
+        header={{ title: 'Delete this card?' }}
+        footer={{
+          secondary: { label: 'Keep it', onClick: () => setPendingDelete(null) },
+          primary: { label: 'Delete', variant: 'destructive', onClick: confirmDelete },
+        }}
+      >
+        <Stack direction="column" gap="2">
+          <Text textStyle="label" color="inkSoft">
+            {[doomedNote?.section, renderPosition(doomedNote?.position ?? null)]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+          <Text textStyle="body" color="ink">
+            {doomedNote?.body}
+          </Text>
+          <Text textStyle="body" color="inkSoft">
+            The card goes, and its links go with it. This cannot be undone.
+          </Text>
+        </Stack>
+      </Dialog>
     </Stack>
   );
 }
