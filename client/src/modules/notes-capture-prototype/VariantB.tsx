@@ -287,7 +287,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
               </Card>
             </Stack>
           ) : (
-            <Stack direction="column" gap="3">
+            <Stack direction="column" gap="6">
               <Text textStyle="label" color="rust">
                 Blank card
               </Text>
@@ -321,7 +321,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
             return (
               <Stack direction="column" gap="3" key={note.id}>
                 {newDay && (
-                  <Text textStyle="label" color="inkSoft">
+                  <Text textStyle="label" color="inkSoft" mb="3">
                     {dayLabel(note.createdAt)}
                   </Text>
                 )}
