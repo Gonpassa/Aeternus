@@ -292,6 +292,16 @@ export function useCaptureNotesStore() {
     }));
   }, []);
 
+  // Deleting a card takes its links with it: a link to a card that no longer exists is not a
+  // connection, and the prototype has no undo to fall back on.
+  const deleteLiteratureNote = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      literatureNotes: s.literatureNotes.filter((n) => n.id !== id),
+      links: s.links.filter((l) => l.originId !== id && l.targetId !== id),
+    }));
+  }, []);
+
   const addPermanentNote = useCallback(
     (input: Omit<PermanentNote, 'id' | 'createdAt'>, linkDrafts: LinkDraft[]) => {
       const note: PermanentNote = { ...input, id: newId('perm'), createdAt: new Date() };
@@ -325,8 +335,22 @@ export function useCaptureNotesStore() {
   }, []);
 
   return useMemo(
-    () => ({ state, addLiteratureNote, updateLiteratureNote, addPermanentNote, addLink }),
-    [state, addLiteratureNote, updateLiteratureNote, addPermanentNote, addLink],
+    () => ({
+      state,
+      addLiteratureNote,
+      updateLiteratureNote,
+      deleteLiteratureNote,
+      addPermanentNote,
+      addLink,
+    }),
+    [
+      state,
+      addLiteratureNote,
+      updateLiteratureNote,
+      deleteLiteratureNote,
+      addPermanentNote,
+      addLink,
+    ],
   );
 }
 

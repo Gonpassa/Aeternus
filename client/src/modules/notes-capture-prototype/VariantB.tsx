@@ -1,17 +1,20 @@
 // PROTOTYPE - Variant B: "Write on the card". A desk with one working surface. The form is not a
 // form: it is a blank index card, the same object the note becomes, so nothing is translated
 // between writing and reading. The section is the card's die-cut tab, the position is its catalog
-// number in the bottom-right, the body is the card's face, and the author's words are a slip
-// tucked under it. Filing the card moves it into the stack on the right and hands you a fresh
-// blank with the tab still set. Acting on a filed card takes over the desk rather than opening
-// inside the stack. See NotesCapturePrototype.tsx for the shared, already-settled pieces.
+// number in the bottom-right, the body is the card's face, and the quote is a slip clipped
+// beneath it. Filing the card moves it into the stack on the right and hands you a fresh blank
+// with the tab still set. A filed card carries its own tray of actions, attached to its bottom
+// edge so the row can never be read as belonging to the card below. Acting on a filed card takes
+// over the desk rather than opening inside the stack. See NotesCapturePrototype.tsx for the shared, already-settled pieces.
 import { useState } from 'react';
+import { Trash2, X } from 'lucide-react';
 import { Stack } from '../../atoms/Stack/Stack.tsx';
 import { Text } from '../../atoms/Text/Text.tsx';
 import { Button } from '../../atoms/Button/Button.tsx';
 import { Input } from '../../atoms/Input/Input.tsx';
 import { Textarea } from '../../atoms/Textarea/Textarea.tsx';
 import { Card } from '../../atoms/Card/Card.tsx';
+import { IconButton } from '../../atoms/IconButton/IconButton.tsx';
 import { DieCutTab } from '../../atoms/DieCutTab/DieCutTab.tsx';
 import { IndexCard } from '../../atoms/IndexCard/IndexCard.tsx';
 import { SourceHeader } from './shared/SourceHeader.tsx';
@@ -92,7 +95,7 @@ function BlankCardB({
           borderWidth="0"
           borderRadius="0"
           px="0"
-          resize="none"
+          resize="vertical"
           _focusVisible={{ boxShadow: 'none', outline: 'none', bg: 'paper/50' }}
         />
         <Stack position="absolute" bottom="3" right="4" align="baseline" justify="flex-end">
@@ -138,7 +141,20 @@ function BlankCardB({
         </Stack>
       </Card>
       {excerptOpen ? (
-        <Card ml="5" bg="paper" padding="sm">
+        <Card position="relative" bg="paper" padding="sm">
+          <IconButton
+            icon={X}
+            aria-label="Discard the quote"
+            variant="ghost"
+            size="xs"
+            position="absolute"
+            top="1"
+            right="1"
+            onClick={() => {
+              setExcerpt('');
+              setExcerptOpen(false);
+            }}
+          />
           <Text textStyle="label" color="inkSoft" mb="1">
             The author&rsquo;s exact words
           </Text>
@@ -151,7 +167,7 @@ function BlankCardB({
             borderWidth="0"
             borderRadius="0"
             px="0"
-            resize="none"
+            resize="vertical"
             autoFocus
             _focusVisible={{ boxShadow: 'none', outline: 'none', bg: 'paper/50' }}
           />
@@ -161,10 +177,10 @@ function BlankCardB({
           variant="link"
           size="xs"
           alignSelf="flex-start"
-          ml="5"
+          ml="-2"
           onClick={() => setExcerptOpen(true)}
         >
-          Add the author&rsquo;s exact words
+          Add quote
         </Button>
       )}
       <SectionSuggestions sections={sections} value={section} onPick={setSection} label="Tab it" />
@@ -306,10 +322,9 @@ export function VariantB({ store }: { store: CaptureStore }) {
           )}
         </Stack>
 
-        <Stack direction="column" gap="7" flex="1" minW="0" maxW="38rem">
-          <Text textStyle="label" color="inkSoft">
-            Filed from this Source
-          </Text>
+        {/* No heading over the stack: the first day label sits where the blank card's own label
+            sits, so the first filed card lines up with the blank card at the top of the page. */}
+        <Stack direction="column" gap="8" flex="1" minW="0" maxW="38rem">
           {notes.length === 0 && (
             <Text textStyle="body" color="inkSoft" fontStyle="italic">
               The stack is empty. Write the first card.
@@ -325,62 +340,91 @@ export function VariantB({ store }: { store: CaptureStore }) {
                     {dayLabel(note.createdAt)}
                   </Text>
                 )}
-                <IndexCard
-                  label={note.section ?? 'No section'}
-                  catalogNumber={renderPosition(note.position) ?? 'No position'}
-                  accent={note.openQuestion ? 'inkBlue' : 'rust'}
-                  pt="6"
-                  pb="8"
-                >
-                  <Stack direction="column" gap="2">
-                    {note.id === justSaved && (
-                      <Text textStyle="label" color="moss">
-                        Filed just now
+                <Stack direction="column" gap="0">
+                  <IndexCard
+                    label={note.section ?? 'No section'}
+                    catalogNumber={renderPosition(note.position) ?? 'No position'}
+                    accent={note.openQuestion ? 'inkBlue' : 'rust'}
+                    pt="6"
+                    pb="8"
+                  >
+                    <Stack direction="column" gap="2">
+                      {note.id === justSaved && (
+                        <Text textStyle="label" color="moss">
+                          Filed just now
+                        </Text>
+                      )}
+                      {note.openQuestion && (
+                        <Text textStyle="label" color="inkBlue">
+                          Open question
+                        </Text>
+                      )}
+                      <Text textStyle="body" color="ink">
+                        {note.body}
                       </Text>
-                    )}
-                    {note.openQuestion && (
-                      <Text textStyle="label" color="inkBlue">
-                        Open question
+                      {note.excerpt && (
+                        <Text textStyle="body" color="inkSoft" fontStyle="italic">
+                          &ldquo;{note.excerpt}&rdquo;
+                        </Text>
+                      )}
+                      <NoteConnections state={state} noteId={note.id} />
+                    </Stack>
+                  </IndexCard>
+                  {/* The actions sit in a tray attached to the bottom of the card they act on -
+                      no gap, the card's own border carried down - so a row between two cards can
+                      never be read as belonging to the one below it. */}
+                  <Stack
+                    justify="space-between"
+                    align="center"
+                    gap="2"
+                    bg="paper"
+                    borderWidth="1px"
+                    borderTopWidth="0"
+                    borderColor="line"
+                    px="4"
+                    py="2"
+                  >
+                    <Stack gap="2" align="center" wrap="wrap">
+                      <Text textStyle="label" color="inkSoft">
+                        {timeLabel(note.createdAt)}
                       </Text>
-                    )}
-                    <Text textStyle="body" color="ink">
-                      {note.body}
-                    </Text>
-                    {note.excerpt && (
-                      <Text textStyle="body" color="inkSoft" fontStyle="italic">
-                        &ldquo;{note.excerpt}&rdquo;
-                      </Text>
-                    )}
-                    <NoteConnections state={state} noteId={note.id} />
+                      <Button
+                        variant="link"
+                        size="xs"
+                        onClick={() => setActing({ noteId: note.id, mode: 'link' })}
+                      >
+                        Link this
+                      </Button>
+                      <Button
+                        variant="link"
+                        size="xs"
+                        onClick={() => startPermanent(note.id, [{ targetId: note.id, reason: '' }])}
+                      >
+                        Permanent note from this
+                      </Button>
+                      <Button
+                        variant="link"
+                        size="xs"
+                        onClick={() =>
+                          store.updateLiteratureNote(note.id, { openQuestion: !note.openQuestion })
+                        }
+                      >
+                        {note.openQuestion ? 'Settled' : 'Leave open'}
+                      </Button>
+                    </Stack>
+                    <IconButton
+                      icon={Trash2}
+                      aria-label="Delete this card"
+                      variant="destructive"
+                      size="xs"
+                      flexShrink="0"
+                      onClick={() => {
+                        if (acting?.noteId === note.id) setActing(null);
+                        if (justSaved === note.id) setJustSaved(null);
+                        store.deleteLiteratureNote(note.id);
+                      }}
+                    />
                   </Stack>
-                </IndexCard>
-                <Stack gap="3" align="center" wrap="wrap" pl="5">
-                  <Text textStyle="label" color="inkSoft">
-                    {timeLabel(note.createdAt)}
-                  </Text>
-                  <Button
-                    variant="link"
-                    size="xs"
-                    onClick={() => setActing({ noteId: note.id, mode: 'link' })}
-                  >
-                    Link this
-                  </Button>
-                  <Button
-                    variant="link"
-                    size="xs"
-                    onClick={() => startPermanent(note.id, [{ targetId: note.id, reason: '' }])}
-                  >
-                    Permanent note from this
-                  </Button>
-                  <Button
-                    variant="link"
-                    size="xs"
-                    onClick={() =>
-                      store.updateLiteratureNote(note.id, { openQuestion: !note.openQuestion })
-                    }
-                  >
-                    {note.openQuestion ? 'Settled' : 'Leave open'}
-                  </Button>
                 </Stack>
               </Stack>
             );
