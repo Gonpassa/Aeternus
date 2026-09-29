@@ -57,7 +57,7 @@ function BlankCardB({
 
   return (
     <Stack direction="column" gap="3">
-      <Card position="relative" pt="7" px="5" pb="10" borderStyle="dashed">
+      <Card position="relative" pt="6" px="5" pb="8" borderStyle="dashed">
         <DieCutTab
           position="absolute"
           top="-3.5"
@@ -84,7 +84,7 @@ function BlankCardB({
           />
         </DieCutTab>
         <Textarea
-          rows={5}
+          rows={4}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="A few sentences on one point, written closed-book."
@@ -95,7 +95,7 @@ function BlankCardB({
           resize="none"
           _focusVisible={{ boxShadow: 'none', outline: 'none', bg: 'paper/50' }}
         />
-        <Stack position="absolute" bottom="2.5" right="4" align="baseline" justify="flex-end">
+        <Stack position="absolute" bottom="3" right="4" align="baseline" justify="flex-end">
           {/* The catalog slot holds one thing: the number as it will be read, or the field that
               sets it. Typing digits and seeing "p. 80" appear beside them reads as two positions. */}
           {editingPosition || !position.trim() ? (
@@ -138,7 +138,7 @@ function BlankCardB({
         </Stack>
       </Card>
       {excerptOpen ? (
-        <Card ml="8" mr="2" bg="paper" padding="sm">
+        <Card ml="5" bg="paper" padding="sm">
           <Text textStyle="label" color="inkSoft" mb="1">
             The author&rsquo;s exact words
           </Text>
@@ -161,7 +161,7 @@ function BlankCardB({
           variant="link"
           size="xs"
           alignSelf="flex-start"
-          ml="8"
+          ml="5"
           onClick={() => setExcerptOpen(true)}
         >
           Add the author&rsquo;s exact words
@@ -222,7 +222,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
   };
 
   return (
-    <Stack direction="column" gap="6" maxW="72rem">
+    <Stack direction="column" gap="6" maxW="71rem">
       <SourceSwitcher state={state} sourceId={sourceId} onOpen={openSource} />
       <SourceHeader
         state={state}
@@ -233,7 +233,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
         <Stack
           direction="column"
           gap="4"
-          w={{ base: 'full', lg: '26rem' }}
+          w={{ base: 'full', lg: '30rem' }}
           flexShrink="0"
           position={{ lg: 'sticky' }}
           top="4"
@@ -306,7 +306,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
           )}
         </Stack>
 
-        <Stack direction="column" gap="7" flex="1" minW="0">
+        <Stack direction="column" gap="7" flex="1" minW="0" maxW="38rem">
           <Text textStyle="label" color="inkSoft">
             Filed from this Source
           </Text>
@@ -329,8 +329,8 @@ export function VariantB({ store }: { store: CaptureStore }) {
                   label={note.section ?? 'No section'}
                   catalogNumber={renderPosition(note.position) ?? 'No position'}
                   accent={note.openQuestion ? 'inkBlue' : 'rust'}
-                  pt="7"
-                  pb="9"
+                  pt="6"
+                  pb="8"
                 >
                   <Stack direction="column" gap="2">
                     {note.id === justSaved && (
@@ -354,7 +354,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
                     <NoteConnections state={state} noteId={note.id} />
                   </Stack>
                 </IndexCard>
-                <Stack gap="3" align="center" wrap="wrap" pl="1">
+                <Stack gap="3" align="center" wrap="wrap" pl="5">
                   <Text textStyle="label" color="inkSoft">
                     {timeLabel(note.createdAt)}
                   </Text>
@@ -370,7 +370,7 @@ export function VariantB({ store }: { store: CaptureStore }) {
                     size="xs"
                     onClick={() => startPermanent(note.id, [{ targetId: note.id, reason: '' }])}
                   >
-                    Write a Permanent note from this
+                    Permanent note from this
                   </Button>
                   <Button
                     variant="link"
