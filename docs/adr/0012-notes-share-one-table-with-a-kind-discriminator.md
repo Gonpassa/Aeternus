@@ -1,28 +1,34 @@
 # Literature and Permanent notes share one table with a kind discriminator
 
 The Notes module has two note kinds (`CONTEXT.md`), and they overlap less than the shared word "note" suggests.
-A Literature note is bound to exactly one Source, carries a two-part Locator, an optional verbatim excerpt, an open-question flag, and no title (#68).
+A Literature note is bound to exactly one Source, carries a two-part Locator, an optional verbatim quote from the Source in its own `excerpt` column, an open-question flag, and no title (#68).
 A Permanent note is bound to no Source, is titled as a claim, carries its own Topics, and cannot exist without at least one Link (#69).
 What they share is a plain-text body, a pair of timestamps, and an owner.
 
 Three things nonetheless want them to be one kind of thing.
 A Link joins any two notes from either end, in any combination (#69).
 A Review Answer names a Literature note and may point at the Permanent note it produced (ADR 0011).
-Structured Writing (Phase 8) will cite a note, and a Phase 10 quiz will scope by Source or Topic, and both were promised addressability by the wayfinder map rather than a case analysis over two id spaces.
+Structured Writing will cite a note, and the AI-assisted learning module's quiz will scope by Source or Topic, and both were promised addressability by the wayfinder map rather than a case analysis over two id spaces.
+(Phase numbers are deliberately left out: the map moves Notes to Phase 7 and shifts the three later modules down one, and #74 is what lands that in the README.)
 
 We decided on a single `notes` table with a `kind` enum column (`literature`, `permanent`), the per-kind field requirements expressed as CHECK constraints rather than as NOT NULL.
 `kind` is fixed at insert: a Literature note never becomes a Permanent note, because the method's whole point is that the second is written from scratch after re-reading the first.
 
 The constraints carry the weight that separate tables would otherwise carry in the column definitions.
 A `literature` row requires `source_id`, forbids `title`, and requires at least one of `section` and `position` to be non-empty.
-A `permanent` row requires `title`, and forbids `source_id`, `excerpt`, `section`, `position`, and the open-question flag.
+A `permanent` row requires `title`, forbids `source_id`, `excerpt`, `section` and `position`, and pins `open_question` to false, since a non-nullable defaulted boolean can be held at a value but not absented.
 Where another table needs to reference one kind specifically, it does so declaratively: `notes` carries a unique index on `(id, kind)`, and the referencing table carries a redundant `kind` column with a composite foreign key into it plus a CHECK pinning that column to one value.
 That is the same trick `associations` already uses to tie a Symbol attachment to its own Anchor, so the pattern is established here rather than invented.
 Review Answers use it to reference Literature notes only; the Topic join table uses it to reference Permanent notes only.
 
+Two column names here contradict `CONTEXT.md` as it stands, and are used deliberately.
+The Locator entry's _Avoid_ line still reads "Position, reference", and the Literature note entry avoids "excerpt", both written when a Locator was one free-text field.
+#68 replaced that with a two-part Locator, section plus position, and gave the verbatim quote its own field, and its handoff assigns the glossary rewrite to #74.
+The columns are named for what #68 settled rather than for the entries it superseded.
+
 The identity question #72 asked is answered by this decision as a side effect.
 `notes.id` and `sources.id` are the stable handles, serial and never reused, and they survive every edit to the text they name, because editing a note updates a row rather than replacing one.
-A future citation from Structured Writing is a foreign key, not a search string, and a quiz scopes by `source_id` or through the Topic joins without first asking which kind of note it is holding.
+A future citation from Structured Writing is a foreign key, not a search string, and the quiz scopes by `source_id` or through the Topic joins without first asking which kind of note it is holding.
 
 ## Status
 
@@ -59,6 +65,12 @@ CHECK constraints are the floor under those guards, not a replacement for them.
 
 Cascades are set as the mechanics that run once a guard has passed, never as the guard itself.
 Deleting a Source cascades to its Literature notes (#70), and deleting a note cascades to its Links and its Answer history (ADR 0011), but the request is refused before any of that if the deletion would leave a Permanent note with zero Links.
+
+The produced-reference on an Answer is the one foreign key that does neither.
+ADR 0011 left its constraint to this ticket, and both of its targets are deletable: the Link it points at can be removed, and the Permanent note it points at can be deleted.
+Cascading would let the deletion of a Link erase the record that a Review sitting produced one, which is the append-only guarantee ADR 0011 exists to make.
+So `produced_link_id` and `produced_note_id` are `ON DELETE SET NULL`, while `answer` stays NOT NULL.
+The row keeps saying what kind of Answer was given and when, and stops saying which object it produced once that object no longer exists, which is the most that remains true.
 
 The "generous max length" convention #68 asked for lands as validation, not as column types.
 Text columns stay `text`, as everywhere else in this schema, and the maxima live in `validation.ts` where the error message can be written in the module's voice.

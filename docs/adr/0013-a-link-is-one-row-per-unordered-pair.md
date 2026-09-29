@@ -1,6 +1,6 @@
 # A Link is one directed row per unordered pair, carrying a reason from each end
 
-#69 settled a Link's behaviour and left its storage to this ticket.
+#69 settled a Link's behavior and left its storage to this ticket.
 A Link is directed: the note that makes it is the origin, the other the target.
 It carries a required one-line reason written at link time.
 There is at most one Link per unordered pair, so linking B to A when A to B already exists shows the existing Link rather than creating a second, and a reason offered from that second end is added to the Link that is already there.
@@ -9,7 +9,7 @@ Both ends are notes of either kind, and the mandatory-Link count for a Permanent
 We decided on one row per Link in a `links` table: `origin_note_id`, `target_note_id`, a NOT NULL `reason`, a nullable `target_reason`, and timestamps.
 Uniqueness of the unordered pair is a unique index on `(least(origin_note_id, target_note_id), greatest(origin_note_id, target_note_id))`, so the constraint holds without the application normalizing the pair before every insert.
 A CHECK forbids `origin_note_id = target_note_id`, since a note linking to itself states nothing.
-Both foreign keys cascade on delete, as the mechanics that run after the delete guard has allowed the deletion (ADR 0012).
+Both foreign keys cascade on delete, under the guard-then-cascade rule set out in ADR 0012.
 
 The reason is two columns because #69 gave the second end something to say and no row of its own to say it in.
 `reason` is the origin's, written when the Link was made and required.
@@ -51,6 +51,7 @@ It finds the Link, shows its reason, and offers to add the reason from this end;
 
 Removing a Link is refused, not warned, when it would leave a Permanent note at either end with zero Links (#69).
 The count is the two-column predicate above, run for both endpoints, and the refusal names the note that would be orphaned.
+An Answer that recorded this Link as what it produced keeps its row and loses the reference, per ADR 0012.
 
 `target_reason` is null on most rows, and that is a fact about the Link rather than missing data: it means nobody has linked back from the other end.
 Nothing in the interface reads its absence as incomplete.
