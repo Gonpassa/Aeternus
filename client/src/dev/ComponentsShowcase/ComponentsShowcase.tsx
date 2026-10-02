@@ -15,6 +15,7 @@ import { PopoverDemo } from './PopoverDemo.tsx';
 import { SelectDemo } from './SelectDemo.tsx';
 import { TextareaDemo } from './TextareaDemo.tsx';
 import { SelectionToolbarDemo } from './SelectionToolbarDemo.tsx';
+import { VocabularyInputDemo } from './VocabularyInputDemo.tsx';
 import { RuledNoteDemo } from './RuledNoteDemo.tsx';
 import { IndexCardDemo } from './IndexCardDemo.tsx';
 import { DieCutTabDemo } from './DieCutTabDemo.tsx';
@@ -49,6 +50,7 @@ export function ComponentsShowcase() {
       <SelectDemo />
       <TextareaDemo />
       <SelectionToolbarDemo />
+      <VocabularyInputDemo />
       <RuledNoteDemo />
       <IndexCardDemo />
       <DieCutTabDemo />

@@ -7,9 +7,9 @@ import { IconButton } from '../../../../../atoms/IconButton/IconButton.tsx';
 import { RuledNote } from '../../../../../atoms/RuledNote/RuledNote.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
+import { VocabularyInput } from '../../../../../atoms/VocabularyInput/VocabularyInput.tsx';
 import { useAnchorAttachmentsContext } from '../AnchorAttachmentsContext.tsx';
 import { truncateExcerpt } from '../DreamAnalysis.utils.ts';
-import { SymbolAutocompleteInput } from '../SymbolAutocompleteInput/SymbolAutocompleteInput.tsx';
 import { AssociationForm } from './AssociationForm/AssociationForm.tsx';
 import { AssociationsList } from './AssociationsList/AssociationsList.tsx';
 import { BeatForm } from './BeatForm/BeatForm.tsx';
@@ -128,8 +128,11 @@ export function MarginNote({ anchor, excerpt }: MarginNoteProps) {
       )}
       {symbolFormOpen && (
         <Stack direction="column" mt="1" align="stretch">
-          <SymbolAutocompleteInput
+          <VocabularyInput
             vocabulary={symbolVocabulary}
+            label="Symbol name"
+            placeholder="Symbol name…"
+            submitLabel="Tag"
             onSubmit={(name) => tagSymbol(anchor.id, name)}
             onCancel={closeForm}
           />

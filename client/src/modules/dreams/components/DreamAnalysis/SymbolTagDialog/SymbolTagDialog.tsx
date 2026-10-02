@@ -1,5 +1,5 @@
 import { Dialog } from '../../../../../atoms/Dialog/Dialog.tsx';
-import { SymbolAutocompleteInput } from '../SymbolAutocompleteInput/SymbolAutocompleteInput.tsx';
+import { VocabularyInput } from '../../../../../atoms/VocabularyInput/VocabularyInput.tsx';
 
 export interface SymbolTagDialogProps {
   open: boolean;
@@ -16,7 +16,14 @@ export function SymbolTagDialog({ open, vocabulary, onClose, onSubmit }: SymbolT
   if (!open) return null;
   return (
     <Dialog open={open} onClose={onClose} variant="small" header={{ title: 'Tag a symbol' }}>
-      <SymbolAutocompleteInput vocabulary={vocabulary} onSubmit={onSubmit} onCancel={onClose} />
+      <VocabularyInput
+        vocabulary={vocabulary}
+        label="Symbol name"
+        placeholder="Symbol name…"
+        submitLabel="Tag"
+        onSubmit={onSubmit}
+        onCancel={onClose}
+      />
     </Dialog>
   );
 }

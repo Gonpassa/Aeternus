@@ -1,39 +1,46 @@
 import { useState } from 'react';
-import { Button } from '../../../../../atoms/Button/Button.tsx';
-import { Input } from '../../../../../atoms/Input/Input.tsx';
-import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
+import { Button } from '../Button/Button.tsx';
+import { Input } from '../Input/Input.tsx';
+import { Stack } from '../Stack/Stack.tsx';
 
 const MAX_SUGGESTIONS = 5;
 
-export interface SymbolAutocompleteInputProps {
-  // The user's existing Symbol vocabulary (all dreams), already-cased as first typed.
+export interface VocabularyInputProps {
+  // The terms the user has already used, cased as they first typed them.
   vocabulary: string[];
-  onSubmit: (name: string) => void | Promise<void>;
-  onCancel: () => void;
+  // Accessible name for the field, naming the kind of term being entered.
+  label: string;
+  placeholder?: string;
   submitLabel?: string;
+  onSubmit: (term: string) => void | Promise<void>;
+  onCancel: () => void;
 }
 
-// Free-text symbol entry with case-insensitive suggestions from the user's prior
-// vocabulary. Picking a suggestion or typing a name that matches one case-insensitively
-// resolves to the same Symbol server-side (the backend keys symbols on lowercased name).
-export function SymbolAutocompleteInput({
+// Entry for a controlled-but-growing per-user vocabulary: suggestions come from the
+// terms already used, matched case-insensitively on any part of the name, while free
+// typing creates a new term. Submitted terms are trimmed and keep the casing of
+// whichever name produced them - the stored one when a suggestion is picked, the typed
+// one when a term is new - leaving the caller to decide how a name resolves to a record.
+export function VocabularyInput({
   vocabulary,
+  label,
+  placeholder,
+  submitLabel = 'Add',
   onSubmit,
   onCancel,
-  submitLabel = 'Tag',
-}: SymbolAutocompleteInputProps) {
+}: VocabularyInputProps) {
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const trimmed = query.trim();
   const suggestions =
     trimmed.length > 0
       ? vocabulary
-          .filter((name) => name.toLowerCase().includes(trimmed.toLowerCase()))
+          .filter((term) => term.toLowerCase().includes(trimmed.toLowerCase()))
           .slice(0, MAX_SUGGESTIONS)
       : [];
 
-  const submit = async (name: string) => {
-    const cleaned = name.trim();
+  const submit = async (term: string) => {
+    const cleaned = term.trim();
     if (!cleaned || isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -51,10 +58,10 @@ export function SymbolAutocompleteInput({
       <Input
         size="sm"
         value={query}
-        aria-label="Symbol name"
-        placeholder="Symbol name…"
+        aria-label={label}
+        placeholder={placeholder}
         // eslint-disable-next-line jsx-a11y/no-autofocus -- the input appears in direct
-        // response to the user asking to tag a symbol; focusing it is the expected flow.
+        // response to the user asking to enter a term; focusing it is the expected flow.
         autoFocus
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={(event) => {
@@ -86,18 +93,18 @@ export function SymbolAutocompleteInput({
           boxShadow="md"
           overflow="hidden"
         >
-          {suggestions.map((name) => (
+          {suggestions.map((term) => (
             <Button
-              key={name}
+              key={term}
               type="button"
               size="sm"
               variant="ghost"
               justifyContent="flex-start"
               borderRadius="0"
               disabled={isSubmitting}
-              onClick={() => submit(name)}
+              onClick={() => submit(term)}
             >
-              {name}
+              {term}
             </Button>
           ))}
         </Stack>
