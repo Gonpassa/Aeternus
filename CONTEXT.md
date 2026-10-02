@@ -84,28 +84,38 @@ _Avoid_: Unread dream, backlog, pending analysis (each implies a task left undon
 
 Terminology grounded in the Zettelkasten method as layered by Sönke Ahrens: source-bound notes written while reading, and the user's own ideas as separate notes that must connect to what is already there. The organizing model was chosen by prototype (branch `prototype/notes-organizing-models`) over a topic-folder hierarchy, a flat tagged card grid, and a faithful Luhmann box. Folgezettel numbering and the keyword register were deliberately not adopted.
 
+The module has two pages, **Read** and **Review**, defined below with the rest of the vocabulary. The decisions behind the terms live in ADRs 0011 to 0017: Answers as append-only history, one notes table with a kind discriminator, a Link as one row per unordered pair, the mandatory Link on a Permanent note, the required Link reason, Review as harvest rather than retention, and plain-text note bodies.
+
 **Source**:
-A thing being read or watched - a book, an article, a video, or another kind - that Literature notes are bound to. A first-class record, not free text on a note. Carries Topics. Kind is a label only; it changes no fields.
-_Avoid_: Reference (Structured Writing's future term for a citation), book (too narrow)
+A thing being read or watched - a book, an article, a video, or another kind - that Literature notes are bound to. A first-class record, not free text on a note. Carries Topics. Kind is a label only; it changes no fields. Has no lifecycle: there is no reading status, and the only signal that a Source is active is the recency of its Literature notes, which cannot go stale the way a status left unmaintained does.
+_Avoid_: Reference (Structured Writing's future term for a citation), book (too narrow), currently reading / finished (statuses this module deliberately does not have)
 
 **Literature note**:
-A brief note in the user's own words, bound to one Source and to a Locator within it, written while reading. Has no title - the Locator and the note's opening words identify it. Inherits its Source's Topics.
-_Avoid_: Highlight, excerpt (those are the source's words, not the user's), summary (a Literature note may cover a paragraph or a chapter)
+A brief note in the user's own words, bound to one Source and to a Locator within it, written while reading. Has no title - the Locator and the note's opening words identify it. Inherits its Source's Topics. Fully editable after capture: writing it closed-book is a discipline at the moment of capture, not a constraint on the stored text, and a Link points at the note's identity rather than at its wording.
+_Avoid_: Highlight (the source's words, not the user's), summary (a Literature note may cover a paragraph or a chapter), excerpt as a name for the note itself - an **Excerpt** is one optional part of a note, below
+
+**Excerpt**:
+The author's exact words, optionally kept alongside a **Literature note** and sharing its **Locator**. Stored apart from the note's body so that the source's phrasing and the user's own are never merged: the body is the comprehension test, and the excerpt is there for the cases where the wording itself is the thing worth having. Never required, revealed on demand rather than shown as an empty field, and removed by emptying it.
+_Avoid_: Quote (ambiguous about who is being quoted), highlight, body
 
 **Locator**:
-Where in a Source a Literature note comes from - a chapter, a page, a timestamp, a section.
-_Avoid_: Position, reference
+Where in a Source a Literature note comes from, in two free-text parts: a **section** (a chapter, a heading, a video segment) and a **position** (a page, a timestamp, a Kindle location, a paragraph). At least one of the two is required; either alone is a complete Locator. The same two parts serve every Source kind, so that changing a Source's kind strands nothing and "Kind changes no fields" holds. Rendered as one string wherever a note appears ("Ch. 3 · p. 42", "Intro · 12:30"), with a digits-only position shown as "p. N" and stored as typed.
+_Avoid_: Page number (too narrow, and kind-specific), reference, timestamp (one position among several)
 
 **Permanent note**:
-An idea of the user's own, bound to no Source. Titled as a claim - a full sentence stating the idea, not a topic label. Cannot exist without at least one Link: an idea enters the box only by connecting to something already in it. May be written at any time, though the app invites it when re-reading Literature notes rather than while reading a Source.
-_Avoid_: Idea (too generic), zettel (implies Folgezettel numbering, which is not used), evergreen note
+An idea of the user's own, bound to no Source. Titled as a claim - a full sentence stating the idea, not a topic label. Cannot exist without at least one **Link**, at any moment and not only at the moment it is written: it cannot be saved without one, its last Link cannot be removed, and no note of either kind can be deleted while it is some Permanent note's only Link, the count taken in either direction. A refusal names the Permanent notes that would have been left unlinked. An idea enters the box only by connecting to something already in it, so an unlinked Permanent note is not a state the app can be in. May be written at any time, though the app invites it when re-reading Literature notes rather than while reading a Source.
+_Avoid_: Idea (too generic), zettel (implies Folgezettel numbering, which is not used), evergreen note, orphan (there is no unlinked state to name)
 
 **Link**:
-A connection between two notes of any kind - Literature or Permanent. The web of Links is the structure of the box; there is no other hierarchy among notes.
-_Avoid_: Backlink (a view of Links, not a separate thing), reference
+A connection between two notes of any kind - Literature or Permanent - carrying one line of the user's own words saying why they belong together. Directed: the note that makes the Link is its **origin**, the other its **target**. The reason is required at link time and is the smallest unit of the user's thinking in the module - a reason that cannot be written is the signal the Link is not real; when the target end later links back, it adds its own reason to the Link already there rather than making a second one. There is at most one Link per unordered pair. A Link is a structured relation attached to a note, never a mark inside the note's text. The web of Links is the structure of the box; there is no other hierarchy among notes.
+_Avoid_: Backlink (a view of Links, not a separate thing), reference, wiki link / mention (both imply a mark in the body text)
+
+**Read**:
+The reading side of the module, and the name of its page. A catalog of **Source** cards filterable by **Topic**, and, with a Source open, the reading page itself: capture on one side, that Source's Literature notes in creation order on the other. Everything written while a Source is in front of the user happens here - Literature notes, the Links between them, and the Permanent note written when a reason outgrows one line.
+_Avoid_: Library, shelf, reading list (each implies a queue of things to read rather than a place to write)
 
 **Review**:
-The act of returning to a **Literature note** to ask what, if anything, of the user's own is in it. Harvest, not retention: a note comes back because the user has changed since they wrote it and may now have something to say that they did not have then, never because they are at risk of forgetting what they read. Retention is the later AI quiz's concern, not this module's.
+The act of returning to a **Literature note** to ask what, if anything, of the user's own is in it, and the name of the page where that happens - one note at a time, with the three **Answers** and a panel for finding Link targets. Harvest, not retention: a note comes back because the user has changed since they wrote it and may now have something to say that they did not have then, never because they are at risk of forgetting what they read. Retention is the later AI quiz's concern, not this module's.
 _Avoid_: Revision, study, drill (each implies recall is being tested)
 
 **Answer**:
@@ -121,5 +131,7 @@ A **Literature note** flagged while reading as something the user was unsure of 
 _Avoid_: Todo, unresolved note
 
 **Topic**:
-A tag carried by a Source or a Permanent note. Literature notes inherit their Source's Topics. A cross-cutting label, never a container: a Source may carry many Topics, and filtering by a Topic collects every note that carries or inherits it.
+A tag carried by a Source or a Permanent note, optional on both. Literature notes inherit their Source's Topics. A cross-cutting label, never a container: a Source may carry many Topics, and filtering by a Topic collects every note that carries or inherits it. One vocabulary per user, unique on the lowercased name and created by typing a new one. A Topic can be renamed across every carrier at once, and renaming it to a name that already exists is how two Topics are merged - there is no separate merge. Deleting one detaches it from every carrier and touches no note. A Topic nobody carries any more stays in the vocabulary with a count of zero until it is deleted, since the word was chosen deliberately and removing it silently would lose that choice.
 _Avoid_: Folder, category, subject
+
+The **Topic view** - the page a Topic tag leads to - collects the Permanent notes carrying the Topic, most-linked first, and then the Sources carrying it. It does not list inherited Literature notes individually; those stay reachable through their Source. This is the browsing view only: filtering a list by a Topic still collects every note that carries or inherits it, as above.
