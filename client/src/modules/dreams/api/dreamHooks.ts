@@ -144,7 +144,7 @@ export const useDeleteEmotionalBeat = (dreamId: number) => {
 };
 
 // The user's whole Symbol vocabulary; suggestion filtering happens client-side in
-// SymbolAutocompleteInput (the endpoint also accepts a q filter, unused here).
+// the VocabularyInput atom (the endpoint also accepts a q filter, unused here).
 export const useSymbols = () =>
   useQuery<DreamSymbol[]>({
     queryKey: dreamKeys.symbols(),
