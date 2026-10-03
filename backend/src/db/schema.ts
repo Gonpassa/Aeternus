@@ -9,6 +9,7 @@ import {
   timestamp,
   unique,
   uniqueIndex,
+  index,
   foreignKey,
 } from 'drizzle-orm/pg-core';
 
@@ -211,3 +212,34 @@ export const analysisPasses = pgTable('analysis_passes', {
 
 export type AnalysisPass = typeof analysisPasses.$inferSelect;
 export type NewAnalysisPass = typeof analysisPasses.$inferInsert;
+
+export const sourceKindEnum = pgEnum('source_kind', ['book', 'article', 'video', 'other']);
+
+// A Source is a first-class record rather than free text on a note (CONTEXT.md, Source), and
+// it deliberately carries no status column: it has no lifecycle, and the recency of its
+// Literature notes is the only signal that it is active. Text columns stay `text` here as
+// everywhere else in this schema - the Notes module's generous maxima live in its
+// validation.ts, where the message can be written in the module's voice (ADR 0012, ADR 0017).
+export const sources = pgTable(
+  'sources',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    kind: sourceKindEnum('kind').notNull(),
+    author: text('author'),
+    url: text('url'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // The catalog is always one user's, ordered newest-activity-first; until Literature notes
+    // exist that is creation order, which this index serves either way.
+    userCreatedAtIdx: index('sources_user_id_created_at_idx').on(table.userId, table.createdAt),
+  }),
+);
+
+export type Source = typeof sources.$inferSelect;
+export type NewSource = typeof sources.$inferInsert;

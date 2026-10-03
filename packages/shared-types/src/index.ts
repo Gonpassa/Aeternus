@@ -217,3 +217,45 @@ export interface DreamDetailResponse {
   anchors: AnchorWithAttachments[];
   analysisPasses: AnalysisPass[];
 }
+
+// A Source has no lifecycle: no reading status, no "finished" flag (CONTEXT.md, Source).
+// `kind` is a label only - it changes no fields, so changing it strands nothing.
+export const SOURCE_KINDS = ['book', 'article', 'video', 'other'] as const;
+
+export type SourceKind = (typeof SOURCE_KINDS)[number];
+
+export interface Source {
+  id: number;
+  userId: number;
+  title: string;
+  kind: SourceKind;
+  author: string | null;
+  url: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// `noteCount` and `lastNoteAt` are derived per request, never stored (#70). The recency of a
+// Source's Literature notes is the only signal that it is active, and unlike a status left
+// unmaintained, a derived signal cannot go stale.
+export interface SourceListEntry extends Source {
+  noteCount: number;
+  lastNoteAt: string | null;
+}
+
+export interface SourceListResponse {
+  sources: SourceListEntry[];
+}
+
+export interface CreateSourceRequest {
+  title: string;
+  kind: SourceKind;
+  author?: string | null;
+  url?: string | null;
+}
+
+// The reading page's payload. This slice carries the Source alone; its Literature notes, its
+// Topics and the capture form's section autocomplete fold in with their own tickets (#65).
+export interface SourceDetailResponse {
+  source: Source;
+}
