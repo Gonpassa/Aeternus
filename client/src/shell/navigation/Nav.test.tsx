@@ -140,6 +140,16 @@ describe('Nav', () => {
       mockUseMediaQuery.mockReturnValue(false);
     });
 
+    // Notes itself is a heading, not a destination: the module has no landing page, so the
+    // rail leads straight to Read.
+    it('files Read under a Notes heading rather than linking Notes itself', () => {
+      render(<Nav />);
+
+      expect(screen.getByText('Notes')).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Notes' })).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Read' })).toHaveAttribute('href', '/notes/read');
+    });
+
     it('renders the full desktop rail with no hamburger', () => {
       render(<Nav />);
 
