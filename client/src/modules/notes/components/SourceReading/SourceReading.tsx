@@ -1,4 +1,9 @@
-import type { CreateLiteratureNoteRequest, LiteratureNote, Source } from '@nee3/shared-types';
+import type {
+  CreateLiteratureNoteRequest,
+  CreatePermanentNoteRequest,
+  LiteratureNoteWithConnections,
+  Source,
+} from '@nee3/shared-types';
 import { countLabel } from '../../../../utils/countLabel.ts';
 import { Heading } from '../../../../atoms/Heading/Heading.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
@@ -9,16 +14,23 @@ import { NoteStream } from '../NoteStream/NoteStream.tsx';
 
 export interface SourceReadingProps {
   source: Source;
-  notes: LiteratureNote[];
+  notes: LiteratureNoteWithConnections[];
   sections: string[];
   onFile: (input: CreateLiteratureNoteRequest) => Promise<void>;
+  onWritePermanentNote: (input: CreatePermanentNoteRequest) => Promise<void>;
 }
 
 // The reading page: what the Source is, a blank card to write on, and the stack of cards
 // already written from it. Nothing here reports a reading status - a Source has no lifecycle,
 // and the note count is the only thing it says about itself (CONTEXT.md, Source). Topics
 // arrive with their own ticket.
-export function SourceReading({ source, notes, sections, onFile }: SourceReadingProps) {
+export function SourceReading({
+  source,
+  notes,
+  sections,
+  onFile,
+  onWritePermanentNote,
+}: SourceReadingProps) {
   return (
     <Stack direction="column" gap="8">
       <Stack direction="column" gap="1">
@@ -60,7 +72,11 @@ export function SourceReading({ source, notes, sections, onFile }: SourceReading
           <NoteCapture sections={sections} onFile={onFile} />
         </Stack>
         <Stack direction="column" flex="1" w="full" minW="0">
-          <NoteStream notes={notes} />
+          <NoteStream
+            notes={notes}
+            sourceTitle={source.title}
+            onWritePermanentNote={onWritePermanentNote}
+          />
         </Stack>
       </Stack>
     </Stack>

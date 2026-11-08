@@ -29,4 +29,6 @@ export const endpoints = {
   sources: '/sources',
   source: (id: number) => `/sources/${id}`,
   sourceNotes: (id: number) => `/sources/${id}/notes`,
+  permanentNotes: '/notes/permanent',
+  noteConnections: (id: number) => `/notes/${id}/connections`,
 } as const;

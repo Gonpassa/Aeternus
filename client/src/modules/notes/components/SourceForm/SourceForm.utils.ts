@@ -22,11 +22,9 @@ export const sourceSchema = z.object({
     .max(SOURCE_TITLE_MAX, `A Source title is at most ${SOURCE_TITLE_MAX} characters.`),
   // The select starts empty, so the field's value is a plain string until a kind is chosen;
   // the guard both rejects that empty state and narrows the submitted value to a SourceKind.
-  kind: z
-    .string()
-    .refine(isSourceKind, {
-      message: 'A Source is a book, an article, a video, or something else.',
-    }),
+  kind: z.string().refine(isSourceKind, {
+    message: 'A Source is a book, an article, a video, or something else.',
+  }),
   author: z
     .string()
     .trim()

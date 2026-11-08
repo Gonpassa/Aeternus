@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
-import type { LiteratureNote, Source } from '@nee3/shared-types';
+import type { LiteratureNoteWithConnections, Source } from '@nee3/shared-types';
+import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { SourceReading } from './SourceReading.tsx';
 
 const source = (overrides: Partial<Source> = {}): Source => ({
@@ -16,7 +17,9 @@ const source = (overrides: Partial<Source> = {}): Source => ({
   ...overrides,
 });
 
-const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
+const note = (
+  overrides: Partial<LiteratureNoteWithConnections> = {},
+): LiteratureNoteWithConnections => ({
   id: 1,
   userId: 1,
   kind: 'literature',
@@ -28,6 +31,7 @@ const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
   openQuestion: false,
   createdAt: '2026-09-02T10:00:00.000Z',
   updatedAt: '2026-09-02T10:00:00.000Z',
+  connections: { connectsTo: [], connectedFrom: [] },
   ...overrides,
 });
 
@@ -38,7 +42,9 @@ const renderPage = (props: Partial<ComponentProps<typeof SourceReading>> = {}) =
       notes={props.notes ?? []}
       sections={props.sections ?? []}
       onFile={props.onFile ?? vi.fn()}
+      onWritePermanentNote={props.onWritePermanentNote ?? vi.fn()}
     />,
+    { wrapper: queryWrapper() },
   );
 
 describe('SourceReading', () => {

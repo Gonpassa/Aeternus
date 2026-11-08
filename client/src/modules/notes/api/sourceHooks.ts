@@ -68,7 +68,12 @@ export const useCreateLiteratureNote = (sourceId: number) => {
         previous
           ? {
               ...previous,
-              notes: [...previous.notes, note],
+              // A note just filed has no Links yet, so it joins the stream with two empty
+              // groups rather than waiting for a refetch to tell it so.
+              notes: [
+                ...previous.notes,
+                { ...note, connections: { connectsTo: [], connectedFrom: [] } },
+              ],
               sections:
                 note.section === null
                   ? previous.sections

@@ -14,6 +14,12 @@ export const NOTE_SECTION_MAX = 140;
 export const NOTE_POSITION_MAX = 140;
 export const LITERATURE_NOTE_BODY_MAX = 4000;
 export const LITERATURE_NOTE_EXCERPT_MAX = 4000;
+export const PERMANENT_NOTE_TITLE_MAX = 280;
+export const PERMANENT_NOTE_BODY_MAX = 8000;
+// One line stays one line. The ceiling is a sanity bound, not a nudge: a user who reaches it
+// is being told to write a Permanent note by the only mechanism that should tell them
+// (ADR 0015).
+export const LINK_REASON_MAX = 140;
 
 const trimmed = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
 
@@ -106,6 +112,68 @@ export const validateLiteratureNoteInput = (input: {
   // an unflagged note rather than a malformed request. Anything other than a boolean is not.
   if (input.openQuestion !== undefined && typeof input.openQuestion !== 'boolean') {
     return { valid: false, error: 'An open question is either flagged or not.' };
+  }
+  return { valid: true };
+};
+
+const isPositiveInteger = (value: unknown): boolean =>
+  typeof value === 'number' && Number.isInteger(value) && value > 0;
+
+// A Permanent note's shape, including the Links it cannot be saved without. The Link rules are
+// part of this validation rather than a step after it, because the note and its first Links are
+// one request: a missing Link and a target picked without a reason both block the save, and
+// neither is a separate transaction that could half-succeed (ADR 0014, ADR 0015).
+export const validatePermanentNoteInput = (input: {
+  title?: unknown;
+  body?: unknown;
+  links?: unknown;
+}): ValidationResult => {
+  if (trimmed(input.title) === '') {
+    return { valid: false, error: 'A Permanent note needs a title stating the idea as a claim.' };
+  }
+  if (!isWithin(input.title, PERMANENT_NOTE_TITLE_MAX)) {
+    return { valid: false, error: `A title is at most ${PERMANENT_NOTE_TITLE_MAX} characters.` };
+  }
+  if (trimmed(input.body) === '') {
+    return { valid: false, error: 'A Permanent note needs the idea written out.' };
+  }
+  if (!isWithin(input.body, PERMANENT_NOTE_BODY_MAX)) {
+    return {
+      valid: false,
+      error: `A note is at most ${PERMANENT_NOTE_BODY_MAX.toLocaleString('en-US')} characters.`,
+    };
+  }
+  if (!Array.isArray(input.links) || input.links.length === 0) {
+    return {
+      valid: false,
+      error: 'A Permanent note needs at least one connection to a note already in the box.',
+    };
+  }
+  const targetIds: number[] = [];
+  for (const draft of input.links) {
+    const link = draft as { targetNoteId?: unknown; reason?: unknown };
+    if (!isPositiveInteger(link.targetNoteId)) {
+      return { valid: false, error: 'A connection needs a note to connect to.' };
+    }
+    if (trimmed(link.reason) === '') {
+      return {
+        valid: false,
+        error: 'Every connection needs a line saying why the two belong together.',
+      };
+    }
+    if (!isWithin(link.reason, LINK_REASON_MAX)) {
+      return {
+        valid: false,
+        error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+      };
+    }
+    targetIds.push(link.targetNoteId as number);
+  }
+  // There is at most one Link per unordered pair, so the same note twice is one Link asked for
+  // twice rather than two Links (ADR 0013). Caught here so it reads as the mistake it is
+  // instead of as a unique-index violation.
+  if (new Set(targetIds).size !== targetIds.length) {
+    return { valid: false, error: 'A note can only be connected once.' };
   }
   return { valid: true };
 };
