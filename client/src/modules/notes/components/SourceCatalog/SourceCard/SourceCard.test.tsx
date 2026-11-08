@@ -13,7 +13,9 @@ vi.mock('@tanstack/react-router', () => ({
     params?: Record<string, string>;
     children: ReactNode;
   }) => (
-    <a href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}>
+    <a
+      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
+    >
       {children}
     </a>
   ),
@@ -60,19 +62,25 @@ describe('SourceCard', () => {
   });
 
   it('counts the notes written from the Source', () => {
-    render(<SourceCard source={source({ noteCount: 3, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />);
+    render(
+      <SourceCard source={source({ noteCount: 3, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />,
+    );
 
     expect(screen.getByText('3 notes')).toBeInTheDocument();
   });
 
   it('uses the singular for a single note', () => {
-    render(<SourceCard source={source({ noteCount: 1, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />);
+    render(
+      <SourceCard source={source({ noteCount: 1, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />,
+    );
 
     expect(screen.getByText('1 note')).toBeInTheDocument();
   });
 
   it('dates the last note when there is one', () => {
-    render(<SourceCard source={source({ noteCount: 2, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />);
+    render(
+      <SourceCard source={source({ noteCount: 2, lastNoteAt: '2026-09-20T08:00:00.000Z' })} />,
+    );
 
     expect(screen.getByText('Last note Sep 20, 2026')).toBeInTheDocument();
   });

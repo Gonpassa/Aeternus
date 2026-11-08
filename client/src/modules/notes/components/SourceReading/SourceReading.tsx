@@ -1,19 +1,26 @@
-import type { Source } from '@nee3/shared-types';
+import type { CreateLiteratureNoteRequest, LiteratureNote, Source } from '@nee3/shared-types';
+import { countLabel } from '../../../../utils/countLabel.ts';
 import { Heading } from '../../../../atoms/Heading/Heading.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { SOURCE_KIND_LABEL } from '../../sourceKinds.ts';
+import { NoteCapture } from '../NoteCapture/NoteCapture.tsx';
+import { NoteStream } from '../NoteStream/NoteStream.tsx';
 
 export interface SourceReadingProps {
   source: Source;
+  notes: LiteratureNote[];
+  sections: string[];
+  onFile: (input: CreateLiteratureNoteRequest) => Promise<void>;
 }
 
-// The reading page, empty by design in this slice: it shows what the Source is, and the
-// capture form, its stream of Literature notes and its Topics each arrive with their own
-// ticket (#65). Nothing here reports a reading status - a Source has no lifecycle.
-export function SourceReading({ source }: SourceReadingProps) {
+// The reading page: what the Source is, a blank card to write on, and the stack of cards
+// already written from it. Nothing here reports a reading status - a Source has no lifecycle,
+// and the note count is the only thing it says about itself (CONTEXT.md, Source). Topics
+// arrive with their own ticket.
+export function SourceReading({ source, notes, sections, onFile }: SourceReadingProps) {
   return (
-    <Stack direction="column" gap="6">
+    <Stack direction="column" gap="8">
       <Stack direction="column" gap="1">
         <Text variant="eyebrow" color="rust">
           {SOURCE_KIND_LABEL[source.kind]}
@@ -37,10 +44,25 @@ export function SourceReading({ source }: SourceReadingProps) {
             </a>
           </Text>
         )}
+        {/* The count is only worth saying once there is something to count: the empty stream
+            below already says that nothing has been written from this Source yet. */}
+        {notes.length > 0 && (
+          <Text textStyle="label" color="inkSoft" mt="2">
+            {countLabel(notes.length, 'note', 'notes')}
+          </Text>
+        )}
       </Stack>
-      <Text textStyle="body" color="inkSoft">
-        Nothing written from this yet.
-      </Text>
+
+      {/* Capture on one side, the stream on the other, as #73 settled - stacked on a narrow
+          screen, where a column each would leave neither wide enough to write in. */}
+      <Stack direction={{ base: 'column', lg: 'row' }} gap="10" align="flex-start">
+        <Stack direction="column" flex="1" w="full" minW="0">
+          <NoteCapture sections={sections} onFile={onFile} />
+        </Stack>
+        <Stack direction="column" flex="1" w="full" minW="0">
+          <NoteStream notes={notes} />
+        </Stack>
+      </Stack>
     </Stack>
   );
 }

@@ -35,3 +35,38 @@ export const sanitizeSourceInput = (input: {
   // normalizing - so it still resolves to exactly what the user pasted.
   url: typeof input.url === 'string' && input.url.trim() !== '' ? input.url.trim() : null,
 });
+
+// A note's own text keeps the line breaks the user typed - the one piece of structure a plain
+// field carries, and the only one the method has no objection to (ADR 0017). So the body and
+// the excerpt are trimmed at their ends and otherwise left exactly as written, where the
+// one-line fields above collapse their whitespace.
+const multiline = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+};
+
+export interface SanitizedLiteratureNoteInput {
+  body: string;
+  section: string | null;
+  position: string | null;
+  excerpt: string | null;
+  openQuestion: boolean;
+}
+
+export const sanitizeLiteratureNoteInput = (input: {
+  body: string;
+  section?: unknown;
+  position?: unknown;
+  excerpt?: unknown;
+  openQuestion?: unknown;
+}): SanitizedLiteratureNoteInput => ({
+  body: input.body.trim(),
+  section: optional(input.section),
+  // Whitespace is normalized the way every other one-line field here is, but the notation
+  // itself is never rewritten: "p. N" is a rendering rule over a digits-only position, and
+  // what is stored stays the user's own notation (CONTEXT.md, Locator).
+  position: optional(input.position),
+  excerpt: multiline(input.excerpt),
+  openQuestion: input.openQuestion === true,
+});

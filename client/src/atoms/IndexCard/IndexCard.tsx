@@ -2,7 +2,7 @@
    Mirrors the Button.tsx wrapper pattern: `function IndexCard` names the ref-forwarding
    component for DevTools, and remaining props are forwarded via `{...props}` to the
    underlying Chakra primitive. */
-import { forwardRef } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
 import { DieCutTab, type DieCutTabColor } from '../DieCutTab/DieCutTab.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -10,8 +10,11 @@ import { Text } from '../Text/Text.tsx';
 export type IndexCardAccent = DieCutTabColor;
 
 export interface IndexCardProps extends BoxProps {
-  label: string;
-  catalogNumber: string;
+  // Both take a node rather than a string so the card can be written on as well as read: the
+  // Notes capture card puts an input in the tab and another in the catalog number, which is
+  // the whole point of writing a note on the object it becomes.
+  label: ReactNode;
+  catalogNumber: ReactNode;
   accent?: IndexCardAccent;
 }
 
@@ -41,7 +44,10 @@ export const IndexCard = forwardRef<HTMLDivElement, IndexCardProps>(function Ind
         </Text>
       )}
       <Text
-        aria-hidden="true"
+        // A rendered catalog number is decoration - it repeats what the card already says in
+        // readable form. A node the caller passes is the caller's own business, and hiding it
+        // would put a focusable input behind aria-hidden.
+        aria-hidden={typeof catalogNumber === 'string' ? 'true' : undefined}
         position="absolute"
         bottom="3"
         right="4"

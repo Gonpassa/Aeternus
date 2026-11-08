@@ -1,13 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading --
    Variant styling is forwarded via `{...variantStyles[variant]}` to the underlying Chakra
    primitives, mirroring the thin-wrapper pattern of the other atoms. */
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ComponentProps,
-  type KeyboardEvent,
-} from 'react';
+import { useLayoutEffect, useRef, useState, type ComponentProps, type KeyboardEvent } from 'react';
 import { Box, chakra, type BoxProps } from '@chakra-ui/react';
 
 export type SelectionToolbarAction = {
