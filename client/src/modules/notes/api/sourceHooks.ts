@@ -19,11 +19,13 @@ import { endpoints } from '../../../api/endpoints.ts';
 // recently filed first, so the section being read in is offered first, exactly as the reading
 // page's own payload orders them. A correction or a deletion can retire a section outright,
 // which is why this is derived from the stream rather than edited alongside it.
-const nextSections = (notes: LiteratureNote[]): string[] => {
+const sectionSuggestions = (notes: LiteratureNote[]): string[] => {
   const seen: string[] = [];
   [...notes].reverse().forEach((note) => {
-    if (note.section !== null && note.section !== '' && !seen.includes(note.section)) {
-      seen.push(note.section);
+    // Blank-after-trimming counts as no section, matching the server's own btrim filter.
+    const section = note.section?.trim() ?? '';
+    if (section !== '' && !seen.includes(section)) {
+      seen.push(section);
     }
   });
   return seen;
@@ -153,7 +155,7 @@ export const useUpdateLiteratureNote = (sourceId: number) => {
       queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) => {
         if (!previous) return previous;
         const notes = previous.notes.map((filed) => (filed.id === note.id ? note : filed));
-        return { ...previous, notes, sections: nextSections(notes) };
+        return { ...previous, notes, sections: sectionSuggestions(notes) };
       });
     },
   });
@@ -171,7 +173,7 @@ export const useDeleteLiteratureNote = (sourceId: number) => {
       queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) => {
         if (!previous) return previous;
         const notes = previous.notes.filter((note) => note.id !== noteId);
-        return { ...previous, notes, sections: nextSections(notes) };
+        return { ...previous, notes, sections: sectionSuggestions(notes) };
       });
       // The catalog's order and each card's note count are derived from the notes, so a
       // deleted note changes the whole list rather than one entry of it.

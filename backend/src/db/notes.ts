@@ -110,8 +110,19 @@ export const updateLiteratureNote = async ({
 };
 
 // The mechanics of removing one note, nothing more. As with a Source, whether the deletion may
-// happen is decided in front of this call: the orphan guard of ADR 0014 arrives with #86.
-export const deleteNote = async ({ id }: { id: number }): Promise<boolean> => {
-  const deleted = await db.delete(notes).where(eq(notes.id, id)).returning({ id: notes.id });
+// happen is decided in front of this call: the orphan guard of ADR 0014 arrives with #86. The
+// owner is still named in the statement itself, so the destructive query is never wider than
+// the read that authorised it.
+export const deleteNote = async ({
+  id,
+  userId,
+}: {
+  id: number;
+  userId: number;
+}): Promise<boolean> => {
+  const deleted = await db
+    .delete(notes)
+    .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+    .returning({ id: notes.id });
   return deleted.length > 0;
 };

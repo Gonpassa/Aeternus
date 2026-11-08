@@ -25,13 +25,13 @@ export interface NoteEditProps {
   onDelete: () => void;
 }
 
+const ERROR_ID = 'note-edit-error';
+
 // The filed card, opened for correction: the same card in the same anatomy, with its own text
 // in the fields rather than a form drawn somewhere else (#73). Writing a note closed-book is a
 // discipline at the moment of capture, not a constraint on the stored text, so everything the
 // card carries is editable afterwards - the open-question flag included, which is the half of
 // #82 that waited for this path (CONTEXT.md, Literature note).
-const ERROR_ID = 'note-edit-error';
-
 export function NoteEdit({ note, onSave, onCancel, onDelete }: NoteEditProps) {
   const {
     control,

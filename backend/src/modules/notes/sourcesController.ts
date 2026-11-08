@@ -134,13 +134,14 @@ export const deleteSource = async (
     res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
     return;
   }
+  const userId = getUserId(req);
   try {
-    const source = await findSourceById({ id: sourceId, userId: getUserId(req) });
+    const source = await findSourceById({ id: sourceId, userId });
     if (!source) {
       res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
       return;
     }
-    await deleteSourceRecord({ id: source.id });
+    await deleteSourceRecord({ id: source.id, userId });
     res.status(204).send();
   } catch (err) {
     next(err);

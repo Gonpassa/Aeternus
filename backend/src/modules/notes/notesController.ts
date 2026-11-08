@@ -126,13 +126,14 @@ export const deleteLiteratureNote = async (
     res.status(404).json({ error: 'Note not found' } satisfies ApiErrorResponse);
     return;
   }
+  const userId = getUserId(req);
   try {
-    const note = await findLiteratureNoteOwnedByUser({ id: noteId, userId: getUserId(req) });
+    const note = await findLiteratureNoteOwnedByUser({ id: noteId, userId });
     if (!note) {
       res.status(404).json({ error: 'Note not found' } satisfies ApiErrorResponse);
       return;
     }
-    await deleteNoteRecord({ id: note.id });
+    await deleteNoteRecord({ id: note.id, userId });
     res.status(204).send();
   } catch (err) {
     next(err);
