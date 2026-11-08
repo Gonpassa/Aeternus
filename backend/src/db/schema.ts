@@ -321,3 +321,47 @@ export const notes = pgTable(
 
 export type Note = typeof notes.$inferSelect;
 export type NewNote = typeof notes.$inferInsert;
+
+// One row per Link, directed, with a reason from each end (ADR 0013). Direction is kept
+// because the connections view groups by it and because each reason has to be attributable:
+// `reason` is the origin's, written when the Link was made and required, and `targetReason`
+// is written only if the other end later links back and finds this Link already there.
+//
+// Uniqueness of the unordered pair is a functional unique index over least/greatest, so the
+// "at most one Link per pair" rule holds without the application normalizing the pair before
+// every insert. Both foreign keys cascade, under the guard-then-cascade rule of ADR 0012: the
+// cascade is the mechanics once a deletion is allowed, never the guard that allows it.
+export const links = pgTable(
+  'links',
+  {
+    id: serial('id').primaryKey(),
+    originNoteId: integer('origin_note_id')
+      .notNull()
+      .references(() => notes.id, { onDelete: 'cascade' }),
+    targetNoteId: integer('target_note_id')
+      .notNull()
+      .references(() => notes.id, { onDelete: 'cascade' }),
+    reason: text('reason').notNull(),
+    targetReason: text('target_reason'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // At most one Link per unordered pair, so linking B to A when A to B already exists finds
+    // the Link rather than making a second one. A functional index over least/greatest states
+    // that directly, which is why nothing has to store the pair pre-normalized.
+    pairUnique: uniqueIndex('links_unordered_pair_unique').on(
+      sql`least(${table.originNoteId}, ${table.targetNoteId})`,
+      sql`greatest(${table.originNoteId}, ${table.targetNoteId})`,
+    ),
+    // A note's Links are read from either end - `origin_note_id = :id OR target_note_id = :id`
+    // - so both columns are indexed rather than only the pair expression above.
+    originIdx: index('links_origin_note_id_idx').on(table.originNoteId),
+    targetIdx: index('links_target_note_id_idx').on(table.targetNoteId),
+    // A note linking to itself states nothing.
+    notSelf: check('links_not_self', sql`${table.originNoteId} <> ${table.targetNoteId}`),
+  }),
+);
+
+export type Link = typeof links.$inferSelect;
+export type NewLink = typeof links.$inferInsert;

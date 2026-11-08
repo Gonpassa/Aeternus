@@ -1,17 +1,27 @@
 import { useState } from 'react';
-import type { LiteratureNote, UpdateLiteratureNoteRequest } from '@nee3/shared-types';
+import type {
+  CreatePermanentNoteRequest,
+  LiteratureNoteWithConnections,
+  UpdateLiteratureNoteRequest,
+} from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { IndexCard } from '../../../../../atoms/IndexCard/IndexCard.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
-import { cardLocator, formatLocator } from './FiledNote.utils.ts';
+import { formatLocator, literatureNoteHeading } from '../../../utils/noteLabel.ts';
+import { NoteConnections } from '../../NoteConnections/NoteConnections.tsx';
+import { PermanentNoteComposer } from '../../PermanentNoteComposer/PermanentNoteComposer.tsx';
+import { cardLocator } from './FiledNote.utils.ts';
 import { DeleteNoteDialog } from './DeleteNoteDialog/DeleteNoteDialog.tsx';
 import { NoteEdit } from './NoteEdit/NoteEdit.tsx';
 
 export interface FiledNoteProps {
-  note: LiteratureNote;
+  note: LiteratureNoteWithConnections;
+  // The Source's title, which is half of how this note is named in a connection it appears in.
+  sourceTitle: string;
   onCorrect: (input: UpdateLiteratureNoteRequest) => Promise<void>;
   onDelete: () => Promise<void>;
+  onWritePermanentNote: (input: CreatePermanentNoteRequest) => Promise<void>;
 }
 
 // A filed note is the same card it was written on, which is the point of writing it there:
@@ -19,10 +29,17 @@ export interface FiledNoteProps {
 // was typed with - the one piece of structure a plain field carries (ADR 0017) - and the
 // author's words stay a slip revealed on demand rather than prose mixed into the user's own.
 // Correcting it opens the same card in place rather than a form elsewhere (#83).
-export function FiledNote({ note, onCorrect, onDelete }: FiledNoteProps) {
+export function FiledNote({
+  note,
+  sourceTitle,
+  onCorrect,
+  onDelete,
+  onWritePermanentNote,
+}: FiledNoteProps) {
   const [excerptShown, setExcerptShown] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
   const { tab, catalogNumber } = cardLocator(note);
 
   if (correcting) {
@@ -110,6 +127,34 @@ export function FiledNote({ note, onCorrect, onDelete }: FiledNoteProps) {
         >
           Correct this note
         </Button>
+
+        {/* What the user has built from this reading, which is the payoff: the inbound group
+            on a Literature note is the ideas written from it. */}
+        <NoteConnections connections={note.connections} noteId={note.id} />
+
+        {/* The composer is opened from the note that prompted the idea, on the reading page,
+            because the user's own thinking happens while reading and not only later (#67). */}
+        {composerOpen ? (
+          <PermanentNoteComposer
+            targetNoteId={note.id}
+            targetLabel={literatureNoteHeading({ sourceTitle, ...note })}
+            onWrite={async (input) => {
+              await onWritePermanentNote(input);
+              setComposerOpen(false);
+            }}
+            onDiscard={() => setComposerOpen(false)}
+          />
+        ) : (
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            alignSelf="flex-start"
+            onClick={() => setComposerOpen(true)}
+          >
+            Write a Permanent note
+          </Button>
+        )}
       </Stack>
     </IndexCard>
   );

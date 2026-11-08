@@ -1,4 +1,8 @@
-import { sanitizeLiteratureNoteInput, sanitizeSourceInput } from './sanitize';
+import {
+  sanitizeLiteratureNoteInput,
+  sanitizePermanentNoteInput,
+  sanitizeSourceInput,
+} from './sanitize';
 
 describe('sanitizeSourceInput', () => {
   it('trims the fields it keeps', () => {
@@ -102,5 +106,31 @@ describe('sanitizeLiteratureNoteInput', () => {
     expect(
       sanitizeLiteratureNoteInput({ body: 'On <em>Hamlet</em>', position: '42' }),
     ).toMatchObject({ body: 'On <em>Hamlet</em>' });
+  });
+});
+
+describe('sanitizePermanentNoteInput', () => {
+  it('collapses the title and every reason to one line', () => {
+    expect(
+      sanitizePermanentNoteInput({
+        title: '  Writing   is\nhow an idea is tested.  ',
+        body: 'The idea.',
+        links: [{ targetNoteId: 7, reason: '  Two\nwords.  ' }],
+      }),
+    ).toEqual({
+      title: 'Writing is how an idea is tested.',
+      body: 'The idea.',
+      linkDrafts: [{ targetNoteId: 7, reason: 'Two words.' }],
+    });
+  });
+
+  it('keeps the body\u2019s own line breaks, as a plain field carries them', () => {
+    expect(
+      sanitizePermanentNoteInput({
+        title: 'A claim.',
+        body: '  First line.\n\nSecond line.  ',
+        links: [{ targetNoteId: 7, reason: 'Why.' }],
+      }),
+    ).toMatchObject({ body: 'First line.\n\nSecond line.' });
   });
 });

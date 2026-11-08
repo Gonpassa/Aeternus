@@ -70,3 +70,29 @@ export const sanitizeLiteratureNoteInput = (input: {
   excerpt: multiline(input.excerpt),
   openQuestion: input.openQuestion === true,
 });
+
+export interface SanitizedLinkDraft {
+  targetNoteId: number;
+  reason: string;
+}
+
+export interface SanitizedPermanentNoteInput {
+  title: string;
+  body: string;
+  linkDrafts: SanitizedLinkDraft[];
+}
+
+// The title collapses its whitespace like every other one-line field, and the body keeps the
+// line breaks it was typed with. A reason is one line by definition, so it collapses too.
+export const sanitizePermanentNoteInput = (input: {
+  title: string;
+  body: string;
+  links: { targetNoteId: number; reason: string }[];
+}): SanitizedPermanentNoteInput => ({
+  title: collapse(input.title),
+  body: input.body.trim(),
+  linkDrafts: input.links.map((link) => ({
+    targetNoteId: link.targetNoteId,
+    reason: collapse(link.reason),
+  })),
+});

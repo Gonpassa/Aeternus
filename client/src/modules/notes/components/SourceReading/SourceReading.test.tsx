@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import type { LiteratureNote, Source } from '@nee3/shared-types';
+import type { LiteratureNoteWithConnections, Source } from '@nee3/shared-types';
+import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { SourceReading } from './SourceReading.tsx';
 
 const source = (overrides: Partial<Source> = {}): Source => ({
@@ -17,7 +18,9 @@ const source = (overrides: Partial<Source> = {}): Source => ({
   ...overrides,
 });
 
-const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
+const note = (
+  overrides: Partial<LiteratureNoteWithConnections> = {},
+): LiteratureNoteWithConnections => ({
   id: 1,
   userId: 1,
   kind: 'literature',
@@ -29,6 +32,7 @@ const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
   openQuestion: false,
   createdAt: '2026-09-02T10:00:00.000Z',
   updatedAt: '2026-09-02T10:00:00.000Z',
+  connections: { connectsTo: [], connectedFrom: [] },
   ...overrides,
 });
 
@@ -43,7 +47,9 @@ const renderPage = (props: Partial<ComponentProps<typeof SourceReading>> = {}) =
       onDeleteSource={props.onDeleteSource ?? vi.fn()}
       onCorrectNote={props.onCorrectNote ?? vi.fn()}
       onDeleteNote={props.onDeleteNote ?? vi.fn()}
+      onWritePermanentNote={props.onWritePermanentNote ?? vi.fn()}
     />,
+    { wrapper: queryWrapper() },
   );
 
 describe('SourceReading', () => {
@@ -163,6 +169,7 @@ describe('SourceReading', () => {
         onDeleteSource={vi.fn()}
         onCorrectNote={vi.fn()}
         onDeleteNote={vi.fn()}
+        onWritePermanentNote={vi.fn()}
       />,
     );
 
@@ -181,6 +188,7 @@ describe('SourceReading', () => {
         onDeleteSource={vi.fn()}
         onCorrectNote={vi.fn()}
         onDeleteNote={vi.fn()}
+        onWritePermanentNote={vi.fn()}
       />,
     );
 

@@ -2,10 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import type { LiteratureNote } from '@nee3/shared-types';
+import type { LiteratureNoteWithConnections } from '@nee3/shared-types';
+import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { NoteStream } from './NoteStream.tsx';
 
-const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
+const note = (
+  overrides: Partial<LiteratureNoteWithConnections> = {},
+): LiteratureNoteWithConnections => ({
   id: 1,
   userId: 1,
   kind: 'literature',
@@ -17,19 +20,23 @@ const note = (overrides: Partial<LiteratureNote> = {}): LiteratureNote => ({
   openQuestion: false,
   createdAt: '2026-09-02T10:00:00.000Z',
   updatedAt: '2026-09-02T10:00:00.000Z',
+  connections: { connectsTo: [], connectedFrom: [] },
   ...overrides,
 });
 
 const renderStream = (
-  notes: LiteratureNote[],
+  notes: LiteratureNoteWithConnections[],
   props: Partial<ComponentProps<typeof NoteStream>> = {},
 ) =>
   render(
     <NoteStream
       notes={notes}
+      sourceTitle="How to Take Smart Notes"
       onCorrect={props.onCorrect ?? vi.fn()}
       onDelete={props.onDelete ?? vi.fn()}
+      onWritePermanentNote={props.onWritePermanentNote ?? vi.fn()}
     />,
+    { wrapper: queryWrapper() },
   );
 
 describe('NoteStream', () => {
@@ -198,5 +205,51 @@ describe('NoteStream', () => {
     await user.click(screen.getByRole('button', { name: 'Delete note' }));
 
     expect(onDelete).toHaveBeenCalledWith(9);
+  });
+
+  // The reading page is where a Permanent note is written: the user's own thinking happens
+  // while reading, not only later (#67).
+  it('offers to write a Permanent note from each filed card', () => {
+    renderStream([note()]);
+
+    expect(screen.getByRole('button', { name: 'Write a Permanent note' })).toBeInTheDocument();
+  });
+
+  it('shows what has been written from a note, in the inbound group', () => {
+    renderStream([
+      note({
+        connections: {
+          connectsTo: [],
+          connectedFrom: [
+            {
+              link: {
+                id: 1,
+                originNoteId: 2,
+                targetNoteId: 1,
+                reason: 'This is the claim that note was circling.',
+                targetReason: null,
+                createdAt: '2026-09-03T10:00:00.000Z',
+                updatedAt: '2026-09-03T10:00:00.000Z',
+              },
+              other: {
+                id: 2,
+                userId: 1,
+                kind: 'permanent',
+                title: 'Writing is how an idea is tested.',
+                body: 'The claim itself.',
+                createdAt: '2026-09-03T10:00:00.000Z',
+                updatedAt: '2026-09-03T10:00:00.000Z',
+              },
+              sourceTitle: null,
+            },
+          ],
+        },
+      }),
+    ]);
+
+    expect(screen.getByText('Connected from')).toBeInTheDocument();
+    expect(screen.getByText('Writing is how an idea is tested.')).toBeInTheDocument();
+    expect(screen.getByText('This is the claim that note was circling.')).toBeInTheDocument();
+    expect(screen.queryByText('Connects to')).not.toBeInTheDocument();
   });
 });

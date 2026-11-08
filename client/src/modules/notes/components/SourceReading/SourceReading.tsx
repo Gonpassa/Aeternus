@@ -1,6 +1,7 @@
 import type {
   CreateLiteratureNoteRequest,
-  LiteratureNote,
+  CreatePermanentNoteRequest,
+  LiteratureNoteWithConnections,
   Source,
   UpdateLiteratureNoteRequest,
   UpdateSourceRequest,
@@ -12,18 +13,20 @@ import { SourceHeader } from './SourceHeader/SourceHeader.tsx';
 
 export interface SourceReadingProps {
   source: Source;
-  notes: LiteratureNote[];
+  notes: LiteratureNoteWithConnections[];
   sections: string[];
   onFile: (input: CreateLiteratureNoteRequest) => Promise<void>;
   onCorrectSource: (input: UpdateSourceRequest) => Promise<void>;
   onDeleteSource: () => Promise<void>;
   onCorrectNote: (noteId: number, input: UpdateLiteratureNoteRequest) => Promise<void>;
   onDeleteNote: (noteId: number) => Promise<void>;
+  onWritePermanentNote: (input: CreatePermanentNoteRequest) => Promise<void>;
 }
 
 // The reading page: what the Source is, a blank card to write on, and the stack of cards
-// already written from it. Everything on it is correctable after the fact - the header in
-// place, each filed card on the card itself (#83). Topics arrive with their own ticket.
+// already written from it, each with what has been built from it. Everything on it is
+// correctable after the fact - the header in place, each filed card on the card itself (#83).
+// Topics arrive with their own ticket.
 export function SourceReading({
   source,
   notes,
@@ -33,6 +36,7 @@ export function SourceReading({
   onDeleteSource,
   onCorrectNote,
   onDeleteNote,
+  onWritePermanentNote,
 }: SourceReadingProps) {
   return (
     <Stack direction="column" gap="8">
@@ -50,7 +54,13 @@ export function SourceReading({
           <NoteCapture sections={sections} onFile={onFile} />
         </Stack>
         <Stack direction="column" flex="1" w="full" minW="0">
-          <NoteStream notes={notes} onCorrect={onCorrectNote} onDelete={onDeleteNote} />
+          <NoteStream
+            notes={notes}
+            sourceTitle={source.title}
+            onCorrect={onCorrectNote}
+            onDelete={onDeleteNote}
+            onWritePermanentNote={onWritePermanentNote}
+          />
         </Stack>
       </Stack>
     </Stack>

@@ -32,4 +32,6 @@ export const endpoints = {
   // Correcting or deleting a filed note is addressed by the note's own id: capture needs a
   // Source open, a correction needs only the note (#83).
   note: (id: number) => `/notes/${id}`,
+  permanentNotes: '/notes/permanent',
+  noteConnections: (id: number) => `/notes/${id}/connections`,
 } as const;
