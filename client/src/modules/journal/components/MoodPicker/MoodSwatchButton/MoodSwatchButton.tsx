@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import { Tooltip } from '../../../../atoms/Tooltip/Tooltip.tsx';
-import { VisuallyHidden } from '../../../../atoms/VisuallyHidden/VisuallyHidden.tsx';
-import styles from './MoodPicker.module.css';
+import { Tooltip } from '../../../../../atoms/Tooltip/Tooltip.tsx';
+import { VisuallyHidden } from '../../../../../atoms/VisuallyHidden/VisuallyHidden.tsx';
+import styles from '../MoodPicker.module.css';
 
 export interface MoodSwatchButtonProps {
   label: string;
