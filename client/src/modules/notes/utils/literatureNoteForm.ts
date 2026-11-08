@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import type { CreateLiteratureNoteRequest } from '@nee3/shared-types';
+import type { CreateLiteratureNoteRequest, LiteratureNote } from '@nee3/shared-types';
+
+// The index card's form, shared by the blank card that captures a note and the filed card that
+// corrects one (#73, #83). A correction is held to exactly what capture is held to - the same
+// ceilings, the same Locator rule - so the schema lives here rather than in either component.
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
 // request is actually held to - and they are mirrored here so an over-long note is answered as
@@ -46,10 +50,10 @@ export const literatureNoteSchema = z
     path: ['position'],
   });
 
-export type NoteCaptureValues = z.input<typeof literatureNoteSchema>;
-export type NoteCaptureOutput = z.output<typeof literatureNoteSchema>;
+export type NoteCardValues = z.input<typeof literatureNoteSchema>;
+export type NoteCardOutput = z.output<typeof literatureNoteSchema>;
 
-export const BLANK_CARD: NoteCaptureValues = {
+export const BLANK_CARD: NoteCardValues = {
   section: '',
   position: '',
   body: '',
@@ -58,14 +62,25 @@ export const BLANK_CARD: NoteCaptureValues = {
 };
 
 // A blank optional field is not a different state from "not given" for a Locator half or an
-// excerpt - all three reach the API as null, as they are stored. The position is sent exactly
+// excerpt - all three reach the API as null, as they are stored, which is also how an emptied
+// excerpt is cleared rather than stored as an empty string (#83). The position is sent exactly
 // as typed: "p. N" is a rendering rule, never a stored value.
-export const toCreateRequest = (values: NoteCaptureOutput): CreateLiteratureNoteRequest => ({
+export const toNotePayload = (values: NoteCardOutput): CreateLiteratureNoteRequest => ({
   body: values.body,
   section: values.section === '' ? null : values.section,
   position: values.position === '' ? null : values.position,
   excerpt: values.excerpt === '' ? null : values.excerpt,
   openQuestion: values.openQuestion,
+});
+
+// The reverse: a filed note read back onto the card it was written on. A null field is an
+// untouched input, which is the same empty string a blank card starts from.
+export const toNoteCardValues = (note: LiteratureNote): NoteCardValues => ({
+  section: note.section ?? '',
+  position: note.position ?? '',
+  body: note.body,
+  excerpt: note.excerpt ?? '',
+  openQuestion: note.openQuestion,
 });
 
 // The tab and the catalog number are written straight onto the card, so both strip the Input

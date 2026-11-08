@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { SOURCE_KINDS, type CreateSourceRequest, type SourceKind } from '@nee3/shared-types';
+import {
+  SOURCE_KINDS,
+  type CreateSourceRequest,
+  type Source,
+  type SourceKind,
+} from '@nee3/shared-types';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
 // request is actually held to - and they are mirrored here so an over-long title is answered
@@ -22,11 +27,9 @@ export const sourceSchema = z.object({
     .max(SOURCE_TITLE_MAX, `A Source title is at most ${SOURCE_TITLE_MAX} characters.`),
   // The select starts empty, so the field's value is a plain string until a kind is chosen;
   // the guard both rejects that empty state and narrows the submitted value to a SourceKind.
-  kind: z
-    .string()
-    .refine(isSourceKind, {
-      message: 'A Source is a book, an article, a video, or something else.',
-    }),
+  kind: z.string().refine(isSourceKind, {
+    message: 'A Source is a book, an article, a video, or something else.',
+  }),
   author: z
     .string()
     .trim()
@@ -47,6 +50,16 @@ export const sourceSchema = z.object({
 
 export type SourceFormValues = z.input<typeof sourceSchema>;
 export type SourceFormOutput = z.output<typeof sourceSchema>;
+
+// A Source read back onto the form that files one, for correcting it after the fact (#83). A
+// null author or link is an untouched input, which is the same empty string a blank form
+// starts from.
+export const toSourceFormValues = (source: Source): SourceFormValues => ({
+  title: source.title,
+  kind: source.kind,
+  author: source.author ?? '',
+  url: source.url ?? '',
+});
 
 // An untouched optional input submits as the empty string, which is not a different state
 // from "not given" for an author or a link - both reach the API as null, as they are stored.

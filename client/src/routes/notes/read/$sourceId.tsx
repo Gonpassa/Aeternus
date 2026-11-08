@@ -1,6 +1,13 @@
-import { createFileRoute, getRouteApi } from '@tanstack/react-router';
+import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
 import { requireAuth } from '../../../auth/requireAuth.ts';
-import { useCreateLiteratureNote, useSource } from '../../../modules/notes/api/sourceHooks.ts';
+import {
+  useCreateLiteratureNote,
+  useDeleteLiteratureNote,
+  useDeleteSource,
+  useSource,
+  useUpdateLiteratureNote,
+  useUpdateSource,
+} from '../../../modules/notes/api/sourceHooks.ts';
 import { SourceReading } from '../../../modules/notes/components/SourceReading/SourceReading.tsx';
 import { LoadingGate } from '../../../atoms/LoadingGate/LoadingGate.tsx';
 import { PageContainer } from '../../../atoms/PageContainer/PageContainer.tsx';
@@ -10,8 +17,14 @@ const routeApi = getRouteApi('/notes/read/$sourceId');
 
 function SourceReadingPage() {
   const { sourceId } = routeApi.useParams();
-  const { data, isPending } = useSource(Number(sourceId));
-  const createNote = useCreateLiteratureNote(Number(sourceId));
+  const navigate = useNavigate();
+  const id = Number(sourceId);
+  const { data, isPending } = useSource(id);
+  const createNote = useCreateLiteratureNote(id);
+  const updateNote = useUpdateLiteratureNote(id);
+  const deleteNote = useDeleteLiteratureNote(id);
+  const updateSource = useUpdateSource(id);
+  const deleteSource = useDeleteSource();
 
   return (
     <PageContainer maxW="4xl" centered>
@@ -24,6 +37,21 @@ function SourceReadingPage() {
           sections={data.sections}
           onFile={async (input) => {
             await createNote.mutateAsync(input);
+          }}
+          onCorrectNote={async (noteId, input) => {
+            await updateNote.mutateAsync({ noteId, input });
+          }}
+          onDeleteNote={async (noteId) => {
+            await deleteNote.mutateAsync(noteId);
+          }}
+          onCorrectSource={async (input) => {
+            await updateSource.mutateAsync(input);
+          }}
+          // Back to the catalog: the page the deleted Source was being read on has nothing
+          // left to show, since its notes went with it (#70).
+          onDeleteSource={async () => {
+            await deleteSource.mutateAsync(id);
+            await navigate({ to: '/notes/read' });
           }}
         />
       )}

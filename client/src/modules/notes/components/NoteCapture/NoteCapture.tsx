@@ -13,10 +13,10 @@ import {
   BLANK_CARD,
   WRITTEN_ON_CARD,
   literatureNoteSchema,
-  toCreateRequest,
-  type NoteCaptureOutput,
-  type NoteCaptureValues,
-} from './NoteCapture.utils.ts';
+  toNotePayload,
+  type NoteCardOutput,
+  type NoteCardValues,
+} from '../../utils/literatureNoteForm.ts';
 
 export interface NoteCaptureProps {
   // The sections this Source's notes already use, most recently used first. They arrive in the
@@ -43,7 +43,7 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
     reset,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<NoteCaptureValues, unknown, NoteCaptureOutput>({
+  } = useForm<NoteCardValues, unknown, NoteCardOutput>({
     // The tab opens on the section the last note was filed under: a reader resuming a Source
     // is almost always still in that chapter (#68), and the chips below change it in one tap.
     defaultValues: { ...BLANK_CARD, section: sections[0] ?? '' },
@@ -69,9 +69,9 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
     errors.section?.message ??
     errors.excerpt?.message;
 
-  const onValid = async (values: NoteCaptureOutput) => {
+  const onValid = async (values: NoteCardOutput) => {
     try {
-      await onFile(toCreateRequest(values));
+      await onFile(toNotePayload(values));
       // The tab stays set and the position is cleared: the reader has moved on a page, not to
       // another chapter. The excerpt slip is tucked away again with the card it belonged to.
       reset({ ...BLANK_CARD, section: values.section });

@@ -1,7 +1,7 @@
 import type { FormEventHandler } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CreateSourceRequest } from '@nee3/shared-types';
+import type { CreateSourceRequest, Source } from '@nee3/shared-types';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { Card } from '../../../../atoms/Card/Card.tsx';
 import { FormField } from '../../../../atoms/FormField/FormField.tsx';
@@ -11,6 +11,7 @@ import { SOURCE_KIND_OPTIONS } from '../../sourceKinds.ts';
 import {
   sourceSchema,
   toCreateRequest,
+  toSourceFormValues,
   type SourceFormOutput,
   type SourceFormValues,
 } from './SourceForm.utils.ts';
@@ -18,6 +19,11 @@ import {
 export interface SourceFormProps {
   onSubmit: (input: CreateSourceRequest) => Promise<void>;
   onDiscard?: () => void;
+  // A Source to correct rather than a Source to file. The same form serves both, because the
+  // fields a Source has are the same fields afterwards - `kind` included, which changes no
+  // other field and so strands nothing when it changes (#83).
+  source?: Source;
+  submitLabel?: string;
 }
 
 const DEFAULT_VALUES: SourceFormValues = { title: '', kind: '', author: '', url: '' };
@@ -26,13 +32,18 @@ const DEFAULT_VALUES: SourceFormValues = { title: '', kind: '', author: '', url:
 // things it cannot be filed without - what it is called and what kind of thing it is - are
 // both asked for here. Topics are deliberately absent; they arrive with their own ticket.
 // There is no status field anywhere, because a Source has no lifecycle (CONTEXT.md, Source).
-export function SourceForm({ onSubmit, onDiscard }: SourceFormProps) {
+export function SourceForm({
+  onSubmit,
+  onDiscard,
+  source,
+  submitLabel = 'Add Source',
+}: SourceFormProps) {
   const {
     control,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SourceFormValues, unknown, SourceFormOutput>({
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: source ? toSourceFormValues(source) : DEFAULT_VALUES,
     resolver: zodResolver(sourceSchema),
     mode: 'onBlur',
     reValidateMode: 'onChange',
@@ -77,7 +88,7 @@ export function SourceForm({ onSubmit, onDiscard }: SourceFormProps) {
           </Button>
         )}
         <Button type="submit" loading={isSubmitting}>
-          Add Source
+          {submitLabel}
         </Button>
       </Stack>
     </Card>

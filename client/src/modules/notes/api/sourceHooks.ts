@@ -8,9 +8,28 @@ import type {
   SourceDetailResponse,
   SourceListEntry,
   SourceListResponse,
+  SourceResponse,
+  UpdateLiteratureNoteRequest,
+  UpdateSourceRequest,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
+
+// The sections the capture card offers, recomputed from the notes that are left: most
+// recently filed first, so the section being read in is offered first, exactly as the reading
+// page's own payload orders them. A correction or a deletion can retire a section outright,
+// which is why this is derived from the stream rather than edited alongside it.
+const sectionSuggestions = (notes: LiteratureNote[]): string[] => {
+  const seen: string[] = [];
+  [...notes].reverse().forEach((note) => {
+    // Blank-after-trimming counts as no section, matching the server's own btrim filter.
+    const section = note.section?.trim() ?? '';
+    if (section !== '' && !seen.includes(section)) {
+      seen.push(section);
+    }
+  });
+  return seen;
+};
 
 export const sourceKeys = {
   all: ['sources'] as const,
@@ -78,6 +97,86 @@ export const useCreateLiteratureNote = (sourceId: number) => {
       );
       // The catalog's order and each card's note count are derived from the notes, so a filed
       // note changes the whole list rather than one entry of it.
+      queryClient.invalidateQueries({ queryKey: sourceKeys.list() });
+    },
+  });
+};
+
+export const useUpdateSource = (sourceId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<Source, Error, UpdateSourceRequest>({
+    mutationFn: async (input) => {
+      const { data } = await apiClient.patch<SourceResponse>(endpoints.source(sourceId), input);
+      return data.source;
+    },
+    // The corrected Source is written straight into the reading page's cached payload, so the
+    // header reflects the change without a reload and without refetching the stream under it.
+    // The catalog is invalidated rather than patched: its order is derived from the notes.
+    onSuccess: (source) => {
+      queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) =>
+        previous ? { ...previous, source } : previous,
+      );
+      queryClient.invalidateQueries({ queryKey: sourceKeys.list() });
+    },
+  });
+};
+
+export const useDeleteSource = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (sourceId) => {
+      await apiClient.delete(endpoints.source(sourceId));
+    },
+    // The Source's Literature notes went with it (#70), so its reading-page payload is
+    // dropped outright rather than patched - nothing is left for that page to show.
+    onSuccess: (_result, sourceId) => {
+      queryClient.removeQueries({ queryKey: sourceKeys.detail(sourceId) });
+      queryClient.invalidateQueries({ queryKey: sourceKeys.list() });
+    },
+  });
+};
+
+export interface UpdateLiteratureNoteVariables {
+  noteId: number;
+  input: UpdateLiteratureNoteRequest;
+}
+
+export const useUpdateLiteratureNote = (sourceId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<LiteratureNote, Error, UpdateLiteratureNoteVariables>({
+    mutationFn: async ({ noteId, input }) => {
+      const { data } = await apiClient.patch<LiteratureNoteResponse>(endpoints.note(noteId), input);
+      return data.note;
+    },
+    // The corrected card replaces itself in place: the stream keeps its order, which is the
+    // order the notes were written in and never a function of when they were last touched
+    // (#68). A corrected section joins the tab's suggestions as a filed one does.
+    onSuccess: (note) => {
+      queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) => {
+        if (!previous) return previous;
+        const notes = previous.notes.map((filed) => (filed.id === note.id ? note : filed));
+        return { ...previous, notes, sections: sectionSuggestions(notes) };
+      });
+    },
+  });
+};
+
+export const useDeleteLiteratureNote = (sourceId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (noteId) => {
+      await apiClient.delete(endpoints.note(noteId));
+    },
+    // The card leaves the stream without a reload, and the tab's suggestions are recomputed
+    // from what is left: a section no note uses any more is no longer a suggestion.
+    onSuccess: (_result, noteId) => {
+      queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) => {
+        if (!previous) return previous;
+        const notes = previous.notes.filter((note) => note.id !== noteId);
+        return { ...previous, notes, sections: sectionSuggestions(notes) };
+      });
+      // The catalog's order and each card's note count are derived from the notes, so a
+      // deleted note changes the whole list rather than one entry of it.
       queryClient.invalidateQueries({ queryKey: sourceKeys.list() });
     },
   });
