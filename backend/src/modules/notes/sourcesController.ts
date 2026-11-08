@@ -7,15 +7,10 @@ import {
   findSourceById,
   listSourcesByUser,
 } from '../../db/sources';
+import { listNotesBySource, listSectionsBySource } from '../../db/notes';
+import { toLiteratureNote } from './serialize';
+import { parseSourceId } from './params';
 import { getUserId } from '../../types/request';
-
-// Held to a whole positive number rather than merely to "not NaN": the column is an
-// integer, so `/sources/Infinity` would otherwise reach the query as a bind parameter and
-// come back as a 500 where the honest answer is that there is no such Source.
-const parseSourceId = (req: Request): number | null => {
-  const id = Number(req.params.sourceId);
-  return Number.isInteger(id) && id > 0 ? id : null;
-};
 
 export const listSources = async (
   req: Request,
@@ -54,21 +49,28 @@ export const createSource = async (
   }
 };
 
-// The reading page's payload. It carries the Source alone for now: its Literature notes, its
-// Topics and the capture form's section list fold in with their own tickets (#65).
+// The reading page's payload, in one request: the Source, its notes oldest-first, and the
+// distinct sections of those notes for the capture card's tab suggestions. The sections are
+// folded in here rather than given their own endpoint so capture never waits on a second
+// round trip (#72). Topics fold in with their own ticket.
 export const getSource = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const sourceId = parseSourceId(req);
   if (sourceId === null) {
     res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
     return;
   }
+  const userId = getUserId(req);
   try {
-    const source = await findSourceById({ id: sourceId, userId: getUserId(req) });
+    const source = await findSourceById({ id: sourceId, userId });
     if (!source) {
       res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
       return;
     }
-    res.status(200).json({ source });
+    const [rows, sections] = await Promise.all([
+      listNotesBySource({ sourceId, userId }),
+      listSectionsBySource({ sourceId, userId }),
+    ]);
+    res.status(200).json({ source, notes: rows.map(toLiteratureNote), sections });
   } catch (err) {
     next(err);
   }

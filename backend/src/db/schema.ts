@@ -6,6 +6,8 @@ import {
   text,
   date,
   integer,
+  boolean,
+  check,
   timestamp,
   unique,
   uniqueIndex,
@@ -243,3 +245,79 @@ export const sources = pgTable(
 
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;
+
+export const noteKindEnum = pgEnum('note_kind', ['literature', 'permanent']);
+
+// Both note kinds live in this one table behind the `kind` discriminator, and the per-kind
+// field requirements are CHECK constraints rather than NOT NULL columns (ADR 0012). That is
+// what keeps `links`, `review_answers` and the later citations pointing at a single id space
+// instead of branching over two. `kind` is fixed at insert: a Literature note never becomes a
+// Permanent note, because the method's point is that the second is written from scratch.
+//
+// Only the Literature kind is written so far; the enum and both CHECKs land together because
+// they are the definition of the table rather than a later addition to it.
+export const notes = pgTable(
+  'notes',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    kind: noteKindEnum('kind').notNull(),
+    // Deleting a Source cascades to its Literature notes (#70). The cascade is the mechanics
+    // that run once the orphan guard has passed, never the guard itself (ADR 0012).
+    sourceId: integer('source_id').references(() => sources.id, { onDelete: 'cascade' }),
+    title: text('title'),
+    body: text('body').notNull(),
+    // The author's exact words, kept in their own column precisely so the source's phrasing
+    // and the user's own are never merged (CONTEXT.md, Excerpt).
+    excerpt: text('excerpt'),
+    // The two halves of the Locator, both free text. At least one is required on a Literature
+    // note; either alone is a complete Locator. Rendering ("Ch. 3 · p. 42", a digits-only
+    // position as "p. N") is a client-side rule over these two columns, never stored.
+    section: text('section'),
+    position: text('position'),
+    openQuestion: boolean('open_question').notNull().default(false),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Lets a table that must reference one kind specifically do so declaratively: a composite
+    // FK into (id, kind) plus a CHECK pinning its own kind column. `review_answers` will use
+    // it for literature-only and `note_topics` for permanent-only, the same trick
+    // `associations` already uses above.
+    idKindUnique: uniqueIndex('notes_id_kind_unique').on(table.id, table.kind),
+    userKindIdx: index('notes_user_id_kind_idx').on(table.userId, table.kind),
+    // The reading stream: one Source's notes in creation order, oldest first.
+    sourceCreatedAtIdx: index('notes_source_id_created_at_idx').on(table.sourceId, table.createdAt),
+    // A Literature note is bound to one Source, has no title, and carries at least one half of
+    // a Locator. The emptiness test is on the trimmed value because "   " is not a position.
+    literatureShape: check(
+      'notes_literature_shape',
+      sql`${table.kind} <> 'literature' OR (
+        ${table.sourceId} IS NOT NULL
+        AND ${table.title} IS NULL
+        AND (
+          coalesce(btrim(${table.section}), '') <> ''
+          OR coalesce(btrim(${table.position}), '') <> ''
+        )
+      )`,
+    ),
+    // A Permanent note is titled as a claim and bound to no Source. `open_question` is a
+    // non-nullable defaulted boolean, so it is pinned to false here rather than absented.
+    permanentShape: check(
+      'notes_permanent_shape',
+      sql`${table.kind} <> 'permanent' OR (
+        ${table.title} IS NOT NULL
+        AND ${table.sourceId} IS NULL
+        AND ${table.excerpt} IS NULL
+        AND ${table.section} IS NULL
+        AND ${table.position} IS NULL
+        AND ${table.openQuestion} = false
+      )`,
+    ),
+  }),
+);
+
+export type Note = typeof notes.$inferSelect;
+export type NewNote = typeof notes.$inferInsert;

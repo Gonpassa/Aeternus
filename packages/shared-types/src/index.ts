@@ -254,8 +254,57 @@ export interface CreateSourceRequest {
   url?: string | null;
 }
 
-// The reading page's payload. This slice carries the Source alone; its Literature notes, its
-// Topics and the capture form's section autocomplete fold in with their own tickets (#65).
+// Both note kinds are one table behind a `kind` discriminator (ADR 0012); the client sees it
+// as a discriminated union, so it gets exhaustiveness where the database has CHECKs. Only the
+// Literature kind is written so far - the Permanent note arrives with its own ticket.
+export interface NoteBase {
+  id: number;
+  userId: number;
+  // Plain text, in a Textarea, rendered as written (ADR 0017). Line breaks the user typed are
+  // the one piece of structure the field carries.
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LiteratureNote extends NoteBase {
+  kind: 'literature';
+  sourceId: number;
+  // The two halves of the Locator. At least one is non-empty; either alone is complete.
+  // Rendering them as one string ("Ch. 3 · p. 42", a digits-only position as "p. N") is a
+  // client-side rule over these two fields - `position` is stored exactly as typed.
+  section: string | null;
+  position: string | null;
+  // The author's exact words, never merged into the body (CONTEXT.md, Excerpt).
+  excerpt: string | null;
+  openQuestion: boolean;
+}
+
+export interface PermanentNote extends NoteBase {
+  kind: 'permanent';
+  title: string;
+}
+
+export type Note = LiteratureNote | PermanentNote;
+
+export interface CreateLiteratureNoteRequest {
+  body: string;
+  section?: string | null;
+  position?: string | null;
+  excerpt?: string | null;
+  openQuestion?: boolean;
+}
+
+// The reading page's payload, in one request: the Source, its notes oldest-first, and the
+// distinct sections of those notes for the tab's suggestions. `sections` is folded in here
+// rather than given its own endpoint so capture never waits on a second round trip (#72).
+// Topics fold in with their own ticket.
 export interface SourceDetailResponse {
   source: Source;
+  notes: LiteratureNote[];
+  sections: string[];
+}
+
+export interface LiteratureNoteResponse {
+  note: LiteratureNote;
 }

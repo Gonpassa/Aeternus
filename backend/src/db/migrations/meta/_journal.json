@@ -71,6 +71,13 @@
       "when": 1791041580457,
       "tag": "0009_pale_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794160802534,
+      "tag": "0010_long_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

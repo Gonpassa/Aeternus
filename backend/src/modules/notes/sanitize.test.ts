@@ -1,4 +1,4 @@
-import { sanitizeSourceInput } from './sanitize';
+import { sanitizeLiteratureNoteInput, sanitizeSourceInput } from './sanitize';
 
 describe('sanitizeSourceInput', () => {
   it('trims the fields it keeps', () => {
@@ -45,5 +45,62 @@ describe('sanitizeSourceInput', () => {
     expect(sanitizeSourceInput({ title: 'Notes on <em>Hamlet</em>', kind: 'book' })).toMatchObject({
       title: 'Notes on <em>Hamlet</em>',
     });
+  });
+});
+
+describe('sanitizeLiteratureNoteInput', () => {
+  it('trims the body at its ends', () => {
+    expect(sanitizeLiteratureNoteInput({ body: '  A point.  ', position: '42' })).toMatchObject({
+      body: 'A point.',
+    });
+  });
+
+  // ADR 0017: line breaks the user typed are the one piece of structure a plain field
+  // carries, and the only one the method has no objection to.
+  it('keeps the line breaks inside a body and an excerpt', () => {
+    expect(
+      sanitizeLiteratureNoteInput({
+        body: 'One thought.\n\nAnother.',
+        excerpt: 'First line.\nSecond line.',
+        position: '42',
+      }),
+    ).toMatchObject({
+      body: 'One thought.\n\nAnother.',
+      excerpt: 'First line.\nSecond line.',
+    });
+  });
+
+  it('collapses whitespace in the one-line Locator halves', () => {
+    expect(
+      sanitizeLiteratureNoteInput({ body: 'A point.', section: '  Ch.   3  ', position: ' 42 ' }),
+    ).toMatchObject({ section: 'Ch. 3', position: '42' });
+  });
+
+  // "p. N" is a rendering rule over a digits-only position, never a stored value.
+  it('stores a position exactly as typed rather than formatting it', () => {
+    expect(sanitizeLiteratureNoteInput({ body: 'A point.', position: '42' })).toMatchObject({
+      position: '42',
+    });
+  });
+
+  it('turns an absent, null or blank optional field into null', () => {
+    expect(
+      sanitizeLiteratureNoteInput({ body: 'A point.', section: '', position: '42', excerpt: null }),
+    ).toMatchObject({ section: null, excerpt: null });
+  });
+
+  it('treats anything but true as unflagged', () => {
+    expect(sanitizeLiteratureNoteInput({ body: 'A point.', position: '42' })).toMatchObject({
+      openQuestion: false,
+    });
+    expect(
+      sanitizeLiteratureNoteInput({ body: 'A point.', position: '42', openQuestion: true }),
+    ).toMatchObject({ openQuestion: true });
+  });
+
+  it('leaves angle brackets in a body alone rather than filtering markup', () => {
+    expect(
+      sanitizeLiteratureNoteInput({ body: 'On <em>Hamlet</em>', position: '42' }),
+    ).toMatchObject({ body: 'On <em>Hamlet</em>' });
   });
 });
