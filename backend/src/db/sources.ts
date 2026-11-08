@@ -62,3 +62,32 @@ export const findSourceById = async ({
     .where(and(eq(sources.id, id), eq(sources.userId, userId)));
   return row;
 };
+
+export type UpdateSourceInput = { id: number; userId: number } & NewSourceInput;
+
+// Every field a Source has is editable, `kind` included: it is a label that changes no other
+// field, so nothing is stranded by the change (#83, CONTEXT.md, Source).
+export const updateSource = async ({
+  id,
+  userId,
+  title,
+  kind,
+  author,
+  url,
+}: UpdateSourceInput): Promise<Source | undefined> => {
+  const [updated] = await db
+    .update(sources)
+    .set({ title, kind, author, url, updatedAt: new Date() })
+    .where(and(eq(sources.id, id), eq(sources.userId, userId)))
+    .returning();
+  return updated;
+};
+
+// The cascade, and only the cascade: deleting a Source takes its Literature notes with it
+// through the foreign key's ON DELETE CASCADE (#70). Whether the deletion may happen at all
+// is decided before this is called - the orphan guard of ADR 0014 arrives with #86, and it
+// sits in front of this function rather than inside it (ADR 0012).
+export const deleteSource = async ({ id }: { id: number }): Promise<boolean> => {
+  const deleted = await db.delete(sources).where(eq(sources.id, id)).returning({ id: sources.id });
+  return deleted.length > 0;
+};

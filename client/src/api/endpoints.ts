@@ -29,4 +29,7 @@ export const endpoints = {
   sources: '/sources',
   source: (id: number) => `/sources/${id}`,
   sourceNotes: (id: number) => `/sources/${id}/notes`,
+  // Correcting or deleting a filed note is addressed by the note's own id: capture needs a
+  // Source open, a correction needs only the note (#83).
+  note: (id: number) => `/notes/${id}`,
 } as const;

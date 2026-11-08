@@ -60,3 +60,58 @@ export const listSectionsBySource = async ({
     .groupBy(notes.section);
   return rows.map((row) => row.section).filter((section): section is string => section !== null);
 };
+
+// A note read by id and owner, narrowed to the Literature kind: the Permanent kind shares this
+// id space (ADR 0012), so an id that belongs to one must not be editable through the other's
+// endpoint. Another user's id and a wrong-kind id are both simply "not found" here.
+export const findLiteratureNoteOwnedByUser = async ({
+  id,
+  userId,
+}: {
+  id: number;
+  userId: number;
+}): Promise<Note | undefined> => {
+  const [row] = await db
+    .select()
+    .from(notes)
+    .where(and(eq(notes.id, id), eq(notes.userId, userId), eq(notes.kind, 'literature')));
+  return row;
+};
+
+export type UpdateLiteratureNoteInput = {
+  id: number;
+  userId: number;
+  body: string;
+  section: string | null;
+  position: string | null;
+  excerpt: string | null;
+  openQuestion: boolean;
+};
+
+// Everything a Literature note was written with is editable; `kind` and `sourceId` are not in
+// the input, because a note never changes kind and never moves between Sources (ADR 0012).
+// Every column is written on every update rather than merged, so an emptied excerpt becomes a
+// null column instead of staying as it was.
+export const updateLiteratureNote = async ({
+  id,
+  userId,
+  body,
+  section,
+  position,
+  excerpt,
+  openQuestion,
+}: UpdateLiteratureNoteInput): Promise<Note | undefined> => {
+  const [updated] = await db
+    .update(notes)
+    .set({ body, section, position, excerpt, openQuestion, updatedAt: new Date() })
+    .where(and(eq(notes.id, id), eq(notes.userId, userId), eq(notes.kind, 'literature')))
+    .returning();
+  return updated;
+};
+
+// The mechanics of removing one note, nothing more. As with a Source, whether the deletion may
+// happen is decided in front of this call: the orphan guard of ADR 0014 arrives with #86.
+export const deleteNote = async ({ id }: { id: number }): Promise<boolean> => {
+  const deleted = await db.delete(notes).where(eq(notes.id, id)).returning({ id: notes.id });
+  return deleted.length > 0;
+};

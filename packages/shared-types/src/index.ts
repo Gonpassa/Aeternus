@@ -243,6 +243,11 @@ export interface SourceListEntry extends Source {
   lastNoteAt: string | null;
 }
 
+// A Source is editable in place after the fact, kind included: `kind` is a label only, so
+// changing it strands no field (#83). The payload is the whole Source rather than a patch of
+// it, which is what lets clearing the author or the link mean "there is none".
+export type UpdateSourceRequest = CreateSourceRequest;
+
 export interface SourceListResponse {
   sources: SourceListEntry[];
 }
@@ -295,6 +300,12 @@ export interface CreateLiteratureNoteRequest {
   openQuestion?: boolean;
 }
 
+// A filed note is fully editable after capture - body, excerpt, both Locator halves and the
+// open-question flag - because writing it closed-book is a discipline at the moment of
+// capture, not a constraint on the stored text (CONTEXT.md, Literature note). As with a
+// Source, the payload is the whole note, so an emptied excerpt is stored as no excerpt.
+export type UpdateLiteratureNoteRequest = CreateLiteratureNoteRequest;
+
 // The reading page's payload, in one request: the Source, its notes oldest-first, and the
 // distinct sections of those notes for the tab's suggestions. `sections` is folded in here
 // rather than given its own endpoint so capture never waits on a second round trip (#72).
@@ -307,4 +318,8 @@ export interface SourceDetailResponse {
 
 export interface LiteratureNoteResponse {
   note: LiteratureNote;
+}
+
+export interface SourceResponse {
+  source: Source;
 }

@@ -1,22 +1,51 @@
 import { useState } from 'react';
-import type { LiteratureNote } from '@nee3/shared-types';
+import type { LiteratureNote, UpdateLiteratureNoteRequest } from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { IndexCard } from '../../../../../atoms/IndexCard/IndexCard.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { cardLocator, formatLocator } from './FiledNote.utils.ts';
+import { DeleteNoteDialog } from './DeleteNoteDialog/DeleteNoteDialog.tsx';
+import { NoteEdit } from './NoteEdit/NoteEdit.tsx';
 
 export interface FiledNoteProps {
   note: LiteratureNote;
+  onCorrect: (input: UpdateLiteratureNoteRequest) => Promise<void>;
+  onDelete: () => Promise<void>;
 }
 
 // A filed note is the same card it was written on, which is the point of writing it there:
 // nothing is translated between writing and reading (#73). The body keeps the line breaks it
 // was typed with - the one piece of structure a plain field carries (ADR 0017) - and the
 // author's words stay a slip revealed on demand rather than prose mixed into the user's own.
-export function FiledNote({ note }: FiledNoteProps) {
+// Correcting it opens the same card in place rather than a form elsewhere (#83).
+export function FiledNote({ note, onCorrect, onDelete }: FiledNoteProps) {
   const [excerptShown, setExcerptShown] = useState(false);
+  const [correcting, setCorrecting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { tab, catalogNumber } = cardLocator(note);
+
+  if (correcting) {
+    return (
+      <>
+        <NoteEdit
+          note={note}
+          onSave={async (input) => {
+            await onCorrect(input);
+            setCorrecting(false);
+          }}
+          onCancel={() => setCorrecting(false)}
+          onDelete={() => setConfirmingDelete(true)}
+        />
+        <DeleteNoteDialog
+          open={confirmingDelete}
+          locator={formatLocator(note)}
+          onClose={() => setConfirmingDelete(false)}
+          onConfirm={onDelete}
+        />
+      </>
+    );
+  }
 
   return (
     <IndexCard
@@ -70,6 +99,17 @@ export function FiledNote({ note }: FiledNoteProps) {
             )}
           </Stack>
         )}
+        {/* Quiet, and at the foot of the card: a filed note is there to be read, and correcting
+            one is the rarer of the two things a reader does with it. */}
+        <Button
+          type="button"
+          size="xs"
+          variant="ghost"
+          alignSelf="flex-start"
+          onClick={() => setCorrecting(true)}
+        >
+          Correct this note
+        </Button>
       </Stack>
     </IndexCard>
   );

@@ -430,4 +430,177 @@ describe('sources routes (integration)', () => {
       expect(res.status).toBe(401);
     });
   });
+  describe('PATCH /api/sources/:sourceId', () => {
+    let sourceId: number;
+
+    beforeEach(async () => {
+      const created = await aliceAgent.post('/api/sources').send(validPayload);
+      sourceId = created.body.source.id;
+    });
+
+    it('corrects every field a Source has, its kind included', async () => {
+      const res = await aliceAgent.patch(`/api/sources/${sourceId}`).send({
+        title: 'How to Take Smart Notes, 2nd edition',
+        kind: 'article',
+        author: 'S. Ahrens',
+        url: 'https://example.com/second-edition',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.source).toEqual(
+        expect.objectContaining({
+          id: sourceId,
+          title: 'How to Take Smart Notes, 2nd edition',
+          kind: 'article',
+          author: 'S. Ahrens',
+          url: 'https://example.com/second-edition',
+        }),
+      );
+    });
+
+    it('clears the author and the link rather than storing empty values', async () => {
+      const res = await aliceAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: validPayload.title, kind: 'book', author: '  ', url: '' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.source).toEqual(expect.objectContaining({ author: null, url: null }));
+    });
+
+    it("leaves the Source's Literature notes where they are", async () => {
+      await aliceAgent
+        .post(`/api/sources/${sourceId}/notes`)
+        .send({ body: 'A point.', position: '42' });
+
+      await aliceAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: 'A corrected title', kind: 'video' });
+
+      const res = await aliceAgent.get(`/api/sources/${sourceId}`);
+      expect(res.body.source).toEqual(
+        expect.objectContaining({ title: 'A corrected title', kind: 'video' }),
+      );
+      expect(res.body.notes).toHaveLength(1);
+    });
+
+    it('is held to the same rules as creating one', async () => {
+      const untitled = await aliceAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: '  ', kind: 'book' });
+      expect(untitled.status).toBe(400);
+      expect(untitled.body.error).toBe('A Source needs a title.');
+
+      const badKind = await aliceAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: 'A talk', kind: 'podcast' });
+      expect(badKind.status).toBe(400);
+      expect(badKind.body.error).toBe(
+        'A Source is a book, an article, a video, or something else.',
+      );
+
+      const badLink = await aliceAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: 'A bad link', kind: 'article', url: 'javascript:alert(1)' });
+      expect(badLink.status).toBe(400);
+      expect(badLink.body.error).toBe('A Source link must start with http:// or https://.');
+    });
+
+    it("returns 404 for another user's Source rather than editing it", async () => {
+      const res = await bobAgent
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: 'Not mine', kind: 'book' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Source not found');
+    });
+
+    it.each(['not-a-number', 'Infinity', '-1', '1.5', '999999'])(
+      'returns 404 for the Source id %s',
+      async (badId) => {
+        const res = await aliceAgent
+          .patch(`/api/sources/${badId}`)
+          .send({ title: 'A title', kind: 'book' });
+
+        expect(res.status).toBe(404);
+      },
+    );
+
+    it('requires authentication', async () => {
+      const res = await request(createApp())
+        .patch(`/api/sources/${sourceId}`)
+        .send({ title: 'A title', kind: 'book' });
+
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('DELETE /api/sources/:sourceId', () => {
+    let sourceId: number;
+
+    beforeEach(async () => {
+      const created = await aliceAgent.post('/api/sources').send(validPayload);
+      sourceId = created.body.source.id;
+    });
+
+    it('deletes the Source and takes it out of the catalog', async () => {
+      const res = await aliceAgent.delete(`/api/sources/${sourceId}`);
+
+      expect(res.status).toBe(204);
+
+      const catalog = await aliceAgent.get('/api/sources');
+      expect(catalog.body.sources).toEqual([]);
+      expect((await aliceAgent.get(`/api/sources/${sourceId}`)).status).toBe(404);
+    });
+
+    // The cascade of #70: a Literature note is written from a Source and has nowhere to be
+    // without it. The orphan guard that will run in front of this arrives with #86.
+    it('takes its Literature notes with it', async () => {
+      const note = await aliceAgent
+        .post(`/api/sources/${sourceId}/notes`)
+        .send({ body: 'A point.', position: '42' });
+
+      await aliceAgent.delete(`/api/sources/${sourceId}`);
+
+      expect(
+        (
+          await aliceAgent.patch(`/api/notes/${note.body.note.id}`).send({
+            body: 'A point.',
+            position: '42',
+          })
+        ).status,
+      ).toBe(404);
+    });
+
+    it("leaves another Source's notes alone", async () => {
+      const kept = await aliceAgent.post('/api/sources').send({ title: 'Kept', kind: 'book' });
+      await aliceAgent
+        .post(`/api/sources/${kept.body.source.id}/notes`)
+        .send({ body: 'A kept point.', position: '7' });
+
+      await aliceAgent.delete(`/api/sources/${sourceId}`);
+
+      const res = await aliceAgent.get(`/api/sources/${kept.body.source.id}`);
+      expect(res.body.notes).toHaveLength(1);
+    });
+
+    it("returns 404 for another user's Source rather than deleting it", async () => {
+      const res = await bobAgent.delete(`/api/sources/${sourceId}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Source not found');
+    });
+
+    it.each(['not-a-number', 'Infinity', '-1', '1.5', '999999'])(
+      'returns 404 for the Source id %s',
+      async (badId) => {
+        const res = await aliceAgent.delete(`/api/sources/${badId}`);
+        expect(res.status).toBe(404);
+      },
+    );
+
+    it('requires authentication', async () => {
+      const res = await request(createApp()).delete(`/api/sources/${sourceId}`);
+      expect(res.status).toBe(401);
+    });
+  });
 });
