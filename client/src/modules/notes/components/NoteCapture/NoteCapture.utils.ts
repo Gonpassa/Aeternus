@@ -67,14 +67,3 @@ export const toCreateRequest = (values: NoteCaptureOutput): CreateLiteratureNote
   excerpt: values.excerpt === '' ? null : values.excerpt,
   openQuestion: values.openQuestion,
 });
-
-// The tab and the catalog number are written straight onto the card, so both strip the Input
-// recipe's box down to bare text. Shared rather than copied: `Input` applies its recipe through
-// `css`, which outranks style props, so every field written on a card needs this same removal.
-export const WRITTEN_ON_CARD = {
-  height: 'auto',
-  padding: '0',
-  background: 'transparent',
-  border: 'none',
-  borderRadius: '0',
-} as const;

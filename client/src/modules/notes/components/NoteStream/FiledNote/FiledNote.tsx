@@ -4,7 +4,7 @@ import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { IndexCard } from '../../../../../atoms/IndexCard/IndexCard.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
-import { formatLocator } from '../../../utils/noteLabel.ts';
+import { formatLocator, literatureNoteHeading } from '../../../utils/noteLabel.ts';
 import { NoteConnections } from '../../NoteConnections/NoteConnections.tsx';
 import { PermanentNoteComposer } from '../../PermanentNoteComposer/PermanentNoteComposer.tsx';
 import { cardLocator } from './FiledNote.utils.ts';
@@ -87,7 +87,7 @@ export function FiledNote({ note, sourceTitle, onWritePermanentNote }: FiledNote
         {composerOpen ? (
           <PermanentNoteComposer
             targetNoteId={note.id}
-            targetLabel={[sourceTitle, formatLocator(note)].filter(Boolean).join(' \u00b7 ')}
+            targetLabel={literatureNoteHeading({ sourceTitle, ...note })}
             onWrite={async (input) => {
               await onWritePermanentNote(input);
               setComposerOpen(false);

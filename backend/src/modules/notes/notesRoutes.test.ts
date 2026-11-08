@@ -4,12 +4,22 @@ import { runMigrations } from '../../db/migrate';
 import { db, pool } from '../../db';
 import { createUser } from '../../db/users';
 import { createApp } from '../../app';
-import { countLinksForNote } from '../../db/links';
 import { LINK_REASON_MAX, PERMANENT_NOTE_BODY_MAX, PERMANENT_NOTE_TITLE_MAX } from './validation';
 
 // Drizzle wraps driver errors and carries the pg error as `cause`, so the constraint that
 // actually refused a statement is one level down (see db/errors.ts). These assertions are
 // about the constraints themselves, so they name them rather than merely expecting a throw.
+// The mandatory-Link count, taken in either direction: a note reachable only from another
+// note's Links is linked (ADR 0014).
+const countLinksForNote = async (noteId: number): Promise<number> => {
+  const [row] = await db
+    .execute<{ total: number }>(
+      sql`select count(*)::int as total from links where origin_note_id = ${noteId} or target_note_id = ${noteId}`,
+    )
+    .then((result) => result.rows);
+  return row?.total ?? 0;
+};
+
 const expectRefusedBy = async (statement: Promise<unknown>, constraint: string): Promise<void> => {
   await expect(statement).rejects.toThrow();
   const error = await statement.catch((err: unknown) => err);
@@ -122,7 +132,7 @@ describe('permanent note routes (integration)', () => {
 
       const res = await aliceAgent.post('/api/notes/permanent').send(validPayload(noteId));
 
-      expect(await countLinksForNote({ noteId: res.body.note.id })).toBe(1);
+      expect(await countLinksForNote(res.body.note.id)).toBe(1);
     });
 
     it('rejects a request with no Link, and writes no note', async () => {
