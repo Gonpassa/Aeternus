@@ -21,6 +21,20 @@ export const createLiteratureNote = async (input: NewLiteratureNoteInput): Promi
   return created;
 };
 
+export const findNoteById = async ({
+  id,
+  userId,
+}: {
+  id: number;
+  userId: number;
+}): Promise<Note | undefined> => {
+  const [row] = await db
+    .select()
+    .from(notes)
+    .where(and(eq(notes.id, id), eq(notes.userId, userId)));
+  return row;
+};
+
 // The reading stream: creation order, oldest first, with no reordering and no sorting by
 // Locator (#68). Secondary sort by id keeps notes filed within the same clock tick stable.
 export const listNotesBySource = async ({

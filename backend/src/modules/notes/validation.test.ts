@@ -1,12 +1,16 @@
 import {
+  LINK_REASON_MAX,
   LITERATURE_NOTE_BODY_MAX,
   LITERATURE_NOTE_EXCERPT_MAX,
   NOTE_POSITION_MAX,
   NOTE_SECTION_MAX,
+  PERMANENT_NOTE_BODY_MAX,
+  PERMANENT_NOTE_TITLE_MAX,
   SOURCE_AUTHOR_MAX,
   SOURCE_TITLE_MAX,
   SOURCE_URL_MAX,
   validateLiteratureNoteInput,
+  validatePermanentNoteInput,
   validateSourceInput,
 } from './validation';
 
@@ -211,5 +215,97 @@ describe('validateLiteratureNoteInput', () => {
       valid: false,
       error: 'An open question is either flagged or not.',
     });
+  });
+});
+
+describe('validatePermanentNoteInput', () => {
+  const valid = {
+    title: 'Writing is how an idea is tested, not how it is stored.',
+    body: 'An idea that cannot be written down has not been had yet.',
+    links: [{ targetNoteId: 7, reason: 'This is the claim that note was circling.' }],
+  };
+
+  it('accepts a titled, bodied note with one explained connection', () => {
+    expect(validatePermanentNoteInput(valid)).toEqual({ valid: true });
+  });
+
+  it('requires a title stating the idea as a claim', () => {
+    expect(validatePermanentNoteInput({ ...valid, title: '   ' })).toEqual({
+      valid: false,
+      error: 'A Permanent note needs a title stating the idea as a claim.',
+    });
+  });
+
+  it('requires the idea written out', () => {
+    expect(validatePermanentNoteInput({ ...valid, body: '' })).toEqual({
+      valid: false,
+      error: 'A Permanent note needs the idea written out.',
+    });
+  });
+
+  it('names the ceilings when the title or the body runs over one', () => {
+    expect(
+      validatePermanentNoteInput({ ...valid, title: 'a'.repeat(PERMANENT_NOTE_TITLE_MAX + 1) }),
+    ).toEqual({
+      valid: false,
+      error: `A title is at most ${PERMANENT_NOTE_TITLE_MAX} characters.`,
+    });
+    expect(
+      validatePermanentNoteInput({ ...valid, body: 'a'.repeat(PERMANENT_NOTE_BODY_MAX + 1) }),
+    ).toEqual({ valid: false, error: 'A note is at most 8,000 characters.' });
+  });
+
+  // The invariant of ADR 0014, stated where the request is held to it: an unlinked Permanent
+  // note is not a state the app can be in, so there is nothing to accept and connect later.
+  it.each([[[]], [undefined], [null], ['one'], [{}]])(
+    'rejects %p in place of at least one connection',
+    (links) => {
+      expect(validatePermanentNoteInput({ ...valid, links })).toEqual({
+        valid: false,
+        error: 'A Permanent note needs at least one connection to a note already in the box.',
+      });
+    },
+  );
+
+  it('rejects a target picked without a reason, exactly as a missing Link is rejected', () => {
+    expect(
+      validatePermanentNoteInput({ ...valid, links: [{ targetNoteId: 7, reason: '  ' }] }),
+    ).toEqual({
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    });
+  });
+
+  it('rejects a reason that will not stay one line', () => {
+    expect(
+      validatePermanentNoteInput({
+        ...valid,
+        links: [{ targetNoteId: 7, reason: 'a'.repeat(LINK_REASON_MAX + 1) }],
+      }),
+    ).toEqual({
+      valid: false,
+      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+    });
+  });
+
+  it.each([[0], [-1], [1.5], ['7'], [undefined]])(
+    'rejects %p as a target note id',
+    (targetNoteId) => {
+      expect(
+        validatePermanentNoteInput({ ...valid, links: [{ targetNoteId, reason: 'Why.' }] }),
+      ).toEqual({ valid: false, error: 'A connection needs a note to connect to.' });
+    },
+  );
+
+  it('rejects the same target twice, since a pair carries one Link', () => {
+    expect(
+      validatePermanentNoteInput({
+        ...valid,
+        links: [
+          { targetNoteId: 7, reason: 'One reason.' },
+          { targetNoteId: 7, reason: 'And another.' },
+        ],
+      }),
+    ).toEqual({ valid: false, error: 'A note can only be connected once.' });
   });
 });

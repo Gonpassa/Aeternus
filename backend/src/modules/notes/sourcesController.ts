@@ -15,7 +15,8 @@ import {
   updateSource as updateSourceRecord,
 } from '../../db/sources';
 import { listNotesBySource, listSectionsBySource } from '../../db/notes';
-import { toLiteratureNote } from './serialize';
+import { listConnectionsByNoteIds } from '../../db/links';
+import { EMPTY_CONNECTIONS, toConnections, toLiteratureNote } from './serialize';
 import { parseSourceId } from './params';
 import { getUserId } from '../../types/request';
 
@@ -56,10 +57,11 @@ export const createSource = async (
   }
 };
 
-// The reading page's payload, in one request: the Source, its notes oldest-first, and the
-// distinct sections of those notes for the capture card's tab suggestions. The sections are
-// folded in here rather than given their own endpoint so capture never waits on a second
-// round trip (#72). Topics fold in with their own ticket.
+// The reading page's payload, in one request: the Source, its notes oldest-first with the
+// connections each is read with, and the distinct sections of those notes for the capture
+// card's tab suggestions. Both are folded in here rather than given their own endpoints so
+// capture never waits on a second round trip and no card fetches its own Links (#72). Topics
+// fold in with their own ticket.
 export const getSource = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const sourceId = parseSourceId(req);
   if (sourceId === null) {
@@ -77,7 +79,20 @@ export const getSource = async (req: Request, res: Response, next: NextFunction)
       listNotesBySource({ sourceId, userId }),
       listSectionsBySource({ sourceId, userId }),
     ]);
-    res.status(200).json({ source, notes: rows.map(toLiteratureNote), sections });
+    // Every card's connections in two queries rather than two per card: the stream asks for
+    // all of them at once, and a note with no Links gets empty groups rather than no key.
+    const connections = await listConnectionsByNoteIds({
+      noteIds: rows.map((row) => row.id),
+      userId,
+    });
+    const notes = rows.map((row) => {
+      const rowConnections = connections.get(row.id);
+      return {
+        ...toLiteratureNote(row),
+        connections: rowConnections ? toConnections(rowConnections) : EMPTY_CONNECTIONS,
+      };
+    });
+    res.status(200).json({ source, notes, sections });
   } catch (err) {
     next(err);
   }

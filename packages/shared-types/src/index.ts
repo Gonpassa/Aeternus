@@ -260,8 +260,7 @@ export interface CreateSourceRequest {
 }
 
 // Both note kinds are one table behind a `kind` discriminator (ADR 0012); the client sees it
-// as a discriminated union, so it gets exhaustiveness where the database has CHECKs. Only the
-// Literature kind is written so far - the Permanent note arrives with its own ticket.
+// as a discriminated union, so it gets exhaustiveness where the database has CHECKs.
 export interface NoteBase {
   id: number;
   userId: number;
@@ -306,13 +305,51 @@ export interface CreateLiteratureNoteRequest {
 // Source, the payload is the whole note, so an emptied excerpt is stored as no excerpt.
 export type UpdateLiteratureNoteRequest = CreateLiteratureNoteRequest;
 
-// The reading page's payload, in one request: the Source, its notes oldest-first, and the
-// distinct sections of those notes for the tab's suggestions. `sections` is folded in here
-// rather than given its own endpoint so capture never waits on a second round trip (#72).
-// Topics fold in with their own ticket.
+// A Link as the client sees it. `reason` is the origin end's, written when the Link was made
+// and required; `targetReason` is the other end's, present only once that end has linked back
+// (ADR 0013, ADR 0015). A null `targetReason` is a fact about the Link - nobody has linked
+// back - rather than missing data.
+export interface Link {
+  id: number;
+  originNoteId: number;
+  targetNoteId: number;
+  reason: string;
+  targetReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// One row of a connections view. The note at the other end travels with the Link, because a
+// row has to name it: a Permanent note by its title, a Literature note - which has none - by
+// its Source's title, its Locator and its opening words, which is why `sourceTitle` rides
+// along with the note itself (CONTEXT.md, Literature note).
+export interface NoteConnection {
+  link: Link;
+  other: Note;
+  sourceTitle: string | null;
+}
+
+// The two direction groups every note's connections are read in. "Connects to" is the Links
+// this note made, "Connected from" the Links made to it; on a Literature note the inbound
+// group is what the user has built from that reading.
+export interface NoteConnections {
+  connectsTo: NoteConnection[];
+  connectedFrom: NoteConnection[];
+}
+
+// A Literature note as the reading page receives it: the note plus the connections view it is
+// read with, folded into the page's one payload rather than fetched per card.
+export interface LiteratureNoteWithConnections extends LiteratureNote {
+  connections: NoteConnections;
+}
+
+// The reading page's payload, in one request: the Source, its notes oldest-first with their
+// connections, and the distinct sections of those notes for the tab's suggestions. `sections`
+// is folded in here rather than given its own endpoint so capture never waits on a second
+// round trip (#72). Topics fold in with their own ticket.
 export interface SourceDetailResponse {
   source: Source;
-  notes: LiteratureNote[];
+  notes: LiteratureNoteWithConnections[];
   sections: string[];
 }
 
@@ -322,4 +359,35 @@ export interface LiteratureNoteResponse {
 
 export interface SourceResponse {
   source: Source;
+}
+
+// A target picked in the composer, with the line saying why the two notes belong together. The
+// reason travels with the target rather than being collected afterwards: it is required at
+// link time, and a target picked without one blocks the save exactly as a missing Link does
+// (ADR 0015).
+export interface LinkDraft {
+  targetNoteId: number;
+  reason: string;
+}
+
+// A Permanent note and its first Links in one request, because they are created in one
+// transaction: a Permanent note cannot exist without a Link at any moment, so there is no
+// endpoint that creates a bare one and no save-and-link-later (ADR 0014). An empty `links` is
+// rejected rather than accepted as a note to be connected later.
+export interface CreatePermanentNoteRequest {
+  title: string;
+  body: string;
+  links: LinkDraft[];
+}
+
+// One note read with its connections, for either kind. The note travels with the groups
+// because a connections view is read about a note, and the caller may not be holding it.
+export interface NoteConnectionsResponse {
+  note: Note;
+  connections: NoteConnections;
+}
+
+export interface PermanentNoteResponse {
+  note: PermanentNote;
+  links: Link[];
 }

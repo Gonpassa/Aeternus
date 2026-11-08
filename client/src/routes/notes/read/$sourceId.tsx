@@ -8,6 +8,7 @@ import {
   useUpdateLiteratureNote,
   useUpdateSource,
 } from '../../../modules/notes/api/sourceHooks.ts';
+import { useCreatePermanentNote } from '../../../modules/notes/api/noteHooks.ts';
 import { SourceReading } from '../../../modules/notes/components/SourceReading/SourceReading.tsx';
 import { LoadingGate } from '../../../atoms/LoadingGate/LoadingGate.tsx';
 import { PageContainer } from '../../../atoms/PageContainer/PageContainer.tsx';
@@ -25,6 +26,7 @@ function SourceReadingPage() {
   const deleteNote = useDeleteLiteratureNote(id);
   const updateSource = useUpdateSource(id);
   const deleteSource = useDeleteSource();
+  const createPermanentNote = useCreatePermanentNote(id);
 
   return (
     <PageContainer maxW="4xl" centered>
@@ -52,6 +54,9 @@ function SourceReadingPage() {
           onDeleteSource={async () => {
             await deleteSource.mutateAsync(id);
             await navigate({ to: '/notes/read' });
+          }}
+          onWritePermanentNote={async (input) => {
+            await createPermanentNote.mutateAsync(input);
           }}
         />
       )}

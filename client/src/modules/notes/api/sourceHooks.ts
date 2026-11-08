@@ -87,7 +87,12 @@ export const useCreateLiteratureNote = (sourceId: number) => {
         previous
           ? {
               ...previous,
-              notes: [...previous.notes, note],
+              // A note just filed has no Links yet, so it joins the stream with two empty
+              // groups rather than waiting for a refetch to tell it so.
+              notes: [
+                ...previous.notes,
+                { ...note, connections: { connectsTo: [], connectedFrom: [] } },
+              ],
               sections:
                 note.section === null
                   ? previous.sections
@@ -154,7 +159,11 @@ export const useUpdateLiteratureNote = (sourceId: number) => {
     onSuccess: (note) => {
       queryClient.setQueryData<SourceDetailResponse>(sourceKeys.detail(sourceId), (previous) => {
         if (!previous) return previous;
-        const notes = previous.notes.map((filed) => (filed.id === note.id ? note : filed));
+        // The correction carries the note's own fields; its connections are not part of what
+        // was corrected, so the card keeps the ones it was already read with.
+        const notes = previous.notes.map((filed) =>
+          filed.id === note.id ? { ...note, connections: filed.connections } : filed,
+        );
         return { ...previous, notes, sections: sectionSuggestions(notes) };
       });
     },
