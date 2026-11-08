@@ -1,4 +1,4 @@
-import styles from './MoodPicker.module.css';
+import styles from '../MoodPicker.module.css';
 
 export interface EmotionPillButtonProps {
   label: string;

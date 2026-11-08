@@ -35,8 +35,6 @@ Line count (~200 lines) is a smell that tells you to look, not the rule itself. 
 - **Hooks and context files are not components** and stay flat siblings of the component that owns them (`DreamAnalysis/useManuscriptSelection.ts`, `DreamAnalysis/AnchorAttachmentsContext.tsx`). A folder exists because a component accretes a test, styles, and utils; a single hook file does not.
 - Promote to a shared location only when the logic is genuinely reused or reusable beyond that one component (see Promotion below).
 
-The nesting rule replaced an earlier one that kept extracted sub-pieces as flat siblings, so two components still sit in the old shape: `MoodPicker/MoodSwatchButton.tsx` and `MoodPicker/EmotionPillButton.tsx`. Like the Routes rule below, this is forward-looking - nest those when you next have reason to touch `MoodPicker`, not as a standalone migration.
-
 ## Props or context
 
 When a parent drills the same values through several layers to reach a leaf, the fix is context, but only for the right half of what it's drilling. The rule:

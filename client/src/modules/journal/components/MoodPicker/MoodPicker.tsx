@@ -6,8 +6,8 @@ import { MOOD_LABEL, MOOD_RING_COLOR } from '../../moodColors.ts';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { Input } from '../../../../atoms/Input/Input.tsx';
-import { MoodSwatchButton } from './MoodSwatchButton.tsx';
-import { EmotionPillButton } from './EmotionPillButton.tsx';
+import { MoodSwatchButton } from './MoodSwatchButton/MoodSwatchButton.tsx';
+import { EmotionPillButton } from './EmotionPillButton/EmotionPillButton.tsx';
 import type { EntryFormValues } from '../EntryForm/EntryForm.utils.ts';
 import { useExternalChange } from '../../hooks/useExternalChange.ts';
 
