@@ -49,17 +49,31 @@ export interface NoteLabel {
   detail: string | null;
 }
 
+// The line that names a Literature note wherever it is reached from somewhere else - a
+// connections row, or the composer's target line - since it has no title of its own.
 // What a connections row calls the note at the other end. A Permanent note is named by its
 // title, since that is the claim it states. A Literature note has no title, so it is named by
 // its Source's title, its Locator and its opening words, which is the identification
 // CONTEXT.md gives it.
+export const literatureNoteHeading = ({
+  sourceTitle,
+  section,
+  position,
+}: {
+  sourceTitle: string | null;
+  section: string | null;
+  position: string | null;
+}): string =>
+  [sourceTitle, formatLocator({ section, position })]
+    .filter((part): part is string => part !== null && part !== '')
+    .join(' · ');
+
 export const noteLabel = ({ other, sourceTitle }: NoteConnection): NoteLabel => {
   if (other.kind === 'permanent') {
     return { heading: other.title, detail: null };
   }
-  const locator = formatLocator(other);
   return {
-    heading: [sourceTitle, locator].filter((part) => part !== null && part !== '').join(' · '),
+    heading: literatureNoteHeading({ sourceTitle, ...other }),
     detail: openingWords(other.body),
   };
 };

@@ -11,12 +11,12 @@ import { Textarea } from '../../../../atoms/Textarea/Textarea.tsx';
 import { ToggleButton } from '../../../../atoms/ToggleButton/ToggleButton.tsx';
 import {
   BLANK_CARD,
-  WRITTEN_ON_CARD,
   literatureNoteSchema,
   toNotePayload,
   type NoteCardOutput,
   type NoteCardValues,
 } from '../../utils/literatureNoteForm.ts';
+import { WRITTEN_ON_CARD } from '../../utils/cardInput.ts';
 
 export interface NoteCaptureProps {
   // The sections this Source's notes already use, most recently used first. They arrive in the

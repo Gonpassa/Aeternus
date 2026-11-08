@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from './index';
 import { links, notes, sources, Link, Note } from './schema';
 
@@ -137,16 +137,4 @@ export const listConnectionsByNoteIds = async ({
     grouped.get(ownNoteId)?.connectedFrom.push({ link, other, sourceTitle });
   });
   return grouped;
-};
-
-// The mandatory-Link count, taken in either direction: a note reachable only from another
-// note's Links is linked (ADR 0014). Nothing in this ticket can reach zero - a Permanent note
-// is born with its Links and nothing removes one yet - so this is the floor the removal and
-// delete guards will stand on, and the assertion the create path is tested against.
-export const countLinksForNote = async ({ noteId }: { noteId: number }): Promise<number> => {
-  const [row] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(links)
-    .where(sql`${links.originNoteId} = ${noteId} OR ${links.targetNoteId} = ${noteId}`);
-  return row?.total ?? 0;
 };

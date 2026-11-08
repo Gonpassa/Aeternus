@@ -10,13 +10,13 @@ import { Text } from '../../../../../../atoms/Text/Text.tsx';
 import { Textarea } from '../../../../../../atoms/Textarea/Textarea.tsx';
 import { ToggleButton } from '../../../../../../atoms/ToggleButton/ToggleButton.tsx';
 import {
-  WRITTEN_ON_CARD,
   literatureNoteSchema,
   toNoteCardValues,
   toNotePayload,
   type NoteCardOutput,
   type NoteCardValues,
 } from '../../../../utils/literatureNoteForm.ts';
+import { WRITTEN_ON_CARD } from '../../../../utils/cardInput.ts';
 
 export interface NoteEditProps {
   note: LiteratureNote;

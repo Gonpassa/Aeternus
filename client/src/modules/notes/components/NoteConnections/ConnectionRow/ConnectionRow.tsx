@@ -31,6 +31,9 @@ export function ConnectionRow({ connection, fromNoteId, nested = false }: Connec
   // always present; the other end's is there only once that end has linked back.
   const ownReason = link.originNoteId === fromNoteId ? link.reason : link.targetReason;
   const otherReason = link.originNoteId === fromNoteId ? link.targetReason : link.reason;
+  // With one reason on the row there is nothing to confuse it with, so it stands unlabelled.
+  // Two reasons need saying which end wrote which, since colour alone does not say it.
+  const bothEnds = ownReason !== null && otherReason !== null;
 
   return (
     <Stack
@@ -54,14 +57,28 @@ export function ConnectionRow({ connection, fromNoteId, nested = false }: Connec
         </Text>
       )}
       {otherReason !== null && (
-        <Text textStyle="body" color="ink">
-          {otherReason}
-        </Text>
+        <>
+          {bothEnds && (
+            <Text variant="eyebrow" color="inkSoft">
+              Its reason
+            </Text>
+          )}
+          <Text textStyle="body" color="ink">
+            {otherReason}
+          </Text>
+        </>
       )}
       {ownReason !== null && (
-        <Text textStyle="body" color="inkSoft">
-          {ownReason}
-        </Text>
+        <>
+          {bothEnds && (
+            <Text variant="eyebrow" color="inkSoft">
+              This note&apos;s reason
+            </Text>
+          )}
+          <Text textStyle="body" color="inkSoft">
+            {ownReason}
+          </Text>
+        </>
       )}
       {!nested && (
         <Stack direction="column" gap="2" align="flex-start">

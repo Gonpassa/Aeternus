@@ -15,6 +15,7 @@ import {
   type PermanentNoteOutput,
   type PermanentNoteValues,
 } from './PermanentNoteComposer.utils.ts';
+import { WRITTEN_ON_CARD_RULED } from '../../utils/cardInput.ts';
 
 export interface PermanentNoteComposerProps {
   // The note the composer was opened from: the Link's target, pre-selected and not a field.
@@ -163,17 +164,7 @@ export function PermanentNoteComposer({
                 aria-label="Why these belong together"
                 aria-describedby={error ? ERROR_ID : undefined}
                 placeholder="Why these belong together, in one line"
-                css={{
-                  height: 'auto',
-                  padding: '0',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '0',
-                  '&:focus-visible': {
-                    outline: 'none',
-                    boxShadow: 'inset 0 -1px 0 {colors.moss}',
-                  },
-                }}
+                css={WRITTEN_ON_CARD_RULED}
               />
             )}
           />
