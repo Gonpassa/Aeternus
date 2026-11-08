@@ -9,7 +9,9 @@ import { SOURCE_TITLE_MAX, SOURCE_AUTHOR_MAX } from './SourceForm.utils.ts';
 // does not exist, which the open transition calls.
 beforeAll(() => {
   Element.prototype.getClientRects = function getClientRects() {
-    return [{ width: 1, height: 1, top: 0, left: 0, bottom: 1, right: 1 }] as unknown as DOMRectList;
+    return [
+      { width: 1, height: 1, top: 0, left: 0, bottom: 1, right: 1 },
+    ] as unknown as DOMRectList;
   };
   Element.prototype.scrollTo = function scrollTo() {};
 });

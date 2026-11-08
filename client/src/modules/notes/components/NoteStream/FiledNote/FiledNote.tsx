@@ -4,7 +4,7 @@ import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { IndexCard } from '../../../../../atoms/IndexCard/IndexCard.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
-import { cardLocator } from './FiledNote.utils.ts';
+import { cardLocator, formatLocator } from './FiledNote.utils.ts';
 
 export interface FiledNoteProps {
   note: LiteratureNote;
@@ -20,6 +20,11 @@ export function FiledNote({ note }: FiledNoteProps) {
 
   return (
     <IndexCard
+      // The card splits its Locator across the tab and the corner, and the corner is decoration
+      // to a screen reader. Naming the article with the whole Locator keeps the promise that it
+      // reads as one string wherever a note appears (CONTEXT.md, Locator).
+      as="article"
+      aria-label={formatLocator(note)}
       label={tab}
       catalogNumber={catalogNumber}
       // The accent carries the card's one distinction: rust for a note left as an open

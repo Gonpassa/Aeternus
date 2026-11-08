@@ -13,7 +13,9 @@ vi.mock('@tanstack/react-router', () => ({
     params?: Record<string, string>;
     children: ReactNode;
   }) => (
-    <a href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}>
+    <a
+      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
+    >
       {children}
     </a>
   ),
@@ -46,7 +48,9 @@ describe('SourceCatalog', () => {
   });
 
   it('renders one card per Source', () => {
-    render(<SourceCatalog sources={[entry(1, 'Tristes Tropiques'), entry(2, 'The Nature of Order')]} />);
+    render(
+      <SourceCatalog sources={[entry(1, 'Tristes Tropiques'), entry(2, 'The Nature of Order')]} />,
+    );
 
     expect(screen.getByRole('heading', { name: 'Tristes Tropiques' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'The Nature of Order' })).toBeInTheDocument();

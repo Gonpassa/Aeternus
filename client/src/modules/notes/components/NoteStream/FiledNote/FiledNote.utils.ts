@@ -24,7 +24,8 @@ export const cardLocator = (note: {
   section: string | null;
   position: string | null;
 }): { tab: string; catalogNumber: string } => {
-  const position = note.position === null || note.position === '' ? '' : formatPosition(note.position);
+  const position =
+    note.position === null || note.position === '' ? '' : formatPosition(note.position);
   if (note.section === null || note.section === '') {
     return { tab: position, catalogNumber: '' };
   }

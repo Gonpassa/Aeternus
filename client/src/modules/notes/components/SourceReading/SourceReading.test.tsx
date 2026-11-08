@@ -88,7 +88,7 @@ describe('SourceReading', () => {
   it("hands the capture card this Source's earlier sections", () => {
     renderPage({ sections: ['Ch. 2', 'Ch. 1'] });
 
-    expect(screen.getByRole('button', { name: 'Ch. 2' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Section')).toHaveValue('Ch. 2');
     expect(screen.getByRole('button', { name: 'Ch. 1' })).toBeInTheDocument();
   });
 

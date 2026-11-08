@@ -127,7 +127,13 @@ describe('NoteCapture', () => {
     const user = userEvent.setup();
     renderCard({ sections: ['Ch. 2', 'Ch. 1'] });
 
-    await user.click(screen.getByRole('button', { name: 'Ch. 2' }));
+    await user.click(screen.getByRole('button', { name: 'Ch. 1' }));
+
+    expect(screen.getByLabelText('Section')).toHaveValue('Ch. 1');
+  });
+
+  it('opens on the section the most recent note was filed under', () => {
+    renderCard({ sections: ['Ch. 2', 'Ch. 1'] });
 
     expect(screen.getByLabelText('Section')).toHaveValue('Ch. 2');
   });
@@ -136,10 +142,12 @@ describe('NoteCapture', () => {
     const user = userEvent.setup();
     renderCard({ sections: ['Ch. 2', 'Ch. 1'] });
 
-    await user.click(screen.getByRole('button', { name: 'Ch. 2' }));
-
     expect(screen.queryByRole('button', { name: 'Ch. 2' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ch. 1' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ch. 1' }));
+
+    expect(screen.queryByRole('button', { name: 'Ch. 1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ch. 2' })).toBeInTheDocument();
   });
 
   it('offers no sections for a Source nothing has been written from', () => {

@@ -63,8 +63,9 @@ export const sanitizeLiteratureNoteInput = (input: {
 }): SanitizedLiteratureNoteInput => ({
   body: input.body.trim(),
   section: optional(input.section),
-  // Collapsed but never reformatted: "p. N" is a rendering rule over a digits-only position,
-  // and the stored value stays exactly what the user typed (CONTEXT.md, Locator).
+  // Whitespace is normalized the way every other one-line field here is, but the notation
+  // itself is never rewritten: "p. N" is a rendering rule over a digits-only position, and
+  // what is stored stays the user's own notation (CONTEXT.md, Locator).
   position: optional(input.position),
   excerpt: multiline(input.excerpt),
   openQuestion: input.openQuestion === true,

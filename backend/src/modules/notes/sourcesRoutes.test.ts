@@ -109,13 +109,11 @@ describe('sources routes (integration)', () => {
     });
 
     it('returns 400 naming the ceiling when the url runs over it', async () => {
-      const res = await aliceAgent
-        .post('/api/sources')
-        .send({
-          title: 'A long link',
-          kind: 'article',
-          url: `https://e.com/${'a'.repeat(SOURCE_URL_MAX)}`,
-        });
+      const res = await aliceAgent.post('/api/sources').send({
+        title: 'A long link',
+        kind: 'article',
+        url: `https://e.com/${'a'.repeat(SOURCE_URL_MAX)}`,
+      });
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe('A Source link is at most 2,000 characters.');

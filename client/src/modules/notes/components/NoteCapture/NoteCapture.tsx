@@ -11,6 +11,7 @@ import { Textarea } from '../../../../atoms/Textarea/Textarea.tsx';
 import { ToggleButton } from '../../../../atoms/ToggleButton/ToggleButton.tsx';
 import {
   BLANK_CARD,
+  WRITTEN_ON_CARD,
   literatureNoteSchema,
   toCreateRequest,
   type NoteCaptureOutput,
@@ -30,6 +31,11 @@ export interface NoteCaptureProps {
 // slip tucked underneath, revealed on demand rather than shown as an empty field. Filing it
 // moves the card into the stack and hands back a blank with the tab still set and the position
 // cleared and focused, so the next note costs nothing the user does not have to spend.
+// The card carries one error line rather than a message per field, so every field it can be
+// about points at it: without a visible label beside them, that line is the only thing naming
+// what a refused note needs.
+const ERROR_ID = 'note-capture-error';
+
 export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
   const {
     control,
@@ -38,7 +44,9 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<NoteCaptureValues, unknown, NoteCaptureOutput>({
-    defaultValues: BLANK_CARD,
+    // The tab opens on the section the last note was filed under: a reader resuming a Source
+    // is almost always still in that chapter (#68), and the chips below change it in one tap.
+    defaultValues: { ...BLANK_CARD, section: sections[0] ?? '' },
     resolver: zodResolver(literatureNoteSchema),
     mode: 'onBlur',
     reValidateMode: 'onChange',
@@ -81,7 +89,9 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
       // IndexCard's props are typed against its div-rendering default; `as="form"` changes the
       // rendered element at runtime but not the typed handler signature, hence the cast.
       onSubmit={handleSubmit(onValid) as unknown as FormEventHandler<HTMLDivElement>}
-      accent="rust"
+      // Ink-blue, not rust: on a filed card rust means a note left as an open question, and a
+      // blank card is not a flagged one.
+      accent="inkBlue"
       pt="6"
       pb="12"
       label={
@@ -96,17 +106,14 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
               onChange={field.onChange}
               onBlur={field.onBlur}
               aria-label="Section"
+              aria-describedby={error ? ERROR_ID : undefined}
               placeholder="Section"
               // Through `css` rather than style props: Input applies its recipe through `css`,
               // which outranks props, so the field would otherwise keep the recipe's box - and
               // a boxed input in the tab is the one thing a die-cut tab is not.
               css={{
-                height: 'auto',
+                ...WRITTEN_ON_CARD,
                 width: '9rem',
-                padding: '0',
-                background: 'transparent',
-                border: 'none',
-                borderRadius: '0',
                 color: 'paper',
                 textStyle: 'label',
                 '&::placeholder': { color: 'paper', opacity: 0.6 },
@@ -130,6 +137,7 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
               onChange={field.onChange}
               onBlur={field.onBlur}
               aria-label="Position"
+              aria-describedby={error ? ERROR_ID : undefined}
               placeholder="p."
               // eslint-disable-next-line jsx-a11y/no-autofocus -- the position is where writing
               // a note starts, and the card exists on the page in order to be written on.
@@ -137,12 +145,8 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
               // As above: the catalog number is written in the corner of the card, not into a
               // box drawn over it, so the recipe's own border and background are replaced here.
               css={{
-                height: 'auto',
+                ...WRITTEN_ON_CARD,
                 width: '6rem',
-                padding: '0',
-                background: 'transparent',
-                border: 'none',
-                borderRadius: '0',
                 textAlign: 'right',
                 fontFamily: 'mono',
                 fontSize: '0.75rem',
@@ -185,6 +189,7 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
               onChange={field.onChange}
               onBlur={field.onBlur}
               aria-label="Note"
+              aria-describedby={error ? ERROR_ID : undefined}
               // The field's guidance copy does the work a toolbar's absence might otherwise
               // raise questions about - there is no rich-text editor here (ADR 0017).
               placeholder="A few sentences on one point, in your own words"
@@ -211,6 +216,7 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 aria-label="The author's words"
+                aria-describedby={error ? ERROR_ID : undefined}
                 placeholder="Their words, exactly as written"
                 rows={3}
                 bg="paper"
@@ -234,7 +240,7 @@ export function NoteCapture({ sections, onFile }: NoteCaptureProps) {
         )}
 
         {error && (
-          <Text variant="formError" role="alert">
+          <Text id={ERROR_ID} variant="formError" role="alert">
             {error}
           </Text>
         )}

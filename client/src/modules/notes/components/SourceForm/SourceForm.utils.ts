@@ -24,7 +24,9 @@ export const sourceSchema = z.object({
   // the guard both rejects that empty state and narrows the submitted value to a SourceKind.
   kind: z
     .string()
-    .refine(isSourceKind, { message: 'A Source is a book, an article, a video, or something else.' }),
+    .refine(isSourceKind, {
+      message: 'A Source is a book, an article, a video, or something else.',
+    }),
   author: z
     .string()
     .trim()
