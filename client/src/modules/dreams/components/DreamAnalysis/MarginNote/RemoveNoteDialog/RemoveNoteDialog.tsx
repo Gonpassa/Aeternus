@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { AnchorWithAttachments } from '@nee3/shared-types';
 import { Dialog } from '../../../../../../atoms/Dialog/Dialog.tsx';
 import { Text } from '../../../../../../atoms/Text/Text.tsx';
-import { countLabel } from '../../../../utils/countLabel.ts';
+import { countLabel } from '../../../../../../utils/countLabel.ts';
 
 export interface RemoveNoteDialogProps {
   open: boolean;

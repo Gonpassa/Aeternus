@@ -178,6 +178,47 @@ describe('Select', () => {
     expect(screen.getByRole('combobox', { name: 'Mood' })).toBeInTheDocument();
   });
 
+  // Whether the label is clipped or on the page, the string lives in exactly one node: the
+  // one Ark names the trigger from. A caller adding a visible label of its own is what would
+  // put a second copy in the DOM, which is why `showLabel` exists instead.
+  it.each([false, true])('carries its label in one node, with showLabel %s', (showLabel) => {
+    render(
+      <Select
+        aria-label="Mood"
+        showLabel={showLabel}
+        items={MOODS}
+        value="content"
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText('Mood')).toHaveLength(1);
+    expect(screen.getByRole('combobox', { name: 'Mood' })).toBeInTheDocument();
+  });
+
+  it('marks the trigger invalid and points it at an external message', () => {
+    render(
+      <Select
+        aria-label="Mood"
+        items={MOODS}
+        value=""
+        onChange={vi.fn()}
+        invalid
+        aria-describedby="mood-error"
+      />,
+    );
+
+    expect(getTrigger()).toHaveAttribute('aria-invalid', 'true');
+    expect(getTrigger()).toHaveAttribute('aria-describedby', 'mood-error');
+  });
+
+  it('states the trigger as valid when it is, and describes it with nothing', () => {
+    render(<Select aria-label="Mood" items={MOODS} value="content" onChange={vi.fn()} />);
+
+    expect(getTrigger()).toHaveAttribute('aria-invalid', 'false');
+    expect(getTrigger()).not.toHaveAttribute('aria-describedby');
+  });
+
   it('reserves the width of its widest option without exposing it to assistive tech', () => {
     render(<Select aria-label="Mood" items={MOODS} value="content" onChange={vi.fn()} />);
 

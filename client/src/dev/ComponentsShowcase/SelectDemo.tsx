@@ -15,6 +15,11 @@ const PASSES = [
   { value: 'synthetic', label: 'Synthetic', hint: 'forward, as a whole' },
 ];
 
+const KINDS = [
+  { value: 'book', label: 'Book' },
+  { value: 'article', label: 'Article' },
+];
+
 const MONTHS = [
   { value: '3', label: 'April' },
   { value: '8', label: 'September' },
@@ -26,6 +31,7 @@ export function SelectDemo() {
   const [pass, setPass] = useState('analytic');
   const [month, setMonth] = useState('3');
   const [unset, setUnset] = useState('');
+  const [kind, setKind] = useState('');
 
   return (
     <Section title="Select" description="single-value select built on Ark UI">
@@ -74,6 +80,35 @@ export function SelectDemo() {
             value={unset}
             placeholder="Choose a mood"
             onChange={setUnset}
+          />
+        </Stack>
+
+        <Stack direction="column" align="start" gap="1">
+          <Text variant="eyebrow" color="inkSoft">
+            showLabel, for a select that has to carry its own name
+          </Text>
+          <Select
+            aria-label="Kind"
+            showLabel
+            items={KINDS}
+            value={kind}
+            placeholder="Choose a kind"
+            onChange={setKind}
+          />
+        </Stack>
+
+        <Stack direction="column" align="start" gap="1">
+          <Text variant="eyebrow" color="inkSoft">
+            invalid, bordered in the error accent
+          </Text>
+          <Select
+            aria-label="Kind, invalid"
+            showLabel
+            invalid
+            items={KINDS}
+            value=""
+            placeholder="Choose a kind"
+            onChange={() => {}}
           />
         </Stack>
       </Stack>

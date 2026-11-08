@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/react';
 import type { AnchorWithAttachments, CreateDreamRequest, Dream } from '@nee3/shared-types';
 import { useDeleteAnchor, useUpdateDream } from '../../api/dreamHooks.ts';
 import { AnchorMark, anchorIdsInDocument } from '../../tiptap/AnchorMark.ts';
-import { countLabel } from '../../utils/countLabel.ts';
+import { countLabel } from '../../../../utils/countLabel.ts';
 import { computeMissingAnchorIds } from './DreamEdit.utils.ts';
 import { DreamForm } from '../DreamForm/DreamForm.tsx';
 import { Dialog } from '../../../../atoms/Dialog/Dialog.tsx';

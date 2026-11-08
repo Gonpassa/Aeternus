@@ -26,4 +26,6 @@ export const endpoints = {
   symbols: '/symbols',
   symbolAttachment: (id: number) => `/symbol-attachments/${id}`,
   association: (id: number) => `/associations/${id}`,
+  sources: '/sources',
+  source: (id: number) => `/sources/${id}`,
 } as const;

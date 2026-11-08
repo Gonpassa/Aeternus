@@ -37,6 +37,12 @@ export interface SelectProps<TOption extends SelectOption> {
   minW?: ConditionalValue<string | number>;
   /** Named for assistive technology; a select is rarely self-describing. */
   'aria-label': string;
+  /** Render that name as a visible label above the trigger instead of hiding it. */
+  showLabel?: boolean;
+  /** States the trigger's validity to assistive tech and borders it in the error accent. */
+  invalid?: boolean;
+  /** Points the trigger at a message rendered outside it, as a form field's error is. */
+  'aria-describedby'?: string;
 }
 
 export function Select<TOption extends SelectOption>({
@@ -48,6 +54,9 @@ export function Select<TOption extends SelectOption>({
   fitWidest = true,
   minW,
   'aria-label': ariaLabel,
+  showLabel = false,
+  invalid = false,
+  'aria-describedby': ariaDescribedBy,
 }: SelectProps<TOption>) {
   // Zag compares collections by content rather than by identity, so building one
   // per render is a no-op for the select machine and needs no memo.
@@ -66,20 +75,28 @@ export function Select<TOption extends SelectOption>({
       value={value ? [value] : []}
       onValueChange={(details) => onChange(details.value[0] ?? '')}
       positioning={{ sameWidth: false }}
+      display={showLabel ? 'flex' : undefined}
+      flexDirection={showLabel ? 'column' : undefined}
+      gap={showLabel ? '1' : undefined}
     >
       {/* Ark points the trigger's `aria-labelledby` at this label, so it carries the
-          accessible name; it is never visible, since callers that want a visible label
-          wrap the select in a `FieldLabel` of their own. */}
-      <ChakraSelect.Label asChild>
-        <VisuallyHidden>{ariaLabel}</VisuallyHidden>
+          accessible name either way. Hidden by default - a select in a filter bar is
+          named by its surroundings - and shown for a form field, where the name has to
+          be on the page. Showing it here rather than letting a caller add its own label
+          keeps the string in one node: a second, visible copy would sit in the DOM
+          beside this one, saying the same thing twice. */}
+      <ChakraSelect.Label asChild={!showLabel} color={showLabel ? 'ink' : undefined}>
+        {showLabel ? ariaLabel : <VisuallyHidden>{ariaLabel}</VisuallyHidden>}
       </ChakraSelect.Label>
       <ChakraSelect.Control minW={minW ?? 'fit-content'}>
         <ChakraSelect.Trigger
+          aria-invalid={invalid}
+          aria-describedby={ariaDescribedBy}
           display="flex"
           alignItems="center"
           gap="2"
           borderWidth="1px"
-          borderColor="line"
+          borderColor={invalid ? 'rust' : 'line'}
           bg="transparent"
           px="3"
           py="2"

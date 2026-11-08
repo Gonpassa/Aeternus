@@ -12,6 +12,7 @@ import emotionalBeatsRouter from './modules/dreams/emotionalBeatsRoutes';
 import symbolsRouter from './modules/dreams/symbolsRoutes';
 import symbolAttachmentsRouter from './modules/dreams/symbolAttachmentsRoutes';
 import associationsRouter from './modules/dreams/associationsRoutes';
+import sourcesRouter from './modules/notes/sourcesRoutes';
 import config from './config/default';
 
 const defaultClientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -41,6 +42,7 @@ export const createApp = (options: { clientDistPath?: string } = {}): Express =>
   app.use('/api/symbols', symbolsRouter);
   app.use('/api/symbol-attachments', symbolAttachmentsRouter);
   app.use('/api/associations', associationsRouter);
+  app.use('/api/sources', sourcesRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

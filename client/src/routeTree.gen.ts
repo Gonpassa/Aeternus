@@ -21,6 +21,9 @@ import { Route as JournalEntryIdRouteImport } from './routes/journal/$entryId'
 import { Route as JournalNewRouteImport } from './routes/journal/new'
 import { Route as DreamsDreamIdEditRouteImport } from './routes/dreams/$dreamId_.edit'
 import { Route as JournalEntryIdEditRouteImport } from './routes/journal/$entryId_.edit'
+import { Route as NotesReadIndexRouteImport } from './routes/notes/read/index'
+import { Route as NotesReadSourceIdRouteImport } from './routes/notes/read/$sourceId'
+import { Route as NotesReadNewRouteImport } from './routes/notes/read/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +85,21 @@ const JournalEntryIdEditRoute = JournalEntryIdEditRouteImport.update({
   path: '/journal/$entryId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotesReadIndexRoute = NotesReadIndexRouteImport.update({
+  id: '/notes/read/',
+  path: '/notes/read/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesReadSourceIdRoute = NotesReadSourceIdRouteImport.update({
+  id: '/notes/read/$sourceId',
+  path: '/notes/read/$sourceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesReadNewRoute = NotesReadNewRouteImport.update({
+  id: '/notes/read/new',
+  path: '/notes/read/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +114,9 @@ export interface FileRoutesByFullPath {
   '/journal/': typeof JournalIndexRoute
   '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
+  '/notes/read/$sourceId': typeof NotesReadSourceIdRoute
+  '/notes/read/new': typeof NotesReadNewRoute
+  '/notes/read/': typeof NotesReadIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +131,9 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalIndexRoute
   '/dreams/$dreamId/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId/edit': typeof JournalEntryIdEditRoute
+  '/notes/read/$sourceId': typeof NotesReadSourceIdRoute
+  '/notes/read/new': typeof NotesReadNewRoute
+  '/notes/read': typeof NotesReadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +149,9 @@ export interface FileRoutesById {
   '/journal/': typeof JournalIndexRoute
   '/dreams/$dreamId_/edit': typeof DreamsDreamIdEditRoute
   '/journal/$entryId_/edit': typeof JournalEntryIdEditRoute
+  '/notes/read/$sourceId': typeof NotesReadSourceIdRoute
+  '/notes/read/new': typeof NotesReadNewRoute
+  '/notes/read/': typeof NotesReadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +168,9 @@ export interface FileRouteTypes {
     | '/journal/'
     | '/dreams/$dreamId/edit'
     | '/journal/$entryId/edit'
+    | '/notes/read/$sourceId'
+    | '/notes/read/new'
+    | '/notes/read/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +185,9 @@ export interface FileRouteTypes {
     | '/journal'
     | '/dreams/$dreamId/edit'
     | '/journal/$entryId/edit'
+    | '/notes/read/$sourceId'
+    | '/notes/read/new'
+    | '/notes/read'
   id:
     | '__root__'
     | '/'
@@ -169,6 +202,9 @@ export interface FileRouteTypes {
     | '/journal/'
     | '/dreams/$dreamId_/edit'
     | '/journal/$entryId_/edit'
+    | '/notes/read/$sourceId'
+    | '/notes/read/new'
+    | '/notes/read/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +220,9 @@ export interface RootRouteChildren {
   JournalIndexRoute: typeof JournalIndexRoute
   DreamsDreamIdEditRoute: typeof DreamsDreamIdEditRoute
   JournalEntryIdEditRoute: typeof JournalEntryIdEditRoute
+  NotesReadSourceIdRoute: typeof NotesReadSourceIdRoute
+  NotesReadNewRoute: typeof NotesReadNewRoute
+  NotesReadIndexRoute: typeof NotesReadIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +311,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JournalEntryIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notes/read/': {
+      id: '/notes/read/'
+      path: '/notes/read'
+      fullPath: '/notes/read/'
+      preLoaderRoute: typeof NotesReadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/read/$sourceId': {
+      id: '/notes/read/$sourceId'
+      path: '/notes/read/$sourceId'
+      fullPath: '/notes/read/$sourceId'
+      preLoaderRoute: typeof NotesReadSourceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/read/new': {
+      id: '/notes/read/new'
+      path: '/notes/read/new'
+      fullPath: '/notes/read/new'
+      preLoaderRoute: typeof NotesReadNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,6 +348,9 @@ const rootRouteChildren: RootRouteChildren = {
   JournalIndexRoute: JournalIndexRoute,
   DreamsDreamIdEditRoute: DreamsDreamIdEditRoute,
   JournalEntryIdEditRoute: JournalEntryIdEditRoute,
+  NotesReadSourceIdRoute: NotesReadSourceIdRoute,
+  NotesReadNewRoute: NotesReadNewRoute,
+  NotesReadIndexRoute: NotesReadIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
