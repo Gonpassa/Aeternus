@@ -550,3 +550,67 @@ export interface UpdateLinkReasonRequest {
 export interface LinkResponse {
   link: Link;
 }
+
+// What Review asks of one Literature note, exactly one of three (CONTEXT.md, Answer). None of
+// them is a grade: "nothing of mine here" is a complete, successful outcome and most notes
+// will get it (ADR 0016).
+export type ReviewAnswerKind = 'nothing_here' | 'link_made' | 'permanent_note_written';
+
+// One Answer as it was recorded. `producedLinkId` and `producedNoteId` are what the sitting
+// yielded where it yielded something, and either may be null on a row that once carried it:
+// the produced reference nulls out when the Link or Permanent note is deleted, while the
+// Answer itself survives (ADR 0011).
+export interface ReviewAnswer {
+  id: number;
+  noteId: number;
+  answer: ReviewAnswerKind;
+  producedLinkId: number | null;
+  producedNoteId: number | null;
+  createdAt: string;
+}
+
+// Which band of the queue a note is in, in the order Review hands them over (ADR 0016):
+// notes that have never been answered, then answered notes still flagged as an open question
+// whose most recent Answer was "nothing of mine here", then the rest of the answered notes.
+// The band is computed from the Answer history and carried on the row, so the client groups
+// rather than re-deriving the rule.
+export type ReviewBand = 'never-answered' | 'open-question' | 'answered';
+
+// One note as Review receives it: the note, the Source that labels its card, and the Topics it
+// inherits from that Source. Everything the card shows travels with it, since Review reaches a
+// note without the reading page it belongs to.
+export interface ReviewQueueNote {
+  note: LiteratureNote;
+  sourceTitle: string;
+  inheritedTopics: Topic[];
+  band: ReviewBand;
+}
+
+// The queue, in band order, and the one number the module has. `dueCount` is both the length
+// of the first band and what the rail badge reads, because they are the same fact: a pass ends
+// at the end of the never-answered band, which is what lets "N due" reach zero (ADR 0016).
+// Nothing here is an interval, a next-due date, a pass count or a streak, and there is no
+// overdue state to carry.
+export interface ReviewQueueResponse {
+  notes: ReviewQueueNote[];
+  dueCount: number;
+}
+
+// The badge's own read, so the rail does not pull the whole queue on every page.
+export interface ReviewDueCountResponse {
+  dueCount: number;
+}
+
+// An Answer is recorded on completion rather than on intent (ADR 0011): the client sends this
+// once the Link or the Permanent note actually exists, naming what the sitting produced, and
+// an abandoned composer sends nothing at all.
+export interface RecordReviewAnswerRequest {
+  noteId: number;
+  answer: ReviewAnswerKind;
+  producedLinkId?: number | null;
+  producedNoteId?: number | null;
+}
+
+export interface ReviewAnswerResponse {
+  reviewAnswer: ReviewAnswer;
+}

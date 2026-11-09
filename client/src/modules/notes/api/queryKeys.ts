@@ -19,3 +19,9 @@ export const topicKeys = {
   detail: (topicId: number) => ['topics', 'detail', topicId] as const,
   relatedNotes: (noteId: number) => ['topics', 'related-notes', noteId] as const,
 };
+
+export const reviewKeys = {
+  all: ['review'] as const,
+  queue: ['review', 'queue'] as const,
+  dueCount: ['review', 'dueCount'] as const,
+};

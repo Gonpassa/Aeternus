@@ -6,10 +6,21 @@ const mockUseMediaQuery = vi.fn();
 const mockUseAuth = vi.fn();
 const mockNavigate = vi.fn();
 const mockLogout = vi.fn();
+const mockUseReviewDueCount = vi.fn();
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ to, children, onClick }: { to: string; children: ReactNode; onClick?: () => void }) => (
-    <a href={to} onClick={onClick}>
+  Link: ({
+    to,
+    children,
+    onClick,
+    'aria-label': ariaLabel,
+  }: {
+    to: string;
+    children: ReactNode;
+    onClick?: () => void;
+    'aria-label'?: string;
+  }) => (
+    <a href={to} onClick={onClick} aria-label={ariaLabel}>
       {children}
     </a>
   ),
@@ -23,6 +34,12 @@ vi.mock('../AuthProvider.tsx', () => ({
 
 vi.mock('../../styling/useMediaQuery.ts', () => ({
   useMediaQuery: () => mockUseMediaQuery(),
+}));
+
+// The rail's Review link reads its own count, and the rail is rendered here without the app's
+// query provider around it - as every other module read in a shell test is.
+vi.mock('../../modules/notes/api/reviewHooks.ts', () => ({
+  useReviewDueCount: () => mockUseReviewDueCount(),
 }));
 
 const { Nav } = await import('./Nav.tsx');
@@ -41,6 +58,8 @@ describe('Nav', () => {
     mockUseAuth.mockReset();
     mockNavigate.mockReset();
     mockLogout.mockReset();
+    mockUseReviewDueCount.mockReset();
+    mockUseReviewDueCount.mockReturnValue({ data: { dueCount: 3 } });
     mockUseAuth.mockReturnValue({ user: loggedInUser, logout: mockLogout });
   });
 
@@ -156,6 +175,31 @@ describe('Nav', () => {
       render(<Nav />);
 
       expect(screen.getByRole('link', { name: 'Topics' })).toHaveAttribute('href', '/notes/topics');
+    });
+
+    it('badges Review with the notes that have never been answered', () => {
+      render(<Nav />);
+
+      expect(screen.getByRole('link', { name: 'Review · 3 due' })).toHaveAttribute(
+        'href',
+        '/notes/review',
+      );
+    });
+
+    // Nothing accrues and nothing is overdue, so a count that has reached zero says so rather
+    // than vanishing.
+    it('badges Review with zero once nothing is left unanswered', () => {
+      mockUseReviewDueCount.mockReturnValue({ data: { dueCount: 0 } });
+      render(<Nav />);
+
+      expect(screen.getByRole('link', { name: 'Review · 0 due' })).toBeInTheDocument();
+    });
+
+    it('leaves the Review badge off until the count has been read', () => {
+      mockUseReviewDueCount.mockReturnValue({ data: undefined });
+      render(<Nav />);
+
+      expect(screen.getByRole('link', { name: 'Review' })).toBeInTheDocument();
     });
 
     it('renders the full desktop rail with no hamburger', () => {

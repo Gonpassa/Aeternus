@@ -24,6 +24,7 @@ import { Route as JournalEntryIdEditRouteImport } from './routes/journal/$entryI
 import { Route as NotesReadIndexRouteImport } from './routes/notes/read/index'
 import { Route as NotesReadSourceIdRouteImport } from './routes/notes/read/$sourceId'
 import { Route as NotesReadNewRouteImport } from './routes/notes/read/new'
+import { Route as NotesReviewIndexRouteImport } from './routes/notes/review/index'
 import { Route as NotesTopicsIndexRouteImport } from './routes/notes/topics/index'
 import { Route as NotesTopicsTopicIdRouteImport } from './routes/notes/topics/$topicId'
 
@@ -102,6 +103,11 @@ const NotesReadNewRoute = NotesReadNewRouteImport.update({
   path: '/notes/read/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotesReviewIndexRoute = NotesReviewIndexRouteImport.update({
+  id: '/notes/review/',
+  path: '/notes/review/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotesTopicsIndexRoute = NotesTopicsIndexRouteImport.update({
   id: '/notes/topics/',
   path: '/notes/topics/',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/notes/read/new': typeof NotesReadNewRoute
   '/notes/topics/$topicId': typeof NotesTopicsTopicIdRoute
   '/notes/read/': typeof NotesReadIndexRoute
+  '/notes/review/': typeof NotesReviewIndexRoute
   '/notes/topics/': typeof NotesTopicsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/notes/read/new': typeof NotesReadNewRoute
   '/notes/topics/$topicId': typeof NotesTopicsTopicIdRoute
   '/notes/read': typeof NotesReadIndexRoute
+  '/notes/review': typeof NotesReviewIndexRoute
   '/notes/topics': typeof NotesTopicsIndexRoute
 }
 export interface FileRoutesById {
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/notes/read/new': typeof NotesReadNewRoute
   '/notes/topics/$topicId': typeof NotesTopicsTopicIdRoute
   '/notes/read/': typeof NotesReadIndexRoute
+  '/notes/review/': typeof NotesReviewIndexRoute
   '/notes/topics/': typeof NotesTopicsIndexRoute
 }
 export interface FileRouteTypes {
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/notes/read/new'
     | '/notes/topics/$topicId'
     | '/notes/read/'
+    | '/notes/review/'
     | '/notes/topics/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/notes/read/new'
     | '/notes/topics/$topicId'
     | '/notes/read'
+    | '/notes/review'
     | '/notes/topics'
   id:
     | '__root__'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/notes/read/new'
     | '/notes/topics/$topicId'
     | '/notes/read/'
+    | '/notes/review/'
     | '/notes/topics/'
   fileRoutesById: FileRoutesById
 }
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   NotesReadNewRoute: typeof NotesReadNewRoute
   NotesTopicsTopicIdRoute: typeof NotesTopicsTopicIdRoute
   NotesReadIndexRoute: typeof NotesReadIndexRoute
+  NotesReviewIndexRoute: typeof NotesReviewIndexRoute
   NotesTopicsIndexRoute: typeof NotesTopicsIndexRoute
 }
 
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesReadNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notes/review/': {
+      id: '/notes/review/'
+      path: '/notes/review'
+      fullPath: '/notes/review/'
+      preLoaderRoute: typeof NotesReviewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notes/topics/': {
       id: '/notes/topics/'
       path: '/notes/topics'
@@ -392,6 +412,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotesReadNewRoute: NotesReadNewRoute,
   NotesTopicsTopicIdRoute: NotesTopicsTopicIdRoute,
   NotesReadIndexRoute: NotesReadIndexRoute,
+  NotesReviewIndexRoute: NotesReviewIndexRoute,
   NotesTopicsIndexRoute: NotesTopicsIndexRoute,
 }
 export const routeTree = rootRouteImport

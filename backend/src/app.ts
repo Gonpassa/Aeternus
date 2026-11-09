@@ -16,6 +16,7 @@ import sourcesRouter from './modules/notes/sourcesRoutes';
 import notesRouter from './modules/notes/notesRoutes';
 import linksRouter from './modules/notes/linksRoutes';
 import topicsRouter from './modules/notes/topicsRoutes';
+import reviewRouter from './modules/notes/reviewRoutes';
 import config from './config/default';
 
 const defaultClientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -49,6 +50,7 @@ export const createApp = (options: { clientDistPath?: string } = {}): Express =>
   app.use('/api/notes', notesRouter);
   app.use('/api/links', linksRouter);
   app.use('/api/topics', topicsRouter);
+  app.use('/api/review', reviewRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
