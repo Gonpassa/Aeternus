@@ -13,7 +13,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node src/db/migrate.ts",
     "seed:test-entries": "USE_TEST_DB=true ts-node src/scripts/seedTestEntries.ts",
-    "migrate:mongo": "ts-node src/scripts/migrateMongoJournal.ts"
+    "migrate:mongo": "ts-node src/scripts/migrateMongoJournal.ts",
+    "journal:pull": "ts-node src/scripts/journalChat/pull.ts",
+    "journal:chat": "ts-node src/scripts/journalChat/chat.ts"
   },
   "dependencies": {
     "@nee3/shared-types": "^1.0.0",
