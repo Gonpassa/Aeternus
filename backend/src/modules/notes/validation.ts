@@ -1,4 +1,4 @@
-import { SOURCE_KINDS, type SourceKind } from '@nee3/shared-types';
+import { SOURCE_KINDS, type ReviewAnswerKind, type SourceKind } from '@nee3/shared-types';
 import { sanitizeTopicName } from './sanitize';
 
 export type ValidationResult = { valid: true } | { valid: false; error: string };
@@ -253,4 +253,55 @@ export const validateLinkInput = (input: {
     return { valid: false, error: 'A note cannot be connected to itself.' };
   }
   return validateLinkReason(input.reason);
+};
+
+// The three Answers, and nothing else: "come back sooner" was asked for and refused, because
+// it is a grading verb and would introduce an interval where the design has none (ADR 0016).
+const REVIEW_ANSWERS: readonly ReviewAnswerKind[] = [
+  'nothing_here',
+  'link_made',
+  'permanent_note_written',
+];
+
+const isReviewAnswer = (value: unknown): value is ReviewAnswerKind =>
+  typeof value === 'string' && (REVIEW_ANSWERS as readonly string[]).includes(value);
+
+// An Answer, held to the Answer it claims to be. An Answer is recorded on completion rather
+// than on intent (ADR 0011), so each of the two that produced something must name what it
+// produced - a request that says a Link was made and names no Link is not an Answer about a
+// Link - and "nothing of mine here" must name nothing, since it produced nothing.
+export const validateReviewAnswerInput = (input: {
+  noteId?: unknown;
+  answer?: unknown;
+  producedLinkId?: unknown;
+  producedNoteId?: unknown;
+}): ValidationResult => {
+  if (!isPositiveInteger(input.noteId)) {
+    return { valid: false, error: 'An Answer belongs to a note.' };
+  }
+  if (!isReviewAnswer(input.answer)) {
+    return {
+      valid: false,
+      error:
+        'An Answer is one of three: nothing of yours is here, a connection was made, or a Permanent note was written.',
+    };
+  }
+  const link = isOmitted(input.producedLinkId) ? null : input.producedLinkId;
+  const note = isOmitted(input.producedNoteId) ? null : input.producedNoteId;
+  if (link !== null && !isPositiveInteger(link)) {
+    return { valid: false, error: 'An Answer names the connection it produced.' };
+  }
+  if (note !== null && !isPositiveInteger(note)) {
+    return { valid: false, error: 'An Answer names the Permanent note it produced.' };
+  }
+  if (input.answer === 'nothing_here' && (link !== null || note !== null)) {
+    return { valid: false, error: 'Nothing of yours here produced nothing.' };
+  }
+  if (input.answer === 'link_made' && (link === null || note !== null)) {
+    return { valid: false, error: 'An Answer names the connection it produced.' };
+  }
+  if (input.answer === 'permanent_note_written' && (note === null || link !== null)) {
+    return { valid: false, error: 'An Answer names the Permanent note it produced.' };
+  }
+  return { valid: true };
 };

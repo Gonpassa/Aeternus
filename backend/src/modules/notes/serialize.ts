@@ -6,14 +6,17 @@ import type {
   NoteConnection,
   NoteConnections,
   PermanentNote,
+  ReviewAnswer as ApiReviewAnswer,
+  ReviewQueueNote,
   Topic,
   TopicListEntry,
   TopicPermanentNote,
   TopicRelatedNote,
 } from '@nee3/shared-types';
-import type { Link, Note, Topic as DbTopic } from '../../db/schema';
+import type { Link, Note, ReviewAnswer, Topic as DbTopic } from '../../db/schema';
 import type { ConnectionRows } from '../../db/links';
 import type { TopicRelatedNoteRow, TopicWithCounts } from '../../db/topics';
+import type { ReviewQueueRow } from '../../db/reviewAnswers';
 
 // One table holds both kinds behind a `kind` discriminator, so the five columns that belong
 // to the other kind are null on every row (ADR 0012). The client is handed a discriminated
@@ -137,4 +140,29 @@ export const toLinkTargetCandidate = (
   note: toNote(note),
   sourceTitle,
   existingLink: existingLink === null ? null : toLink(existingLink),
+});
+
+// `noteKind` is not carried out of the database: it is there so the table can pin itself to
+// the Literature kind declaratively (ADR 0012), and the client already knows which kind Review
+// asks about.
+export const toReviewAnswer = (row: ReviewAnswer): ApiReviewAnswer => ({
+  id: row.id,
+  noteId: row.noteId,
+  answer: row.answer,
+  producedLinkId: row.producedLinkId,
+  producedNoteId: row.producedNoteId,
+  createdAt: row.createdAt.toISOString(),
+});
+
+// One row of the queue. Review reaches a note without the reading page it belongs to, so
+// everything the card shows travels with it: the Source that labels it and the Topics the note
+// inherits from that Source, which it shows and cannot change (CONTEXT.md, Topic).
+export const toReviewQueueNote = (
+  { note, sourceTitle, band }: ReviewQueueRow,
+  topics: DbTopic[],
+): ReviewQueueNote => ({
+  note: toLiteratureNote(note),
+  sourceTitle,
+  inheritedTopics: topics.map(toTopic),
+  band,
 });

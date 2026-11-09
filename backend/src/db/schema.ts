@@ -455,3 +455,71 @@ export const noteTopics = pgTable(
 
 export type NoteTopic = typeof noteTopics.$inferSelect;
 export type NewNoteTopic = typeof noteTopics.$inferInsert;
+
+export const reviewAnswerEnum = pgEnum('review_answer', [
+  'nothing_here',
+  'link_made',
+  'permanent_note_written',
+]);
+
+// One row per Answer, append-only: a second look at the same note does not overwrite the
+// first, because the first was not wrong (ADR 0011). Due-ness is a query over this history -
+// a note with no row here has never been answered - rather than a column on the note, which
+// is what keeps the scheduling question (#76) cheap to decide later instead of migrating
+// derived state that cannot reconstruct what it discarded.
+//
+// No `updatedAt`: there is nothing here to update. The module exposes no route that rewrites
+// or removes a row, and the table is shaped so that nothing needs to - what an Answer produced
+// nulls out when the thing is deleted, and the Answer itself survives.
+export const reviewAnswers = pgTable(
+  'review_answers',
+  {
+    id: serial('id').primaryKey(),
+    noteId: integer('note_id').notNull(),
+    // Review asks its question only of a Literature note, and that restriction is
+    // declarative: the composite FK into (id, kind) plus the CHECK below pins the kind in the
+    // database rather than in a controller, the same trick `note_topics` uses for the other
+    // kind (ADR 0012).
+    noteKind: noteKindEnum('note_kind').notNull(),
+    answer: reviewAnswerEnum('answer').notNull(),
+    // What the sitting produced, where it produced something. Both null out rather than
+    // cascading, so the record that a sitting yielded a Link or a Permanent note outlives the
+    // thing it named (ADR 0011): the Answer is a fact about a moment, and deleting what it
+    // produced does not unmake the moment.
+    producedLinkId: integer('produced_link_id').references(() => links.id, {
+      onDelete: 'set null',
+    }),
+    producedNoteId: integer('produced_note_id').references(() => notes.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    noteKindFk: foreignKey({
+      columns: [table.noteId, table.noteKind],
+      foreignColumns: [notes.id, notes.kind],
+    }).onDelete('cascade'),
+    // The queue's read: one note's history, most recent first, since what a note's band is
+    // depends only on its latest Answer.
+    noteCreatedAtIdx: index('review_answers_note_id_created_at_idx').on(
+      table.noteId,
+      table.createdAt,
+    ),
+    literatureOnly: check('review_answers_literature_only', sql`${table.noteKind} = 'literature'`),
+    // Each Answer may carry only the kind of reference it can have produced: "nothing of mine
+    // here" produced neither, a Link was made produced no Permanent note, and a Permanent note
+    // was written produced no Link. Nothing is required to be present, because a produced
+    // reference nulls out when what it names is deleted.
+    producedShape: check(
+      'review_answers_produced_shape',
+      sql`CASE ${table.answer}
+        WHEN 'nothing_here' THEN ${table.producedLinkId} IS NULL AND ${table.producedNoteId} IS NULL
+        WHEN 'link_made' THEN ${table.producedNoteId} IS NULL
+        ELSE ${table.producedLinkId} IS NULL
+      END`,
+    ),
+  }),
+);
+
+export type ReviewAnswer = typeof reviewAnswers.$inferSelect;
+export type NewReviewAnswer = typeof reviewAnswers.$inferInsert;

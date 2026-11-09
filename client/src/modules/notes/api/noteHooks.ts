@@ -26,8 +26,9 @@ export const useNoteConnections = (noteId: number, enabled: boolean) =>
 // One mutation for the note and its first Links, because they are one request in one
 // transaction (ADR 0014). `sourceId` is not part of the note - a Permanent note belongs to no
 // Source - it is the reading page whose cards gain an inbound connection, which is the payoff
-// the user is waiting to see.
-export const useCreatePermanentNote = (sourceId: number) => {
+// the user is waiting to see. Review writes from a note it reached without a reading page, so
+// it passes none and every Source's cached payload is refetched instead.
+export const useCreatePermanentNote = (sourceId?: number) => {
   const queryClient = useQueryClient();
   return useMutation<PermanentNoteResponse, Error, CreatePermanentNoteRequest>({
     mutationFn: async (input) => {
@@ -37,7 +38,9 @@ export const useCreatePermanentNote = (sourceId: number) => {
     // Refetched rather than patched in place: the new Link lands in the connections of
     // whichever cards it names, and the server already assembles that grouping.
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: sourceKeys.detail(sourceId) });
+      queryClient.invalidateQueries({
+        queryKey: sourceId === undefined ? sourceKeys.all : sourceKeys.detail(sourceId),
+      });
       queryClient.invalidateQueries({ queryKey: noteKeys.all });
       // Writing the note is the other way a Topic is created, and the Topic tiers of other
       // notes change the moment this one carries a word they share (#87).

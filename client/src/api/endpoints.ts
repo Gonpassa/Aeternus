@@ -47,6 +47,14 @@ export const endpoints = {
   noteLinkTargets: '/notes/link-targets',
   // A Link belongs to neither of its ends - it is a relation between two notes, made and
   // unmade from either side (ADR 0013) - so it has a resource of its own.
+  // Review is the module's other page, and its queue belongs to the whole corpus rather than
+  // to any one note or Source, so it has a resource of its own. `dueCount` is read apart from
+  // the queue because the rail badge carries it on every page.
+  review: {
+    queue: '/review/queue',
+    dueCount: '/review/due-count',
+    answers: '/review/answers',
+  },
   links: '/links',
   link: (id: number) => `/links/${id}`,
 } as const;

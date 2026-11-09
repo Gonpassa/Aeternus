@@ -92,6 +92,13 @@
       "when": 1794176042869,
       "tag": "0012_peaceful_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794185058067,
+      "tag": "0013_last_firestar",
+      "breakpoints": true
     }
   ]
 }
