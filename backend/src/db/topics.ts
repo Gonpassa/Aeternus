@@ -196,21 +196,6 @@ export const listTopicsBySourceIds = async ({
   return groupByCarrier(rows);
 };
 
-export const listTopicsByNoteIds = async ({
-  noteIds,
-}: {
-  noteIds: number[];
-}): Promise<Map<number, Topic[]>> => {
-  if (noteIds.length === 0) return new Map();
-  const rows = await db
-    .select({ carrierId: noteTopics.noteId, topic: topics })
-    .from(noteTopics)
-    .innerJoin(topics, eq(noteTopics.topicId, topics.id))
-    .where(inArray(noteTopics.noteId, noteIds))
-    .orderBy(asc(noteTopics.createdAt), asc(noteTopics.id));
-  return groupByCarrier(rows);
-};
-
 export interface TopicRelatedNoteRow {
   note: Note;
   sourceTitle: string | null;

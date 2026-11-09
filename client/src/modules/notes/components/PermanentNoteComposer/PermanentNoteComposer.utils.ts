@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
+import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
 // request is actually held to - and they are mirrored here so an over-long field is answered
@@ -8,8 +9,6 @@ import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
 export const PERMANENT_NOTE_TITLE_MAX = 280;
 export const PERMANENT_NOTE_BODY_MAX = 8000;
 export const LINK_REASON_MAX = 140;
-export const TOPIC_NAME_MAX = 60;
-export const TOPIC_COUNT_MAX = 12;
 
 // The target and its reason are one field group rather than two steps: a target picked without
 // a reason blocks the save exactly as a missing Link does (ADR 0015), so the reason is part of

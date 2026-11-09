@@ -40,11 +40,11 @@ export function TopicFilterStrip({ topics, selectedTopicId, onSelect }: TopicFil
                chip shape for every place a Topic is shown. */
             {...TOPIC_CHIP}
             h="auto"
-            // Pressed is the ink-blue ground rather than a second border, so the strip reads as
-            // one row with one of its words picked out.
-            bg={pressed ? 'inkBlue' : 'paper'}
-            color={pressed ? 'paper' : 'inkBlue'}
-            _hover={{ bg: pressed ? 'inkBlue' : 'paperCard' }}
+            // Pressed fills with the same rust the chip is drawn in rather than taking a second
+            // border, so the strip reads as one row with one of its words picked out.
+            bg={pressed ? 'rust' : 'paper'}
+            color={pressed ? 'paper' : 'rust'}
+            _hover={{ bg: pressed ? 'rust' : 'paperCard' }}
             onClick={() => onSelect(pressed ? null : topic.id)}
           >
             {topic.name}

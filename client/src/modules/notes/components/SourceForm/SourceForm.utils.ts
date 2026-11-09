@@ -5,6 +5,7 @@ import {
   type SourceKind,
   type SourceWithTopics,
 } from '@nee3/shared-types';
+import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
 // request is actually held to - and they are mirrored here so an over-long title is answered
@@ -13,8 +14,6 @@ import {
 export const SOURCE_TITLE_MAX = 140;
 export const SOURCE_AUTHOR_MAX = 140;
 export const SOURCE_URL_MAX = 2000;
-export const TOPIC_NAME_MAX = 60;
-export const TOPIC_COUNT_MAX = 12;
 
 const isSourceKind = (value: string): value is SourceKind =>
   (SOURCE_KINDS as readonly string[]).includes(value);
