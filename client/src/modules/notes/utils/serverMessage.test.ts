@@ -15,7 +15,7 @@ describe('serverMessage', () => {
   // The refusal names the Permanent note it protects, and that naming is the point of it
   // (ADR 0014), so it reaches the user as the server wrote it.
   it('passes the server’s own words through', () => {
-    const message = 'Removing this connection would leave “A claim” with none.';
+    const message = 'Removing this connection would leave “A claim” with nothing connected to it.';
     expect(serverMessage(refused({ error: message }), 'Fallback.')).toBe(message);
   });
 

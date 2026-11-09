@@ -85,8 +85,8 @@ export const updateSource = async ({
 
 // The cascade, and only the cascade: deleting a Source takes its Literature notes with it
 // through the foreign key's ON DELETE CASCADE (#70). Whether the deletion may happen at all
-// is decided before this is called - the orphan guard of ADR 0014 arrives with #86, and it
-// sits in front of this function rather than inside it (ADR 0012).
+// is decided before this is called - the orphan guard of ADR 0014 sits in front of this
+// function rather than inside it (ADR 0012).
 export const deleteSource = async ({
   id,
   userId,

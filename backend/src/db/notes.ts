@@ -75,23 +75,6 @@ export const listSectionsBySource = async ({
   return rows.map((row) => row.section).filter((section): section is string => section !== null);
 };
 
-// A note read by id and owner, narrowed to the Literature kind: the Permanent kind shares this
-// id space (ADR 0012), so an id that belongs to one must not be editable through the other's
-// endpoint. Another user's id and a wrong-kind id are both simply "not found" here.
-export const findLiteratureNoteOwnedByUser = async ({
-  id,
-  userId,
-}: {
-  id: number;
-  userId: number;
-}): Promise<Note | undefined> => {
-  const [row] = await db
-    .select()
-    .from(notes)
-    .where(and(eq(notes.id, id), eq(notes.userId, userId), eq(notes.kind, 'literature')));
-  return row;
-};
-
 export type UpdateLiteratureNoteInput = {
   id: number;
   userId: number;
@@ -124,9 +107,9 @@ export const updateLiteratureNote = async ({
 };
 
 // The mechanics of removing one note, nothing more. As with a Source, whether the deletion may
-// happen is decided in front of this call: the orphan guard of ADR 0014 arrives with #86. The
-// owner is still named in the statement itself, so the destructive query is never wider than
-// the read that authorised it.
+// happen is decided in front of this call, by the orphan guard of ADR 0014. The owner is still
+// named in the statement itself, so the destructive query is never wider than the read that
+// authorised it.
 export const deleteNote = async ({
   id,
   userId,

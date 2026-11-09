@@ -284,7 +284,7 @@ describe('NoteConnections, with the Link affordances provided', () => {
   it('shows the server’s refusal beside the removal it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Removing this connection would leave “Writing is how an idea is tested.” with none. Connect it elsewhere first, or delete it.';
+      'Removing this connection would leave “Writing is how an idea is tested.” with nothing connected to it. Connect it elsewhere first, or delete it.';
     const value = actions({
       removeLink: vi.fn().mockRejectedValue(
         new AxiosError('Conflict', undefined, undefined, undefined, {

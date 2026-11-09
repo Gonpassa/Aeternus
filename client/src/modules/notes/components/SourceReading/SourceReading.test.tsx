@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { AxiosError } from 'axios';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
@@ -226,6 +227,32 @@ describe('SourceReading', () => {
     await user.click(screen.getByRole('button', { name: 'Delete Source' }));
 
     expect(onDeleteSource).toHaveBeenCalled();
+  });
+
+  // The cascade can orphan an idea written long after and elsewhere, which the count above
+  // cannot warn about - so the server refuses it and names every note it is protecting
+  // (ADR 0014, #86). The refusal is shown here, with those names still in view.
+  it('shows the server’s refusal beside the cascade it refused', async () => {
+    const user = userEvent.setup();
+    const refusal =
+      'Deleting this Source would leave these notes with nothing connected to them: “The first idea.”, “The second idea.”. Connect them elsewhere first, or delete them.';
+    const onDeleteSource = vi.fn().mockRejectedValue(
+      new AxiosError('Conflict', undefined, undefined, undefined, {
+        status: 409,
+        statusText: 'Conflict',
+        data: { error: refusal },
+        headers: {},
+        config: { headers: {} as never },
+      }),
+    );
+    renderPage({ notes: [note({ id: 1 })], onDeleteSource });
+
+    await user.click(screen.getByRole('button', { name: 'Delete this Source' }));
+    await user.click(screen.getByRole('button', { name: 'Delete Source' }));
+
+    expect(await screen.findByText(refusal)).toBeInTheDocument();
+    // The dialog stays open: the Source is still in the catalog, and so is the choice.
+    expect(screen.getByRole('button', { name: 'Delete Source' })).toBeInTheDocument();
   });
 
   it('passes a correction and a deletion through for the card they belong to', async () => {

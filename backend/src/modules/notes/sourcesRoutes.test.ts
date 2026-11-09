@@ -553,7 +553,8 @@ describe('sources routes (integration)', () => {
     });
 
     // The cascade of #70: a Literature note is written from a Source and has nowhere to be
-    // without it. The orphan guard that will run in front of this arrives with #86.
+    // without it. The orphan guard that runs in front of this has its own suite
+    // (deleteGuardRoutes.test.ts).
     it('takes its Literature notes with it', async () => {
       const note = await aliceAgent
         .post(`/api/sources/${sourceId}/notes`)

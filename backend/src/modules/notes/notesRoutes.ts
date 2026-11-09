@@ -3,7 +3,7 @@ import { ensureAuth } from '../../middleware/auth';
 import { listLinkTargets } from './linkTargetsController';
 import {
   createPermanentNote,
-  deleteLiteratureNote,
+  deleteNote,
   getNoteConnections,
   updateLiteratureNote,
 } from './notesController';
@@ -35,7 +35,11 @@ router.get('/:noteId/topic-notes', listTopicRelatedNotes);
 // The PATCH body is the whole note rather than a partial one: a field left out is cleared, not
 // kept, which is how an emptied excerpt is stored as no excerpt (#83). The card always sends
 // every field it carries, so there is no partial caller to surprise.
+//
+// DELETE takes either kind, where PATCH narrows to the Literature one: the fields a correction
+// writes belong to that kind, while the mandatory-Link guard a deletion runs belongs to both
+// (ADR 0014).
 router.patch('/:noteId', updateLiteratureNote);
-router.delete('/:noteId', deleteLiteratureNote);
+router.delete('/:noteId', deleteNote);
 
 export default router;

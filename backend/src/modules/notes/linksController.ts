@@ -13,8 +13,8 @@ import {
   findLinkById,
   findPermanentNotesLeftUnlinked,
   updateLinkReason as updateLinkReasonRecord,
-  type UnlinkedPermanentNote,
 } from '../../db/links';
+import { orphanRefusal } from './orphanGuard';
 import { toLink } from './serialize';
 import { validateLinkInput, validateLinkReason } from './validation';
 import { sanitizeLinkReason } from './sanitize';
@@ -147,16 +147,6 @@ export const updateLinkReason = async (
   }
 };
 
-// The refusal names the ideas it is protecting, because that naming is what makes it
-// actionable: the user's next move is to connect those notes elsewhere or delete them too, and
-// neither is possible from a message that says only how many would be left (ADR 0014).
-const orphanRefusal = (unlinked: UnlinkedPermanentNote[]): string => {
-  const titles = unlinked.map(({ title }) => `“${title}”`).join(', ');
-  return unlinked.length === 1
-    ? `Removing this connection would leave ${titles} with none. Connect it elsewhere first, or delete it.`
-    : `Removing this connection would leave these notes with none: ${titles}. Connect them elsewhere first, or delete them.`;
-};
-
 // Read, guard, delete - the three steps every destructive path in this module takes, kept
 // distinct (ADR 0012). The guard here is ADR 0014's at its own endpoint: removing a Link is the
 // symmetrical way to produce the state the save guard exists to prevent, so the removal is
@@ -185,7 +175,9 @@ export const deleteLink = async (
       removedLinkIds: [link.id],
     });
     if (unlinked.length > 0) {
-      res.status(409).json({ error: orphanRefusal(unlinked) } satisfies ApiErrorResponse);
+      res.status(409).json({
+        error: orphanRefusal(unlinked, 'Removing this connection'),
+      } satisfies ApiErrorResponse);
       return;
     }
     await deleteLinkRecord({ id: link.id });

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { AxiosError } from 'axios';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
@@ -207,6 +208,33 @@ describe('NoteStream', () => {
     await user.click(screen.getByRole('button', { name: 'Delete note' }));
 
     expect(onDelete).toHaveBeenCalledWith(9);
+  });
+
+  // ADR 0014: deleting a note takes its Links with it, so it is refused while it is some
+  // Permanent note's only Link - and the refusal names that note, which is what makes it
+  // actionable. It has to be legible where the deletion was asked for (#86).
+  it('shows the server’s refusal beside the deletion it refused', async () => {
+    const user = userEvent.setup();
+    const refusal =
+      'Deleting this note would leave “Writing is how an idea is tested.” with nothing connected to it. Connect it elsewhere first, or delete it.';
+    const onDelete = vi.fn().mockRejectedValue(
+      new AxiosError('Conflict', undefined, undefined, undefined, {
+        status: 409,
+        statusText: 'Conflict',
+        data: { error: refusal },
+        headers: {},
+        config: { headers: {} as never },
+      }),
+    );
+    renderStream([note({ id: 9 })], { onDelete });
+
+    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Delete this note' }));
+    await user.click(screen.getByRole('button', { name: 'Delete note' }));
+
+    expect(await screen.findByText(refusal)).toBeInTheDocument();
+    // The dialog stays open: the note is still filed, and so is the choice.
+    expect(screen.getByRole('button', { name: 'Delete note' })).toBeInTheDocument();
   });
 
   // The reading page is where a Permanent note is written: the user's own thinking happens
