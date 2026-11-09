@@ -47,8 +47,11 @@ export function SourceCard({ source }: SourceCardProps) {
               </Text>
             )}
             {/* What the Source is about, under what it is called: a card with no Topic shows
-                nothing here, since Topics are optional everywhere (CONTEXT.md, Topic). */}
-            <TopicTags topics={source.topics} label={`Topics on ${source.title}`} />
+                nothing here, since Topics are optional everywhere (CONTEXT.md, Topic). The
+                chips are unlinked on a card, because the whole card is already one link to
+                the Source - the Topic view is reached from a tag that stands on its own, on
+                the Source header or on a filed note (#88). */}
+            <TopicTags topics={source.topics} label={`Topics on ${source.title}`} linked={false} />
             <Text textStyle="label" color="inkSoft" mt="2">
               {lastNoteLabel(source.lastNoteAt)}
             </Text>

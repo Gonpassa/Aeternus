@@ -5,8 +5,15 @@ import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import type { LiteratureNoteWithConnections, Topic } from '@nee3/shared-types';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
-import { NoteStream } from './NoteStream.tsx';
+import { routerLinkStub } from '../../../../test/routerLinkStub.tsx';
 import { LinkActionsProvider, type LinkActions } from '../../LinkActionsContext.tsx';
+
+// A filed note's inherited Topic chips are links to the Topic view, and a router Link needs a
+// router (#88). The stream is rendered without one, so the Link is stubbed as the anchor it
+// renders as, and the component is imported once the mock is in place.
+vi.mock('@tanstack/react-router', () => routerLinkStub());
+
+const { NoteStream } = await import('./NoteStream.tsx');
 
 const note = (
   overrides: Partial<LiteratureNoteWithConnections> = {},

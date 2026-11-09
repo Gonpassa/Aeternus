@@ -12,3 +12,7 @@ export const parseSourceId = (req: Request): number | null => parseId(req.params
 
 // A note id is held to the same rule, and for the same reason.
 export const parseNoteId = (req: Request): number | null => parseId(req.params.noteId);
+
+// A Topic id, by the same rule: a Topic is addressable, so /topics/nonsense is a Topic that is
+// not there rather than a failed query (#88).
+export const parseTopicId = (req: Request): number | null => parseId(req.params.topicId);

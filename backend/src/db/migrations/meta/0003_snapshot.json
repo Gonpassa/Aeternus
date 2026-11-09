@@ -72,12 +72,8 @@
           "name": "entries_user_id_users_id_fk",
           "tableFrom": "entries",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -87,10 +83,7 @@
         "entries_user_id_date_unique": {
           "name": "entries_user_id_date_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "date"
-          ]
+          "columns": ["user_id", "date"]
         }
       },
       "policies": {},
@@ -147,16 +140,12 @@
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -168,14 +157,7 @@
     "public.primary_mood": {
       "name": "primary_mood",
       "schema": "public",
-      "values": [
-        "happy",
-        "calm",
-        "sad",
-        "anxious",
-        "angry",
-        "steady"
-      ]
+      "values": ["happy", "calm", "sad", "anxious", "angry", "steady"]
     }
   },
   "schemas": {},

@@ -53,12 +53,8 @@
           "name": "analysis_passes_dream_id_dreams_id_fk",
           "tableFrom": "analysis_passes",
           "tableTo": "dreams",
-          "columnsFrom": [
-            "dream_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["dream_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -66,12 +62,8 @@
           "name": "analysis_passes_anchor_id_anchors_id_fk",
           "tableFrom": "analysis_passes",
           "tableTo": "anchors",
-          "columnsFrom": [
-            "anchor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["anchor_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -112,12 +104,8 @@
           "name": "anchors_dream_id_dreams_id_fk",
           "tableFrom": "anchors",
           "tableTo": "dreams",
-          "columnsFrom": [
-            "dream_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["dream_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -184,12 +172,8 @@
           "name": "associations_anchor_id_anchors_id_fk",
           "tableFrom": "associations",
           "tableTo": "anchors",
-          "columnsFrom": [
-            "anchor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["anchor_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -197,14 +181,8 @@
           "name": "associations_symbol_attachment_id_anchor_id_symbol_attachments_id_anchor_id_fk",
           "tableFrom": "associations",
           "tableTo": "symbol_attachments",
-          "columnsFrom": [
-            "symbol_attachment_id",
-            "anchor_id"
-          ],
-          "columnsTo": [
-            "id",
-            "anchor_id"
-          ],
+          "columnsFrom": ["symbol_attachment_id", "anchor_id"],
+          "columnsTo": ["id", "anchor_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -264,12 +242,8 @@
           "name": "dreams_user_id_users_id_fk",
           "tableFrom": "dreams",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -323,12 +297,8 @@
           "name": "emotional_beats_anchor_id_anchors_id_fk",
           "tableFrom": "emotional_beats",
           "tableTo": "anchors",
-          "columnsFrom": [
-            "anchor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["anchor_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -407,12 +377,8 @@
           "name": "entries_user_id_users_id_fk",
           "tableFrom": "entries",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -422,10 +388,7 @@
         "entries_user_id_date_unique": {
           "name": "entries_user_id_date_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "date"
-          ]
+          "columns": ["user_id", "date"]
         }
       },
       "policies": {},
@@ -539,12 +502,8 @@
           "name": "links_origin_note_id_notes_id_fk",
           "tableFrom": "links",
           "tableTo": "notes",
-          "columnsFrom": [
-            "origin_note_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["origin_note_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -552,12 +511,8 @@
           "name": "links_target_note_id_notes_id_fk",
           "tableFrom": "links",
           "tableTo": "notes",
-          "columnsFrom": [
-            "target_note_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_note_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -653,12 +608,8 @@
           "name": "note_topics_topic_id_topics_id_fk",
           "tableFrom": "note_topics",
           "tableTo": "topics",
-          "columnsFrom": [
-            "topic_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["topic_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -666,14 +617,8 @@
           "name": "note_topics_note_id_note_kind_notes_id_kind_fk",
           "tableFrom": "note_topics",
           "tableTo": "notes",
-          "columnsFrom": [
-            "note_id",
-            "note_kind"
-          ],
-          "columnsTo": [
-            "id",
-            "kind"
-          ],
+          "columnsFrom": ["note_id", "note_kind"],
+          "columnsTo": ["id", "kind"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -840,12 +785,8 @@
           "name": "notes_user_id_users_id_fk",
           "tableFrom": "notes",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -853,12 +794,8 @@
           "name": "notes_source_id_sources_id_fk",
           "tableFrom": "notes",
           "tableTo": "sources",
-          "columnsFrom": [
-            "source_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["source_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -951,12 +888,8 @@
           "name": "source_topics_topic_id_topics_id_fk",
           "tableFrom": "source_topics",
           "tableTo": "topics",
-          "columnsFrom": [
-            "topic_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["topic_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -964,12 +897,8 @@
           "name": "source_topics_source_id_sources_id_fk",
           "tableFrom": "source_topics",
           "tableTo": "sources",
-          "columnsFrom": [
-            "source_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["source_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1064,12 +993,8 @@
           "name": "sources_user_id_users_id_fk",
           "tableFrom": "sources",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1159,12 +1084,8 @@
           "name": "symbol_attachments_symbol_id_symbols_id_fk",
           "tableFrom": "symbol_attachments",
           "tableTo": "symbols",
-          "columnsFrom": [
-            "symbol_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["symbol_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1172,12 +1093,8 @@
           "name": "symbol_attachments_anchor_id_anchors_id_fk",
           "tableFrom": "symbol_attachments",
           "tableTo": "anchors",
-          "columnsFrom": [
-            "anchor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["anchor_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1246,12 +1163,8 @@
           "name": "symbols_user_id_users_id_fk",
           "tableFrom": "symbols",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1320,12 +1233,8 @@
           "name": "topics_user_id_users_id_fk",
           "tableFrom": "topics",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1386,16 +1295,12 @@
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1407,48 +1312,27 @@
     "public.analysis_pass_type": {
       "name": "analysis_pass_type",
       "schema": "public",
-      "values": [
-        "analytic",
-        "synthetic"
-      ]
+      "values": ["analytic", "synthetic"]
     },
     "public.association_kind": {
       "name": "association_kind",
       "schema": "public",
-      "values": [
-        "personal",
-        "cultural"
-      ]
+      "values": ["personal", "cultural"]
     },
     "public.note_kind": {
       "name": "note_kind",
       "schema": "public",
-      "values": [
-        "literature",
-        "permanent"
-      ]
+      "values": ["literature", "permanent"]
     },
     "public.primary_mood": {
       "name": "primary_mood",
       "schema": "public",
-      "values": [
-        "happy",
-        "calm",
-        "sad",
-        "anxious",
-        "angry",
-        "steady"
-      ]
+      "values": ["happy", "calm", "sad", "anxious", "angry", "steady"]
     },
     "public.source_kind": {
       "name": "source_kind",
       "schema": "public",
-      "values": [
-        "book",
-        "article",
-        "video",
-        "other"
-      ]
+      "values": ["book", "article", "video", "other"]
     }
   },
   "schemas": {},

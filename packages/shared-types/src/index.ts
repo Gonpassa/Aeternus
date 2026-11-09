@@ -229,8 +229,63 @@ export interface Topic {
   createdAt: string;
 }
 
+// A Topic as the vocabulary is read back, with how many carriers wear it. The counts travel
+// with every read rather than only with the index, because they are what a Topic is worth
+// knowing at a glance - and a Topic nobody carries any more is a real row with zeroes on it
+// rather than an absence (CONTEXT.md, Topic).
+export interface TopicListEntry extends Topic {
+  permanentNoteCount: number;
+  sourceCount: number;
+}
+
 export interface TopicListResponse {
-  topics: Topic[];
+  topics: TopicListEntry[];
+}
+
+// A Permanent note as the Topic view lists it: with the number of Links at either end of it,
+// which is the order the list is in. Link count is the uncurated front door - the note most
+// connected to the box sits first - rather than a score shown for its own sake (#88).
+export interface TopicPermanentNote extends PermanentNote {
+  linkCount: number;
+}
+
+// The Topic view's payload: the Topic itself, the Permanent notes carrying it most-linked
+// first, and then the Sources carrying it. Individual Literature notes are deliberately
+// absent - they inherit their Source's Topics and stay reachable through their Source, and
+// listing them here would reproduce the flood the research named (CONTEXT.md, Topic view).
+export interface TopicDetailResponse {
+  topic: TopicListEntry;
+  permanentNotes: TopicPermanentNote[];
+  sources: Source[];
+}
+
+// Renaming is the only write a Topic takes, and it is also the merge: a name that already
+// belongs to another Topic folds the two together rather than being refused (CONTEXT.md,
+// Topic). There is no separate merge request.
+export interface RenameTopicRequest {
+  name: string;
+  // A merge is destructive in a way a rename is not - one of the two Topics leaves the
+  // vocabulary - so the server performs it only when the request says the merge was agreed to.
+  // Without this the confirmation would be advisory: a client that had not managed to read the
+  // vocabulary could not tell a rename from a merge, and would fold two Topics together without
+  // ever asking (#88).
+  merge?: boolean;
+}
+
+// What a rename that turned out to be a merge is answered with when the request did not agree
+// to one: the Topic the name already belongs to, so the client can confirm against the real
+// carrier counts and send the rename again with `merge`.
+export interface TopicMergeConflictResponse {
+  error: string;
+  mergeTarget: TopicListEntry;
+}
+
+// `merged` says which of the two things the rename turned out to be, so the client can report
+// it: false renamed the Topic in place, true folded it into the Topic that already had the
+// name, and `topic` is the one that survived either way.
+export interface RenameTopicResponse {
+  topic: TopicListEntry;
+  merged: boolean;
 }
 
 // Topics travel as names rather than ids on every write, because typing a name is how a Topic

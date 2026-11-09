@@ -6,13 +6,7 @@ import type {
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
-import { sourceKeys } from './sourceHooks.ts';
-import { topicKeys } from './topicHooks.ts';
-
-export const noteKeys = {
-  all: ['notes'] as const,
-  connections: (id: number) => ['notes', 'connections', id] as const,
-};
+import { noteKeys, sourceKeys, topicKeys } from './queryKeys.ts';
 
 // A note's connections, for either kind. The reading page already has its own cards'
 // connections folded into one payload, so this is for the note at the other end of a row -

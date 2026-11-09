@@ -116,6 +116,10 @@ export const sanitizeTopicNames = (value: unknown): string[] => {
   return names;
 };
 
+// One Topic name, for a rename: the same one-line collapse a name on a carrier gets, so
+// renaming to "  Deep   work " is renaming to "Deep work".
+export const sanitizeTopicName = (value: string): string => collapse(value);
+
 // A reason is one line by definition, so it collapses its whitespace exactly as it does when
 // it travels with a Permanent note.
 export const sanitizeLinkReason = (reason: string): string => collapse(reason);

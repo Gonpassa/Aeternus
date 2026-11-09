@@ -1,4 +1,5 @@
 import { SOURCE_KINDS, type SourceKind } from '@nee3/shared-types';
+import { sanitizeTopicName } from './sanitize';
 
 export type ValidationResult = { valid: true } | { valid: false; error: string };
 
@@ -215,6 +216,23 @@ export const validateTopicNames = (value: unknown): ValidationResult => {
     if (!isWithin(name, TOPIC_NAME_MAX)) {
       return { valid: false, error: `A Topic name is at most ${TOPIC_NAME_MAX} characters.` };
     }
+  }
+  return { valid: true };
+};
+
+// A rename carries one name, held to the same ceiling a name on a carrier is: renaming is the
+// only write a Topic takes, and it is also the merge, so the name is checked here and the
+// vocabulary decides afterwards whether it belongs to a Topic already (CONTEXT.md, Topic).
+export const validateTopicName = (value: unknown): ValidationResult => {
+  const name = sanitizeTopicName(trimmed(value));
+  if (name === '') {
+    return { valid: false, error: 'A Topic needs a name.' };
+  }
+  // Measured after trimming, the way the name is stored: a name that fits once its surrounding
+  // whitespace is gone is a legal name, and refusing it would be refusing the name the user
+  // would actually get.
+  if (!isWithin(name, TOPIC_NAME_MAX)) {
+    return { valid: false, error: `A Topic name is at most ${TOPIC_NAME_MAX} characters.` };
   }
   return { valid: true };
 };

@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { Topic } from '@nee3/shared-types';
-import { TopicTags } from './TopicTags.tsx';
+
+import { routerLinkStub } from '../../../../test/routerLinkStub.tsx';
+
+vi.mock('@tanstack/react-router', () => routerLinkStub());
+
+const { TopicTags } = await import('./TopicTags.tsx');
 
 const topic = (id: number, name: string): Topic => ({
   id,
@@ -39,5 +44,22 @@ describe('TopicTags', () => {
     expect(
       screen.getByRole('list', { name: 'Topics inherited from the Source' }),
     ).toBeInTheDocument();
+  });
+
+  // A Topic is a place rather than a filter state, so the tag is the way in (#88).
+  it('leads each tag to that Topic’s own view', () => {
+    render(<TopicTags topics={[topic(7, 'Attention')]} />);
+
+    expect(screen.getByRole('link', { name: 'Attention' })).toHaveAttribute(
+      'href',
+      '/notes/topics/7',
+    );
+  });
+
+  it('leaves the chips unlinked where the carrier itself is the link', () => {
+    render(<TopicTags topics={[topic(7, 'Attention')]} linked={false} />);
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('Attention')).toBeInTheDocument();
   });
 });

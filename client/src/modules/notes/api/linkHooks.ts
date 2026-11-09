@@ -9,8 +9,7 @@ import type {
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
 import type { LinkActions } from '../LinkActionsContext.tsx';
-import { noteKeys } from './noteHooks.ts';
-import { sourceKeys } from './sourceHooks.ts';
+import { noteKeys, sourceKeys } from './queryKeys.ts';
 
 export const linkKeys = {
   all: ['links'] as const,

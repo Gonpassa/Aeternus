@@ -150,6 +150,14 @@ describe('Nav', () => {
       expect(screen.getByRole('link', { name: 'Read' })).toHaveAttribute('href', '/notes/read');
     });
 
+    // The Topic index hangs off the Notes heading rather than taking a rail entry of its
+    // own (#88).
+    it('reaches the Topic index from the Notes heading', () => {
+      render(<Nav />);
+
+      expect(screen.getByRole('link', { name: 'Topics' })).toHaveAttribute('href', '/notes/topics');
+    });
+
     it('renders the full desktop rail with no hamburger', () => {
       render(<Nav />);
 

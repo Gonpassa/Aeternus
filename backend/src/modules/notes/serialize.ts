@@ -7,11 +7,13 @@ import type {
   NoteConnections,
   PermanentNote,
   Topic,
+  TopicListEntry,
+  TopicPermanentNote,
   TopicRelatedNote,
 } from '@nee3/shared-types';
 import type { Link, Note, Topic as DbTopic } from '../../db/schema';
 import type { ConnectionRows } from '../../db/links';
-import type { TopicRelatedNoteRow } from '../../db/topics';
+import type { TopicRelatedNoteRow, TopicWithCounts } from '../../db/topics';
 
 // One table holds both kinds behind a `kind` discriminator, so the five columns that belong
 // to the other kind are null on every row (ADR 0012). The client is handed a discriminated
@@ -100,6 +102,28 @@ export const toTopicRelatedNote = ({
   note: toNote(note),
   sourceTitle,
   topics: topics.map(toTopic),
+});
+
+// A Topic with how many carriers wear it, which is how the vocabulary is read everywhere: the
+// index shows the counts, and a Topic nobody carries any more reads as zeroes rather than
+// dropping out of the list (CONTEXT.md, Topic).
+export const toTopicListEntry = (row: TopicWithCounts): TopicListEntry => ({
+  ...toTopic(row),
+  permanentNoteCount: row.permanentNoteCount,
+  sourceCount: row.sourceCount,
+});
+
+// A Permanent note as the Topic view lists it: the note, plus the Links at either end of it,
+// which is the order the list is in (#88).
+export const toTopicPermanentNote = ({
+  note,
+  linkCount,
+}: {
+  note: Note;
+  linkCount: number;
+}): TopicPermanentNote => ({
+  ...toPermanentNote(note),
+  linkCount,
 });
 
 // One row of the Link panel. The note travels whole rather than as a preview, because a result
