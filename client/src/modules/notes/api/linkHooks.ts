@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateLinkRequest,
@@ -94,18 +95,24 @@ export const useDeleteLink = () => {
 // uses, so the reading page and, later, Review each wire this once instead of threading three
 // mutations apiece. The hooks above stay separately usable; this is only the assembly.
 export const useLinkActions = (): LinkActions => {
-  const createLink = useCreateLink();
-  const updateReason = useUpdateLinkReason();
-  const removeLink = useDeleteLink();
-  return {
-    link: async (input) => {
-      await createLink.mutateAsync(input);
-    },
-    editReason: async (linkId, fromNoteId, reason) => {
-      await updateReason.mutateAsync({ linkId, fromNoteId, reason });
-    },
-    removeLink: async (linkId) => {
-      await removeLink.mutateAsync(linkId);
-    },
-  };
+  const { mutateAsync: createLink } = useCreateLink();
+  const { mutateAsync: updateReason } = useUpdateLinkReason();
+  const { mutateAsync: removeLink } = useDeleteLink();
+  // Memoised because this goes straight into a context provider: a fresh object every render would
+  // re-render every card on the page for nothing. `mutateAsync` is stable across renders, so
+  // the identities it closes over are too.
+  return useMemo(
+    () => ({
+      link: async (input) => {
+        await createLink(input);
+      },
+      editReason: async (linkId, fromNoteId, reason) => {
+        await updateReason({ linkId, fromNoteId, reason });
+      },
+      removeLink: async (linkId) => {
+        await removeLink(linkId);
+      },
+    }),
+    [createLink, updateReason, removeLink],
+  );
 };

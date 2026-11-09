@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog } from '../../../../../../atoms/Dialog/Dialog.tsx';
 import { Text } from '../../../../../../atoms/Text/Text.tsx';
-import { linkRemovalRefusal } from '../../../../utils/linkRefusal.ts';
+import { serverMessage } from '../../../../utils/serverMessage.ts';
 
 export interface RemoveLinkDialogProps {
   open: boolean;
@@ -32,7 +32,7 @@ export function RemoveLinkDialog({ open, otherLabel, onClose, onConfirm }: Remov
       await onConfirm();
       onClose();
     } catch (error) {
-      setRefusal(linkRemovalRefusal(error));
+      setRefusal(serverMessage(error, 'That connection could not be removed just now.'));
     } finally {
       setRemoving(false);
     }

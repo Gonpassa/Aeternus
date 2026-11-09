@@ -119,6 +119,25 @@ export const validateLiteratureNoteInput = (input: {
 const isPositiveInteger = (value: unknown): boolean =>
   typeof value === 'number' && Number.isInteger(value) && value > 0;
 
+// The reason on its own, for the edit-in-place path: the Link already exists and only the line
+// is being rewritten. It cannot be emptied, because a Link with no reason from the end that
+// made it is not a state this module allows (ADR 0015).
+export const validateLinkReason = (reason: unknown): ValidationResult => {
+  if (trimmed(reason) === '') {
+    return {
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    };
+  }
+  if (!isWithin(reason, LINK_REASON_MAX)) {
+    return {
+      valid: false,
+      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+    };
+  }
+  return { valid: true };
+};
+
 // A Permanent note's shape, including the Links it cannot be saved without. The Link rules are
 // part of this validation rather than a step after it, because the note and its first Links are
 // one request: a missing Link and a target picked without a reason both block the save, and
@@ -155,17 +174,11 @@ export const validatePermanentNoteInput = (input: {
     if (!isPositiveInteger(link.targetNoteId)) {
       return { valid: false, error: 'A connection needs a note to connect to.' };
     }
-    if (trimmed(link.reason) === '') {
-      return {
-        valid: false,
-        error: 'Every connection needs a line saying why the two belong together.',
-      };
-    }
-    if (!isWithin(link.reason, LINK_REASON_MAX)) {
-      return {
-        valid: false,
-        error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
-      };
+    // The same rule the browsable panel's reasons are held to: it is the same thing being
+    // written, so there is one place it is checked (ADR 0015).
+    const reason = validateLinkReason(link.reason);
+    if (!reason.valid) {
+      return reason;
     }
     targetIds.push(link.targetNoteId as number);
   }
@@ -222,23 +235,4 @@ export const validateLinkInput = (input: {
     return { valid: false, error: 'A note cannot be connected to itself.' };
   }
   return validateLinkReason(input.reason);
-};
-
-// The reason on its own, for the edit-in-place path: the Link already exists and only the line
-// is being rewritten. It cannot be emptied, because a Link with no reason from the end that
-// made it is not a state this module allows (ADR 0015).
-export const validateLinkReason = (reason: unknown): ValidationResult => {
-  if (trimmed(reason) === '') {
-    return {
-      valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
-    };
-  }
-  if (!isWithin(reason, LINK_REASON_MAX)) {
-    return {
-      valid: false,
-      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
-    };
-  }
-  return { valid: true };
 };

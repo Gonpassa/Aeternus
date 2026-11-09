@@ -13,6 +13,16 @@ export class UnknownLinkTargetError extends Error {
   }
 }
 
+// Linking from an end that has already written its line. Making a Link and rewriting a reason
+// are separate moves - each end owns its own line and edits it in place (ADR 0015) - so this
+// path refuses rather than performing an edit nobody asked for.
+export class ReasonAlreadyGivenError extends Error {
+  constructor() {
+    super('That end has already said why');
+    this.name = 'ReasonAlreadyGivenError';
+  }
+}
+
 export interface LinkDraftInput {
   targetNoteId: number;
   reason: string;
@@ -151,15 +161,17 @@ export const listConnectionsByNoteIds = async ({
   return grouped;
 };
 
+// One note, at either end of a Link. ADR 0013 stores a pair once and in one direction, so
+// "a Link this note is part of" is always this two-column predicate rather than a lookup on a
+// single column - it is named here so every reader of Links asks the question the same way.
+const touchesNote = (noteId: number | typeof notes.id) =>
+  or(eq(links.originNoteId, noteId), eq(links.targetNoteId, noteId));
+
 // Every Link one note is an end of, in either direction. Read in one query so the panel can
 // mark its candidates with the Link that already connects them without asking per row: there
 // is at most one Link per unordered pair, so the other end's id identifies it (ADR 0013).
 export const listLinksForNote = async ({ noteId }: { noteId: number }): Promise<Link[]> =>
-  db
-    .select()
-    .from(links)
-    .where(or(eq(links.originNoteId, noteId), eq(links.targetNoteId, noteId)))
-    .orderBy(asc(links.createdAt), asc(links.id));
+  db.select().from(links).where(touchesNote(noteId)).orderBy(asc(links.createdAt), asc(links.id));
 
 // A Link read by id, with ownership established through the note at its origin: a Link carries
 // no user of its own, and both of its ends are always the same user's notes.
@@ -221,13 +233,15 @@ export const createLink = async ({
       // Which column this end owns is read off the row: the origin's reason is `reason`, the
       // other end's is `targetReason`, and each end edits only its own (ADR 0013).
       const linkingBack = existing.originNoteId !== originNoteId;
+      // Linking back is adding the line this end has not written yet. An end that has already
+      // written one is not linking back but rewriting, which is the edit endpoint's job, so it
+      // is refused here instead of being taken as a silent edit.
+      if (!linkingBack || existing.targetReason !== null) {
+        throw new ReasonAlreadyGivenError();
+      }
       const [updated] = await tx
         .update(links)
-        .set(
-          linkingBack
-            ? { targetReason: reason, updatedAt: new Date() }
-            : { reason, updatedAt: new Date() },
-        )
+        .set({ targetReason: reason, updatedAt: new Date() })
         .where(eq(links.id, existing.id))
         .returning();
       if (!updated) {
@@ -258,7 +272,11 @@ export const updateLinkReason = async ({
 }): Promise<Link | undefined> => {
   const [updated] = await db
     .update(links)
-    .set(end === 'origin' ? { reason, updatedAt: new Date() } : { targetReason: reason, updatedAt: new Date() })
+    .set(
+      end === 'origin'
+        ? { reason, updatedAt: new Date() }
+        : { targetReason: reason, updatedAt: new Date() },
+    )
     .where(eq(links.id, id))
     .returning();
   return updated;
@@ -304,7 +322,7 @@ export const findPermanentNotesLeftUnlinked = async ({
     .from(links)
     .where(
       and(
-        or(eq(links.originNoteId, notes.id), eq(links.targetNoteId, notes.id)),
+        touchesNote(notes.id),
         removedLinkIds.length === 0 ? undefined : notInArray(links.id, removedLinkIds),
       ),
     );

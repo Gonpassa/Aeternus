@@ -168,9 +168,7 @@ export const listNotesBySourceExcept = async ({
     .select({ note: notes, sourceTitle: sources.title })
     .from(notes)
     .leftJoin(sources, eq(sources.id, notes.sourceId))
-    .where(
-      and(eq(notes.sourceId, sourceId), eq(notes.userId, userId), ne(notes.id, exceptNoteId)),
-    )
+    .where(and(eq(notes.sourceId, sourceId), eq(notes.userId, userId), ne(notes.id, exceptNoteId)))
     .orderBy(asc(notes.createdAt), asc(notes.id));
 
 // How many results the search tier returns. A picker is browsed, not paged: a query that

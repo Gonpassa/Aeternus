@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { AxiosError } from 'axios';
 import userEvent from '@testing-library/user-event';
 import type { Link, LinkTargetCandidate, Note } from '@nee3/shared-types';
 import { LinkPanel } from './LinkPanel.tsx';
@@ -201,6 +202,37 @@ describe('LinkPanel', () => {
         'Search for a note to connect to - anything you have written is reachable from here.',
       ),
     ).toBeInTheDocument();
+  });
+
+  // The server's refusals here are written to be read - an end that has already said why, a
+  // note that has gone - and nothing else surfaces an expected 4xx, so the field shows them.
+  it('shows the server’s refusal at the field that asked for the connection', async () => {
+    const refusal =
+      'This note has already said why - rewrite the reason where the connection is shown.';
+    const onLink = vi.fn().mockRejectedValue(
+      new AxiosError('Conflict', undefined, undefined, undefined, {
+        status: 409,
+        statusText: 'Conflict',
+        data: { error: refusal },
+        headers: {},
+        config: { headers: {} as never },
+      }),
+    );
+    useLinkTargets.mockReturnValue(answer({ sameSource: [candidate()] }));
+
+    render(<LinkPanel fromNoteId={1} onLink={onLink} onClose={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Connect to this' }));
+    await userEvent.type(
+      screen.getByLabelText('Why these belong together'),
+      'Both are about effort avoided.',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Connect these' }));
+
+    expect(await screen.findByText(refusal)).toBeInTheDocument();
+    // What was typed is still there: the line is the user's thought, not a form entry to redo.
+    expect(screen.getByLabelText('Why these belong together')).toHaveValue(
+      'Both are about effort avoided.',
+    );
   });
 
   it('says so when the search could not be run', () => {

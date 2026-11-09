@@ -6,6 +6,7 @@ import type {
   UpdateLinkReasonRequest,
 } from '@nee3/shared-types';
 import {
+  ReasonAlreadyGivenError,
   UnknownLinkTargetError,
   createLink as createLinkRecord,
   deleteLink as deleteLinkRecord,
@@ -33,7 +34,9 @@ const parseLinkId = (req: Request): number | null => {
 // Linking back along a pair that is already linked is answered with the Link that is there,
 // carrying this end's reason, rather than with a second row: there is at most one Link per
 // unordered pair, and the user-facing move is to show what already exists (ADR 0013). The
-// status says which happened - 201 for a Link made, 200 for a reason added to one.
+// status says which happened - 201 for a Link made, 200 for a reason added to one. An end that
+// has already written its line is refused: that is a rewrite, and rewriting has its own
+// endpoint (ADR 0015).
 export const createLink = async (
   req: Request,
   res: Response,
@@ -60,6 +63,15 @@ export const createLink = async (
     if (err instanceof UnknownLinkTargetError) {
       res.status(400).json({
         error: 'That note could not be found to connect to.',
+      } satisfies ApiErrorResponse);
+      return;
+    }
+    // Already said from this end: the line is rewritten where it is read, not by linking a
+    // second time (ADR 0015). The panel shows such a pair as connected and offers no second
+    // Link, so reaching this is a client out of step with the Link rather than a user error.
+    if (err instanceof ReasonAlreadyGivenError) {
+      res.status(409).json({
+        error: 'This note has already said why - rewrite the reason where the connection is shown.',
       } satisfies ApiErrorResponse);
       return;
     }
@@ -91,6 +103,12 @@ export const updateLinkReason = async (
     return;
   }
   const { fromNoteId, reason } = req.body as UpdateLinkReasonRequest;
+  // Which end is speaking is an id like any other in this module, so it is held to the same
+  // shape before it reaches a query rather than being coerced and left to miss.
+  if (!Number.isInteger(fromNoteId) || fromNoteId <= 0) {
+    res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+    return;
+  }
   const validation = validateLinkReason(reason);
   if (!validation.valid) {
     res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
@@ -103,7 +121,7 @@ export const updateLinkReason = async (
       res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
       return;
     }
-    const end = endOf(link, Number(fromNoteId));
+    const end = endOf(link, fromNoteId);
     if (end === null) {
       res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
       return;

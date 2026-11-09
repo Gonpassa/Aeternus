@@ -7,8 +7,8 @@ import { useNoteConnections } from '../../../api/noteHooks.ts';
 import { useLinkActionsContext } from '../../../LinkActionsContext.tsx';
 import { attributeReasons } from '../../../utils/linkReason.ts';
 import { noteKindLabel, noteLabel } from '../../../utils/noteLabel.ts';
+import { ReasonField } from '../../ReasonField/ReasonField.tsx';
 import { NoteConnections } from '../NoteConnections.tsx';
-import { ReasonEditor } from './ReasonEditor/ReasonEditor.tsx';
 import { RemoveLinkDialog } from './RemoveLinkDialog/RemoveLinkDialog.tsx';
 
 export interface ConnectionRowProps {
@@ -91,10 +91,11 @@ export function ConnectionRow({ connection, fromNoteId, nested = false }: Connec
           {/* The line this end wrote, rewritten where it is read. Only this end's is editable:
               the other end's reason is not this note's to restate (ADR 0013). */}
           {editable && editingReason ? (
-            <ReasonEditor
+            <ReasonField
               reason={ownReason}
               id={`connection-reason-error-${link.id}`}
-              onSave={async (reason) => {
+              submitLabel="Save the reason"
+              onSubmit={async (reason) => {
                 await actions.editReason(link.id, fromNoteId, reason);
                 setEditingReason(false);
               }}

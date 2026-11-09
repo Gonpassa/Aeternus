@@ -311,7 +311,10 @@ describe('link routes (integration)', () => {
       expect(rows[0]?.total).toBe(1);
     });
 
-    it('rewrites the origin’s own reason when that end links again', async () => {
+    // Linking again from an end that has already written its line is a rewrite, and rewriting
+    // happens in place at its own endpoint (ADR 0015) - so this path refuses rather than
+    // taking the new line as an edit nobody declared.
+    it('refuses a second connection from the end that has already said why', async () => {
       const sourceId = await createSource(aliceAgent, 'How to Take Smart Notes');
       const a = await fileNote(aliceAgent, sourceId, { body: 'The first note.' });
       const b = await fileNote(aliceAgent, sourceId, { body: 'The second note.' });
@@ -323,13 +326,33 @@ describe('link routes (integration)', () => {
         .post('/api/links')
         .send({ originNoteId: a, targetNoteId: b, reason: 'What it was really about.' });
 
-      expect(again.status).toBe(200);
-      expect(again.body.link).toEqual(
-        expect.objectContaining({
-          reason: 'What it was really about.',
-          targetReason: null,
-        }),
+      expect(again.status).toBe(409);
+      expect(again.body.error).toBe(
+        'This note has already said why - rewrite the reason where the connection is shown.',
       );
+
+      const { rows } = await db.execute<{ reason: string }>(
+        sql`select reason from links where origin_note_id = ${a}`,
+      );
+      expect(rows[0]?.reason).toBe('The first thought.');
+    });
+
+    it('refuses linking back a second time from the end that already linked back', async () => {
+      const sourceId = await createSource(aliceAgent, 'How to Take Smart Notes');
+      const a = await fileNote(aliceAgent, sourceId, { body: 'The first note.' });
+      const b = await fileNote(aliceAgent, sourceId, { body: 'The second note.' });
+      await aliceAgent
+        .post('/api/links')
+        .send({ originNoteId: a, targetNoteId: b, reason: 'The first thought.' });
+      await aliceAgent
+        .post('/api/links')
+        .send({ originNoteId: b, targetNoteId: a, reason: 'And this back.' });
+
+      const again = await aliceAgent
+        .post('/api/links')
+        .send({ originNoteId: b, targetNoteId: a, reason: 'Said differently.' });
+
+      expect(again.status).toBe(409);
     });
 
     it('refuses a connection with no reason', async () => {
