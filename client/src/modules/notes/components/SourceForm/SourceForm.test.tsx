@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { SourceForm } from './SourceForm.tsx';
 import { SOURCE_TITLE_MAX, SOURCE_AUTHOR_MAX } from './SourceForm.utils.ts';
 
@@ -34,7 +35,7 @@ describe('SourceForm', () => {
   it('submits a title and a kind, with the optional fields as null', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.type(screen.getByLabelText('Title'), 'How to Take Smart Notes');
     await chooseKind(user, 'Book');
@@ -46,6 +47,7 @@ describe('SourceForm', () => {
         kind: 'book',
         author: null,
         url: null,
+        topicNames: [],
       }),
     );
   });
@@ -53,7 +55,7 @@ describe('SourceForm', () => {
   it('passes an author and a link through when they are given', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.type(screen.getByLabelText('Title'), 'The Nature of Order');
     await chooseKind(user, 'Book');
@@ -74,7 +76,7 @@ describe('SourceForm', () => {
   it('refuses a Source with no title', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await chooseKind(user, 'Article');
     await submit(user);
@@ -86,7 +88,7 @@ describe('SourceForm', () => {
   it('refuses a Source with no kind chosen', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.type(screen.getByLabelText('Title'), 'An untitled kind');
     await submit(user);
@@ -102,7 +104,7 @@ describe('SourceForm', () => {
   it('refuses an over-length title with a readable message', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.click(screen.getByLabelText('Title'));
     await user.paste('a'.repeat(SOURCE_TITLE_MAX + 1));
@@ -118,7 +120,7 @@ describe('SourceForm', () => {
   it('accepts a title of exactly the ceiling', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.click(screen.getByLabelText('Title'));
     await user.paste('a'.repeat(SOURCE_TITLE_MAX));
@@ -131,7 +133,7 @@ describe('SourceForm', () => {
   it('refuses an over-length author with a readable message', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.type(screen.getByLabelText('Title'), 'A long byline');
     await chooseKind(user, 'Book');
@@ -151,7 +153,7 @@ describe('SourceForm', () => {
   it.each(['example.com', 'javascript:alert(1)'])('refuses the link %s', async (url) => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.type(screen.getByLabelText('Title'), 'A questionable link');
     await chooseKind(user, 'Article');
@@ -168,7 +170,7 @@ describe('SourceForm', () => {
   it('trims what it submits, so surrounding space never reaches the API', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(<SourceForm onSubmit={onSubmit} />);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
     await user.click(screen.getByLabelText('Title'));
     await user.paste('  Tristes Tropiques  ');
@@ -184,22 +186,41 @@ describe('SourceForm', () => {
 
   // There is no reading status to offer, because a Source has no lifecycle (CONTEXT.md).
   it('offers no status field', () => {
-    render(<SourceForm onSubmit={vi.fn()} />);
+    render(<SourceForm onSubmit={vi.fn()} />, { wrapper: queryWrapper() });
 
     expect(screen.queryByLabelText(/status/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/reading|finished|to read/i)).not.toBeInTheDocument();
   });
 
-  it('offers no Topics field yet', () => {
-    render(<SourceForm onSubmit={vi.fn()} />);
+  it('offers Topics, and submits the ones put on the Source', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
-    expect(screen.queryByLabelText(/topic/i)).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('Title'), 'Tristes Tropiques');
+    await chooseKind(user, 'Book');
+    await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Myth');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await submit(user);
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ topicNames: ['Myth'] })),
+    );
+  });
+
+  // Optional, so a Source with none is not an incomplete one (CONTEXT.md, Topic).
+  it('saves a Source with no Topic at all', () => {
+    render(<SourceForm onSubmit={vi.fn()} />, { wrapper: queryWrapper() });
+
+    expect(screen.getByRole('button', { name: 'Add a Topic' })).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Topics' })).not.toBeInTheDocument();
   });
 
   it('calls onDiscard from the cancel button', async () => {
     const user = userEvent.setup();
     const onDiscard = vi.fn();
-    render(<SourceForm onSubmit={vi.fn()} onDiscard={onDiscard} />);
+    render(<SourceForm onSubmit={vi.fn()} onDiscard={onDiscard} />, { wrapper: queryWrapper() });
 
     await user.click(screen.getByRole('button', { name: /cancel/i }));
 

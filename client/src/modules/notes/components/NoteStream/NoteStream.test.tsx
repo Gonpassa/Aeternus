@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import type { LiteratureNoteWithConnections } from '@nee3/shared-types';
+import type { LiteratureNoteWithConnections, Topic } from '@nee3/shared-types';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { NoteStream } from './NoteStream.tsx';
 
@@ -32,6 +32,7 @@ const renderStream = (
     <NoteStream
       notes={notes}
       sourceTitle="How to Take Smart Notes"
+      sourceTopics={props.sourceTopics ?? []}
       onCorrect={props.onCorrect ?? vi.fn()}
       onDelete={props.onDelete ?? vi.fn()}
       onWritePermanentNote={props.onWritePermanentNote ?? vi.fn()}
@@ -251,5 +252,29 @@ describe('NoteStream', () => {
     expect(screen.getByText('Writing is how an idea is tested.')).toBeInTheDocument();
     expect(screen.getByText('This is the claim that note was circling.')).toBeInTheDocument();
     expect(screen.queryByText('Connects to')).not.toBeInTheDocument();
+  });
+  // A Literature note carries no Topics of its own: it shows the Source's, named as the Source's,
+  // and offers no way to add one (CONTEXT.md, Topic).
+  it("shows the Source's Topics on a filed note, read-only", () => {
+    const topic: Topic = {
+      id: 1,
+      userId: 1,
+      name: 'Attention',
+      createdAt: '2026-09-01T10:00:00.000Z',
+    };
+    renderStream([note()], { sourceTopics: [topic] });
+
+    expect(
+      screen.getByRole('list', { name: 'Topics inherited from the Source' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('From the Source')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Add a Topic/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Remove the Topic/ })).not.toBeInTheDocument();
+  });
+
+  it('says nothing about Topics when the Source carries none', () => {
+    renderStream([note()]);
+
+    expect(screen.queryByText('From the Source')).not.toBeInTheDocument();
   });
 });

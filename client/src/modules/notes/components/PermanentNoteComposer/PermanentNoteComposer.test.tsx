@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { PermanentNoteComposer } from './PermanentNoteComposer.tsx';
 import { LINK_REASON_MAX, PERMANENT_NOTE_TITLE_MAX } from './PermanentNoteComposer.utils.ts';
 
@@ -14,6 +15,7 @@ const renderComposer = (overrides: { onWrite?: () => Promise<void> } = {}) => {
       onWrite={onWrite}
       onDiscard={onDiscard}
     />,
+    { wrapper: queryWrapper() },
   );
   return { onWrite, onDiscard };
 };
@@ -53,6 +55,7 @@ describe('PermanentNoteComposer', () => {
 
     expect(screen.queryByRole('button', { name: /link later/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole('button').map((element) => element.textContent)).toEqual([
+      'Add a Topic',
       'Discard',
       'File the idea',
     ]);
@@ -75,7 +78,27 @@ describe('PermanentNoteComposer', () => {
         title: 'Writing is how an idea is tested.',
         body: 'An unwritten idea has not been had.',
         links: [{ targetNoteId: 7, reason: 'This is the claim that note was circling.' }],
+        topicNames: [],
       }),
+    );
+  });
+
+  // Optional here as everywhere: a Permanent note is the one note kind that carries Topics of
+  // its own, and it carries none unless the writer puts one on (CONTEXT.md, Topic).
+  it('sends the Topics put on the note with it', async () => {
+    const user = userEvent.setup();
+    const { onWrite } = renderComposer();
+
+    await user.type(screen.getByLabelText('The claim'), 'Writing is how an idea is tested.');
+    await user.type(screen.getByLabelText('The idea'), 'An unwritten idea has not been had.');
+    await user.type(screen.getByLabelText('Why these belong together'), 'The claim it circled.');
+    await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Attention');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await user.click(file());
+
+    await waitFor(() =>
+      expect(onWrite).toHaveBeenCalledWith(expect.objectContaining({ topicNames: ['Attention'] })),
     );
   });
 

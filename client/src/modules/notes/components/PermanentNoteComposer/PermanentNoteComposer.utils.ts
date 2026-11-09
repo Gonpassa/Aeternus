@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
+import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
 // request is actually held to - and they are mirrored here so an over-long field is answered
@@ -34,12 +35,22 @@ export const permanentNoteSchema = z.object({
       LINK_REASON_MAX,
       `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
     ),
+  // A Permanent note is the one note kind that carries its own Topics, and carries them
+  // optionally: an idea filed under no word yet is not an incomplete one (#87).
+  topicNames: z
+    .array(z.string().trim().min(1).max(TOPIC_NAME_MAX))
+    .max(TOPIC_COUNT_MAX, `A note carries at most ${TOPIC_COUNT_MAX} Topics.`),
 });
 
 export type PermanentNoteValues = z.input<typeof permanentNoteSchema>;
 export type PermanentNoteOutput = z.output<typeof permanentNoteSchema>;
 
-export const BLANK_COMPOSER: PermanentNoteValues = { title: '', body: '', reason: '' };
+export const BLANK_COMPOSER: PermanentNoteValues = {
+  title: '',
+  body: '',
+  reason: '',
+  topicNames: [],
+};
 
 // The note and its first Link in one request, because they are one transaction (ADR 0014).
 // The target is the note the composer was opened from, so it is not a field the user fills in:
@@ -51,4 +62,5 @@ export const toCreateRequest = (
   title: values.title,
   body: values.body,
   links: [{ targetNoteId, reason: values.reason }],
+  topicNames: values.topicNames,
 });

@@ -16,6 +16,8 @@ import {
   type PermanentNoteValues,
 } from './PermanentNoteComposer.utils.ts';
 import { WRITTEN_ON_CARD_RULED } from '../../utils/cardInput.ts';
+import { useTopics } from '../../api/topicHooks.ts';
+import { TopicTagger } from '../TopicTagger/TopicTagger.tsx';
 
 export interface PermanentNoteComposerProps {
   // The note the composer was opened from: the Link's target, pre-selected and not a field.
@@ -36,13 +38,15 @@ const ERROR_ID = 'permanent-note-composer-error';
 // any moment, so there is no save-and-link-later here and no bare-note endpoint behind it
 // (ADR 0014). The target is the Literature note this was opened from, named on the card and
 // not editable; the reason for the connection is a field of the composer rather than a step
-// after it (ADR 0015). Finding other targets is #85.
+// after it (ADR 0015). Topics are optional here, and this is the only note kind that carries its
+// own: a Literature note inherits its Source's (#87). Finding other targets is #85.
 export function PermanentNoteComposer({
   targetNoteId,
   targetLabel,
   onWrite,
   onDiscard,
 }: PermanentNoteComposerProps) {
+  const topics = useTopics();
   const {
     control,
     handleSubmit,
@@ -54,7 +58,12 @@ export function PermanentNoteComposer({
     reValidateMode: 'onChange',
   });
 
-  const error = errors.title?.message ?? errors.body?.message ?? errors.reason?.message;
+  const error =
+    errors.title?.message ??
+    errors.body?.message ??
+    errors.reason?.message ??
+    errors.topicNames?.message ??
+    errors.topicNames?.root?.message;
 
   const onValid = async (values: PermanentNoteOutput) => {
     try {
@@ -169,6 +178,18 @@ export function PermanentNoteComposer({
             )}
           />
         </Stack>
+
+        <Controller
+          control={control}
+          name="topicNames"
+          render={({ field }) => (
+            <TopicTagger
+              names={field.value}
+              vocabulary={(topics.data ?? []).map((topic) => topic.name)}
+              onChange={field.onChange}
+            />
+          )}
+        />
 
         {error && (
           <Text id={ERROR_ID} variant="formError" role="alert">

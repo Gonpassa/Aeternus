@@ -5,9 +5,12 @@ import type {
   NoteConnection,
   NoteConnections,
   PermanentNote,
+  Topic,
+  TopicRelatedNote,
 } from '@nee3/shared-types';
-import type { Link, Note } from '../../db/schema';
+import type { Link, Note, Topic as DbTopic } from '../../db/schema';
 import type { ConnectionRows } from '../../db/links';
+import type { TopicRelatedNoteRow } from '../../db/topics';
 
 // One table holds both kinds behind a `kind` discriminator, so the five columns that belong
 // to the other kind are null on every row (ADR 0012). The client is handed a discriminated
@@ -78,3 +81,22 @@ export const toConnections = (rows: ConnectionRows): NoteConnections => ({
 });
 
 export const EMPTY_CONNECTIONS: NoteConnections = { connectsTo: [], connectedFrom: [] };
+
+export const toTopic = (row: DbTopic): Topic => ({
+  id: row.id,
+  userId: row.userId,
+  name: row.name,
+  createdAt: row.createdAt.toISOString(),
+});
+
+// A note as the link panel's Topic tier reads it, either kind, with the Topics that put it in
+// the tier and - for a Literature note, which has no title - its Source's title (#87).
+export const toTopicRelatedNote = ({
+  note,
+  sourceTitle,
+  topics,
+}: TopicRelatedNoteRow): TopicRelatedNote => ({
+  note: toNote(note),
+  sourceTitle,
+  topics: topics.map(toTopic),
+});

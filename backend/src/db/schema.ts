@@ -365,3 +365,93 @@ export const links = pgTable(
 
 export type Link = typeof links.$inferSelect;
 export type NewLink = typeof links.$inferInsert;
+
+// A user's Topic vocabulary (CONTEXT.md, Topic), following the Symbol vocabulary above rather
+// than sharing its table: a Symbol and a Topic mean different things even when they are spelled
+// the same, so "Water" as a dream Symbol and "Water" as a reading Topic are two records. Unique
+// per user on the lowercased name so casing never splits the vocabulary, while `name` keeps the
+// casing the user first typed. A Topic nobody carries any more stays here with a count of zero:
+// the word was chosen deliberately, and removing it silently would lose that choice.
+export const topics = pgTable(
+  'topics',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userLowerNameUnique: uniqueIndex('topics_user_id_lower_name_unique').on(
+      table.userId,
+      sql`lower(${table.name})`,
+    ),
+  }),
+);
+
+export type Topic = typeof topics.$inferSelect;
+export type NewTopic = typeof topics.$inferInsert;
+
+// One join table per carrier rather than one polymorphic table over both: a Source and a note
+// are different id spaces, and a nullable-columns-plus-CHECK table would state the same thing
+// less well than two foreign keys do (ADR 0012). Unique per pair - carrying the same Topic
+// twice says nothing - and the carrier column is indexed because a carrier's Topics are read
+// far more often than a Topic's carriers.
+export const sourceTopics = pgTable(
+  'source_topics',
+  {
+    id: serial('id').primaryKey(),
+    topicId: integer('topic_id')
+      .notNull()
+      .references(() => topics.id, { onDelete: 'cascade' }),
+    sourceId: integer('source_id')
+      .notNull()
+      .references(() => sources.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    topicSourceUnique: uniqueIndex('source_topics_topic_id_source_id_unique').on(
+      table.topicId,
+      table.sourceId,
+    ),
+    sourceIdx: index('source_topics_source_id_idx').on(table.sourceId),
+  }),
+);
+
+export type SourceTopic = typeof sourceTopics.$inferSelect;
+export type NewSourceTopic = typeof sourceTopics.$inferInsert;
+
+// Only a Permanent note carries its own Topics: a Literature note inherits its Source's, because
+// tagging at capture time is the collecting the method warns against, and anything worth its own
+// Topic is a Permanent note (CONTEXT.md, Topic). That restriction is declarative rather than a
+// controller rule - the composite FK (noteId, noteKind) -> notes(id, kind) plus the CHECK pinning
+// `noteKind` to 'permanent' is the same trick `associations` uses on its anchor (ADR 0012), so the
+// database itself refuses a Topic attached to a Literature note.
+export const noteTopics = pgTable(
+  'note_topics',
+  {
+    id: serial('id').primaryKey(),
+    topicId: integer('topic_id')
+      .notNull()
+      .references(() => topics.id, { onDelete: 'cascade' }),
+    noteId: integer('note_id').notNull(),
+    noteKind: noteKindEnum('note_kind').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    noteKindFk: foreignKey({
+      columns: [table.noteId, table.noteKind],
+      foreignColumns: [notes.id, notes.kind],
+    }).onDelete('cascade'),
+    topicNoteUnique: uniqueIndex('note_topics_topic_id_note_id_unique').on(
+      table.topicId,
+      table.noteId,
+    ),
+    noteIdx: index('note_topics_note_id_idx').on(table.noteId),
+    permanentOnly: check('note_topics_permanent_only', sql`${table.noteKind} = 'permanent'`),
+  }),
+);
+
+export type NoteTopic = typeof noteTopics.$inferSelect;
+export type NewNoteTopic = typeof noteTopics.$inferInsert;

@@ -4,16 +4,17 @@ import type {
   CreateSourceRequest,
   LiteratureNote,
   LiteratureNoteResponse,
-  Source,
   SourceDetailResponse,
   SourceListEntry,
   SourceListResponse,
   SourceResponse,
+  SourceWithTopics,
   UpdateLiteratureNoteRequest,
   UpdateSourceRequest,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
+import { topicKeys } from './topicHooks.ts';
 
 // The sections the capture card offers, recomputed from the notes that are left: most
 // recently filed first, so the section being read in is offered first, exactly as the reading
@@ -57,14 +58,18 @@ export const useSource = (sourceId: number) =>
 
 export const useCreateSource = () => {
   const queryClient = useQueryClient();
-  return useMutation<Source, Error, CreateSourceRequest>({
+  return useMutation<SourceWithTopics, Error, CreateSourceRequest>({
     mutationFn: async (input) => {
-      const { data } = await apiClient.post<{ source: Source }>(endpoints.sources, input);
+      const { data } = await apiClient.post<SourceResponse>(endpoints.sources, input);
       return data.source;
     },
     // The catalog's order is derived from each Source's notes, so a new Source changes the
-    // whole list rather than appending to it - invalidate the lot.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: sourceKeys.all }),
+    // whole list rather than appending to it - invalidate the lot. The vocabulary goes with it:
+    // filing a Source is one of the two ways a Topic is created (#87).
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sourceKeys.all });
+      queryClient.invalidateQueries({ queryKey: topicKeys.all });
+    },
   });
 };
 
@@ -109,7 +114,7 @@ export const useCreateLiteratureNote = (sourceId: number) => {
 
 export const useUpdateSource = (sourceId: number) => {
   const queryClient = useQueryClient();
-  return useMutation<Source, Error, UpdateSourceRequest>({
+  return useMutation<SourceWithTopics, Error, UpdateSourceRequest>({
     mutationFn: async (input) => {
       const { data } = await apiClient.patch<SourceResponse>(endpoints.source(sourceId), input);
       return data.source;
@@ -122,6 +127,9 @@ export const useUpdateSource = (sourceId: number) => {
         previous ? { ...previous, source } : previous,
       );
       queryClient.invalidateQueries({ queryKey: sourceKeys.list() });
+      // A correction can name a Topic that did not exist, so the vocabulary the tagger offers
+      // is refetched alongside the Source it was typed on.
+      queryClient.invalidateQueries({ queryKey: topicKeys.all });
     },
   });
 };

@@ -6,6 +6,7 @@ import { IndexCard } from '../../../../../atoms/IndexCard/IndexCard.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { SOURCE_KIND_LABEL } from '../../../sourceKinds.ts';
+import { TopicTags } from '../../TopicTags/TopicTags.tsx';
 import { lastNoteLabel } from './SourceCard.utils.ts';
 
 export interface SourceCardProps {
@@ -45,6 +46,9 @@ export function SourceCard({ source }: SourceCardProps) {
                 {source.author}
               </Text>
             )}
+            {/* What the Source is about, under what it is called: a card with no Topic shows
+                nothing here, since Topics are optional everywhere (CONTEXT.md, Topic). */}
+            <TopicTags topics={source.topics} label={`Topics on ${source.title}`} />
             <Text textStyle="label" color="inkSoft" mt="2">
               {lastNoteLabel(source.lastNoteAt)}
             </Text>

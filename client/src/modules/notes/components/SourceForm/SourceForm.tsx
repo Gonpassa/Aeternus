@@ -1,13 +1,16 @@
 import type { FormEventHandler } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CreateSourceRequest, Source } from '@nee3/shared-types';
+import type { CreateSourceRequest, SourceWithTopics } from '@nee3/shared-types';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { Card } from '../../../../atoms/Card/Card.tsx';
 import { FormField } from '../../../../atoms/FormField/FormField.tsx';
 import { FormSelectField } from '../../../../atoms/FormSelectField/FormSelectField.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
+import { Text } from '../../../../atoms/Text/Text.tsx';
 import { SOURCE_KIND_OPTIONS } from '../../sourceKinds.ts';
+import { useTopics } from '../../api/topicHooks.ts';
+import { TopicTagger } from '../TopicTagger/TopicTagger.tsx';
 import {
   sourceSchema,
   toCreateRequest,
@@ -22,26 +25,34 @@ export interface SourceFormProps {
   // A Source to correct rather than a Source to file. The same form serves both, because the
   // fields a Source has are the same fields afterwards - `kind` included, which changes no
   // other field and so strands nothing when it changes (#83).
-  source?: Source;
+  source?: SourceWithTopics;
   submitLabel?: string;
 }
 
-const DEFAULT_VALUES: SourceFormValues = { title: '', kind: '', author: '', url: '' };
+const DEFAULT_VALUES: SourceFormValues = {
+  title: '',
+  kind: '',
+  author: '',
+  url: '',
+  topicNames: [],
+};
 
 // A real form rather than a title-only input: a Source is a first-class record, and the two
 // things it cannot be filed without - what it is called and what kind of thing it is - are
-// both asked for here. Topics are deliberately absent; they arrive with their own ticket.
-// There is no status field anywhere, because a Source has no lifecycle (CONTEXT.md, Source).
+// both asked for here. Topics are asked for too and are optional: what a Source is about is
+// worth recording while it is in front of the user, and a required Topic guarantees vague ones
+// (#87). There is no status field anywhere - a Source has no lifecycle (CONTEXT.md, Source).
 export function SourceForm({
   onSubmit,
   onDiscard,
   source,
   submitLabel = 'Add Source',
 }: SourceFormProps) {
+  const topics = useTopics();
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<SourceFormValues, unknown, SourceFormOutput>({
     defaultValues: source ? toSourceFormValues(source) : DEFAULT_VALUES,
     resolver: zodResolver(sourceSchema),
@@ -80,6 +91,25 @@ export function SourceForm({
       />
       <FormField control={control} name="author" label="Author" placeholder="Optional" />
       <FormField control={control} name="url" label="Link" placeholder="Optional" />
+
+      <Controller
+        control={control}
+        name="topicNames"
+        render={({ field }) => (
+          <TopicTagger
+            names={field.value}
+            // While the vocabulary is still loading the tagger simply offers no suggestions:
+            // typing a name is how a Topic is created, so the field works without them.
+            vocabulary={(topics.data ?? []).map((topic) => topic.name)}
+            onChange={field.onChange}
+          />
+        )}
+      />
+      {errors.topicNames && (
+        <Text variant="formError" role="alert">
+          {errors.topicNames.message ?? errors.topicNames.root?.message}
+        </Text>
+      )}
 
       <Stack justify="flex-end" gap="3" mt="2">
         {onDiscard && (

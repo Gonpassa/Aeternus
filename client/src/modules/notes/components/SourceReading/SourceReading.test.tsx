@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import type { LiteratureNoteWithConnections, Source } from '@nee3/shared-types';
+import type { LiteratureNoteWithConnections, SourceWithTopics } from '@nee3/shared-types';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { SourceReading } from './SourceReading.tsx';
 
-const source = (overrides: Partial<Source> = {}): Source => ({
+const source = (overrides: Partial<SourceWithTopics> = {}): SourceWithTopics => ({
   id: 7,
   userId: 1,
   title: 'How to Take Smart Notes',
@@ -15,6 +15,7 @@ const source = (overrides: Partial<Source> = {}): Source => ({
   url: null,
   createdAt: '2026-09-01T10:00:00.000Z',
   updatedAt: '2026-09-01T10:00:00.000Z',
+  topics: [],
   ...overrides,
 });
 
@@ -154,6 +155,7 @@ describe('SourceReading', () => {
       kind: 'book',
       author: 'Sonke Ahrens',
       url: null,
+      topicNames: [],
     });
   });
 
@@ -171,6 +173,7 @@ describe('SourceReading', () => {
         onDeleteNote={vi.fn()}
         onWritePermanentNote={vi.fn()}
       />,
+      { wrapper: queryWrapper() },
     );
 
     await user.click(screen.getByRole('button', { name: 'Correct these details' }));

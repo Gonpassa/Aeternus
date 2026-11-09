@@ -34,4 +34,9 @@ export const endpoints = {
   note: (id: number) => `/notes/${id}`,
   permanentNotes: '/notes/permanent',
   noteConnections: (id: number) => `/notes/${id}/connections`,
+  // The Topic vocabulary, read for the autocomplete that creates Topics by typing a name.
+  // Renaming, merging and deleting a Topic are #88, so there is nothing else here yet.
+  topics: '/topics',
+  // The notes sharing a Topic with one note: the link panel's middle tier (#87).
+  topicRelatedNotes: (id: number) => `/notes/${id}/topic-notes`,
 } as const;

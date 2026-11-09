@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Source, UpdateSourceRequest } from '@nee3/shared-types';
+import type { SourceWithTopics, UpdateSourceRequest } from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
 import { Heading } from '../../../../../atoms/Heading/Heading.tsx';
 import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
@@ -7,10 +7,11 @@ import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { countLabel } from '../../../../../utils/countLabel.ts';
 import { SOURCE_KIND_LABEL } from '../../../sourceKinds.ts';
 import { SourceForm } from '../../SourceForm/SourceForm.tsx';
+import { TopicTags } from '../../TopicTags/TopicTags.tsx';
 import { DeleteSourceDialog } from './DeleteSourceDialog/DeleteSourceDialog.tsx';
 
 export interface SourceHeaderProps {
-  source: Source;
+  source: SourceWithTopics;
   noteCount: number;
   onCorrect: (input: UpdateSourceRequest) => Promise<void>;
   onDelete: () => Promise<void>;
@@ -75,6 +76,12 @@ export function SourceHeader({ source, noteCount, onCorrect, onDelete }: SourceH
           </a>
         </Text>
       )}
+      {/* The Topics this Source carries, which its Literature notes inherit. Correcting them is
+          the same in-place form as correcting the title, because a Topic is one of the Source's
+          own fields rather than something attached to it afterwards (#87). */}
+      <Stack pt="2">
+        <TopicTags topics={source.topics} label={`Topics on ${source.title}`} />
+      </Stack>
       {/* The count is only worth saying once there is something to count: the empty stream
           below already says that nothing has been written from this Source yet. */}
       {noteCount > 0 && (
