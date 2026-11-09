@@ -229,8 +229,49 @@ export interface Topic {
   createdAt: string;
 }
 
+// A Topic as the vocabulary is read back, with how many carriers wear it. The counts travel
+// with every read rather than only with the index, because they are what a Topic is worth
+// knowing at a glance - and a Topic nobody carries any more is a real row with zeroes on it
+// rather than an absence (CONTEXT.md, Topic).
+export interface TopicListEntry extends Topic {
+  permanentNoteCount: number;
+  sourceCount: number;
+}
+
 export interface TopicListResponse {
-  topics: Topic[];
+  topics: TopicListEntry[];
+}
+
+// A Permanent note as the Topic view lists it: with the number of Links at either end of it,
+// which is the order the list is in. Link count is the uncurated front door - the note most
+// connected to the box sits first - rather than a score shown for its own sake (#88).
+export interface TopicPermanentNote extends PermanentNote {
+  linkCount: number;
+}
+
+// The Topic view's payload: the Topic itself, the Permanent notes carrying it most-linked
+// first, and then the Sources carrying it. Individual Literature notes are deliberately
+// absent - they inherit their Source's Topics and stay reachable through their Source, and
+// listing them here would reproduce the flood the research named (CONTEXT.md, Topic view).
+export interface TopicDetailResponse {
+  topic: TopicListEntry;
+  permanentNotes: TopicPermanentNote[];
+  sources: Source[];
+}
+
+// Renaming is the only write a Topic takes, and it is also the merge: a name that already
+// belongs to another Topic folds the two together rather than being refused (CONTEXT.md,
+// Topic). There is no separate merge request.
+export interface RenameTopicRequest {
+  name: string;
+}
+
+// `merged` says which of the two things the rename turned out to be, so the client can report
+// it: false renamed the Topic in place, true folded it into the Topic that already had the
+// name, and `topic` is the one that survived either way.
+export interface RenameTopicResponse {
+  topic: TopicListEntry;
+  merged: boolean;
 }
 
 // Topics travel as names rather than ids on every write, because typing a name is how a Topic

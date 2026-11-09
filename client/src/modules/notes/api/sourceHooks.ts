@@ -14,7 +14,7 @@ import type {
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
-import { topicKeys } from './topicHooks.ts';
+import { sourceKeys, topicKeys } from './queryKeys.ts';
 
 // The sections the capture card offers, recomputed from the notes that are left: most
 // recently filed first, so the section being read in is offered first, exactly as the reading
@@ -30,12 +30,6 @@ const sectionSuggestions = (notes: LiteratureNote[]): string[] => {
     }
   });
   return seen;
-};
-
-export const sourceKeys = {
-  all: ['sources'] as const,
-  list: () => ['sources', 'list'] as const,
-  detail: (id: number) => ['sources', 'detail', id] as const,
 };
 
 export const useSources = () =>

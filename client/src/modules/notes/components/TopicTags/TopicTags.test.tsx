@@ -1,7 +1,27 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import type { Topic } from '@nee3/shared-types';
-import { TopicTags } from './TopicTags.tsx';
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    to,
+    params,
+    children,
+  }: {
+    to: string;
+    params?: Record<string, string>;
+    children: ReactNode;
+  }) => (
+    <a
+      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
+    >
+      {children}
+    </a>
+  ),
+}));
+
+const { TopicTags } = await import('./TopicTags.tsx');
 
 const topic = (id: number, name: string): Topic => ({
   id,
@@ -14,9 +34,7 @@ describe('TopicTags', () => {
   it('names the Topics the carrier wears, in the order given', () => {
     render(<TopicTags topics={[topic(1, 'Attention'), topic(2, 'Myth')]} />);
 
-    const names = screen
-      .getAllByRole('listitem')
-      .map((item) => item.textContent);
+    const names = screen.getAllByRole('listitem').map((item) => item.textContent);
     expect(names).toEqual(['Attention', 'Myth']);
   });
 
@@ -41,5 +59,22 @@ describe('TopicTags', () => {
     expect(
       screen.getByRole('list', { name: 'Topics inherited from the Source' }),
     ).toBeInTheDocument();
+  });
+
+  // A Topic is a place rather than a filter state, so the tag is the way in (#88).
+  it('leads each tag to that Topic’s own view', () => {
+    render(<TopicTags topics={[topic(7, 'Attention')]} />);
+
+    expect(screen.getByRole('link', { name: 'Attention' })).toHaveAttribute(
+      'href',
+      '/notes/topics/7',
+    );
+  });
+
+  it('leaves the chips unlinked where the carrier itself is the link', () => {
+    render(<TopicTags topics={[topic(7, 'Attention')]} linked={false} />);
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('Attention')).toBeInTheDocument();
   });
 });

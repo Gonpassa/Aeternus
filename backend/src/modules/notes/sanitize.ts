@@ -115,3 +115,7 @@ export const sanitizeTopicNames = (value: unknown): string[] => {
   });
   return names;
 };
+
+// One Topic name, for a rename: the same one-line collapse a name on a carrier gets, so
+// renaming to "  Deep   work " is renaming to "Deep work".
+export const sanitizeTopicName = (value: string): string => collapse(value);

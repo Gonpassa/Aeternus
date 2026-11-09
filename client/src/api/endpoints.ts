@@ -34,9 +34,12 @@ export const endpoints = {
   note: (id: number) => `/notes/${id}`,
   permanentNotes: '/notes/permanent',
   noteConnections: (id: number) => `/notes/${id}/connections`,
-  // The Topic vocabulary, read for the autocomplete that creates Topics by typing a name.
-  // Renaming, merging and deleting a Topic are #88, so there is nothing else here yet.
+  // The Topic vocabulary, read for the autocomplete that creates Topics by typing a name and
+  // for the Topic index, which is the same list read for its carrier counts.
   topics: '/topics',
+  // A Topic's own address: the view it is browsed in, the rename that is also the merge, and
+  // the deletion that detaches it from every carrier (#88).
+  topic: (id: number) => `/topics/${id}`,
   // The notes sharing a Topic with one note: the link panel's middle tier (#87).
   topicRelatedNotes: (id: number) => `/notes/${id}/topic-notes`,
 } as const;

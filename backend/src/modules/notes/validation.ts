@@ -205,3 +205,16 @@ export const validateTopicNames = (value: unknown): ValidationResult => {
   }
   return { valid: true };
 };
+
+// A rename carries one name, held to the same ceiling a name on a carrier is: renaming is the
+// only write a Topic takes, and it is also the merge, so the name is checked here and the
+// vocabulary decides afterwards whether it belongs to a Topic already (CONTEXT.md, Topic).
+export const validateTopicName = (value: unknown): ValidationResult => {
+  if (trimmed(value) === '') {
+    return { valid: false, error: 'A Topic needs a name.' };
+  }
+  if (!isWithin(value, TOPIC_NAME_MAX)) {
+    return { valid: false, error: `A Topic name is at most ${TOPIC_NAME_MAX} characters.` };
+  }
+  return { valid: true };
+};

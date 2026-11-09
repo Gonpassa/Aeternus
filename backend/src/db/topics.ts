@@ -1,7 +1,17 @@
-import { and, asc, desc, eq, ilike, inArray, ne, notInArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, ne, notInArray, or, sql } from 'drizzle-orm';
 import { union } from 'drizzle-orm/pg-core';
 import { db } from './index';
-import { noteTopics, notes, sourceTopics, sources, topics, Note, Topic } from './schema';
+import {
+  links,
+  noteTopics,
+  notes,
+  sourceTopics,
+  sources,
+  topics,
+  Note,
+  Source,
+  Topic,
+} from './schema';
 
 // The transactional executor `db.transaction` hands its callback. Every function here takes one
 // so attaching Topics can join the transaction that creates their carrier - a Permanent note and
@@ -10,6 +20,29 @@ type Executor = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
 
 // Escape LIKE wildcards in user-typed autocomplete input so it matches literally.
 const escapeLikePattern = (value: string): string => value.replace(/[\\%_]/g, '\\$&');
+
+export interface TopicWithCounts extends Topic {
+  permanentNoteCount: number;
+  sourceCount: number;
+}
+
+// How many carriers wear a Topic, counted per row rather than joined and grouped: a Topic has
+// two kinds of carrier, and one join over both would multiply the counts by each other. The
+// vocabulary is one user's own words, so it is tens of rows and these subqueries are cheap.
+const carrierCount = (join: typeof noteTopics | typeof sourceTopics) =>
+  db
+    .select({ count: sql<number>`count(*)` })
+    .from(join)
+    .where(eq(join.topicId, topics.id));
+
+const topicWithCountsColumns = {
+  id: topics.id,
+  userId: topics.userId,
+  name: topics.name,
+  createdAt: topics.createdAt,
+  permanentNoteCount: sql<number>`(${carrierCount(noteTopics)})`.mapWith(Number),
+  sourceCount: sql<number>`(${carrierCount(sourceTopics)})`.mapWith(Number),
+};
 
 // The user's whole Topic vocabulary, for autocomplete, with an optional q matched
 // case-insensitively against any part of a name. A Topic nobody carries any more is still in
@@ -21,16 +54,168 @@ export const listTopicsByUser = async ({
 }: {
   userId: number;
   query?: string;
-}): Promise<Topic[]> => {
+}): Promise<TopicWithCounts[]> => {
   const conditions = [eq(topics.userId, userId)];
   if (query) {
     conditions.push(ilike(topics.name, `%${escapeLikePattern(query)}%`));
   }
   return db
-    .select()
+    .select(topicWithCountsColumns)
     .from(topics)
     .where(and(...conditions))
     .orderBy(topics.name);
+};
+
+// One Topic by id, scoped to its owner, so another user's id answers as a Topic that is not
+// there rather than as one with no carriers.
+export const findTopicById = async ({
+  id,
+  userId,
+}: {
+  id: number;
+  userId: number;
+}): Promise<TopicWithCounts | undefined> => {
+  const [topic] = await db
+    .select(topicWithCountsColumns)
+    .from(topics)
+    .where(and(eq(topics.id, id), eq(topics.userId, userId)));
+  return topic;
+};
+
+export interface TopicCarrierRows {
+  permanentNotes: Array<{ note: Note; linkCount: number }>;
+  sources: Source[];
+}
+
+// What a Topic collects (CONTEXT.md, Topic view): the Permanent notes carrying it, most-linked
+// first, and then the Sources carrying it. Literature notes are deliberately absent - they
+// inherit their Source's Topics, so listing them here would repeat every Source's whole
+// reading and bury the ideas the view exists to show.
+export const listTopicCarriers = async ({
+  topicId,
+  userId,
+}: {
+  topicId: number;
+  userId: number;
+}): Promise<TopicCarrierRows> => {
+  // Links at either end count the same: a Link is one connection between two notes, and which
+  // end wrote it first says nothing about how connected the note is (ADR 0013).
+  const linkCount = db
+    .select({ count: sql<number>`count(*)` })
+    .from(links)
+    .where(or(eq(links.originNoteId, notes.id), eq(links.targetNoteId, notes.id)));
+
+  const permanentNotes = await db
+    .select({ note: notes, linkCount: sql<number>`(${linkCount})`.mapWith(Number) })
+    .from(noteTopics)
+    .innerJoin(notes, eq(notes.id, noteTopics.noteId))
+    .where(and(eq(noteTopics.topicId, topicId), eq(notes.userId, userId)))
+    // Most-linked first - the uncurated front door, with no pinned entry note above it (#88) -
+    // then newest first among notes tied on count, so the order is total and stable.
+    .orderBy(desc(sql`(${linkCount})`), desc(notes.createdAt), asc(notes.id));
+
+  const carryingSources = await db
+    .select({ source: sources })
+    .from(sourceTopics)
+    .innerJoin(sources, eq(sources.id, sourceTopics.sourceId))
+    .where(and(eq(sourceTopics.topicId, topicId), eq(sources.userId, userId)))
+    // By title: a Source has no lifecycle to order by here, and the reading page's own
+    // recency ordering belongs to the catalog rather than to a Topic's shelf.
+    .orderBy(asc(sources.title), asc(sources.id));
+
+  return { permanentNotes, sources: carryingSources.map((row) => row.source) };
+};
+
+// Renaming is also the merge: a name that already belongs to another of this user's Topics
+// folds this one into it, because two Topics meaning the same word are one Topic
+// (CONTEXT.md, Topic). `merged` says which of the two happened, and `topic` is the survivor.
+// Undefined means there is no such Topic of this user's.
+export const renameTopic = async ({
+  topicId,
+  userId,
+  name,
+}: {
+  topicId: number;
+  userId: number;
+  name: string;
+}): Promise<{ topic: Topic; merged: boolean } | undefined> =>
+  db.transaction(async (tx) => {
+    const [own] = await tx
+      .select()
+      .from(topics)
+      .where(and(eq(topics.id, topicId), eq(topics.userId, userId)));
+    if (!own) return undefined;
+
+    const [existing] = await tx
+      .select()
+      .from(topics)
+      .where(
+        and(
+          eq(topics.userId, userId),
+          ne(topics.id, topicId),
+          sql`lower(${topics.name}) = lower(${name})`,
+        ),
+      );
+
+    // No other Topic wears the name, so this is a plain rename - including a rename that only
+    // changes the casing of the Topic's own name, which the unique index allows because the
+    // row excluded above is this one.
+    if (!existing) {
+      const [renamed] = await tx
+        .update(topics)
+        .set({ name })
+        .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+        .returning();
+      if (!renamed) {
+        throw new Error('Topic rename did not return a row');
+      }
+      return { topic: renamed, merged: false };
+    }
+
+    // The merge: every carrier of this Topic is moved onto the one that already has the name,
+    // and this row goes. A carrier already wearing both ends up wearing it once, which is what
+    // the unique index per pair means (ADR 0012).
+    const carriedNotes = await tx
+      .select({ noteId: noteTopics.noteId, noteKind: noteTopics.noteKind })
+      .from(noteTopics)
+      .where(eq(noteTopics.topicId, topicId));
+    if (carriedNotes.length > 0) {
+      await tx
+        .insert(noteTopics)
+        .values(carriedNotes.map((row) => ({ ...row, topicId: existing.id })))
+        .onConflictDoNothing();
+    }
+    const carryingSources = await tx
+      .select({ sourceId: sourceTopics.sourceId })
+      .from(sourceTopics)
+      .where(eq(sourceTopics.topicId, topicId));
+    if (carryingSources.length > 0) {
+      await tx
+        .insert(sourceTopics)
+        .values(carryingSources.map((row) => ({ ...row, topicId: existing.id })))
+        .onConflictDoNothing();
+    }
+    // The join rows of the Topic being folded away go with it, by the cascade on topic_id.
+    await tx.delete(topics).where(and(eq(topics.id, topicId), eq(topics.userId, userId)));
+
+    return { topic: existing, merged: true };
+  });
+
+// Deleting a Topic is deleting a word, not the things that wore it: the cascade on topic_id
+// takes the join rows, and no note or Source is touched (CONTEXT.md, Topic). False means
+// there was no such Topic of this user's.
+export const deleteTopic = async ({
+  topicId,
+  userId,
+}: {
+  topicId: number;
+  userId: number;
+}): Promise<boolean> => {
+  const deleted = await db
+    .delete(topics)
+    .where(and(eq(topics.id, topicId), eq(topics.userId, userId)))
+    .returning({ id: topics.id });
+  return deleted.length > 0;
 };
 
 // Case-insensitive resolve-or-create, as the Symbol vocabulary resolves a name: "water"
