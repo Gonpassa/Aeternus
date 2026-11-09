@@ -17,23 +17,23 @@ Delete the file whenever you want the local copy gone.
 
 ## Pull your entries
 
-In one terminal, open the tunnel and leave it running:
+Once, create `~/.aeternus/env` with the same credentials and database name as `docs/data-migration-runbook.md`, and restrict it to your account with `chmod 600 ~/.aeternus/env`:
 
 ```sh
-fly proxy 5433:5432 -a aeternus-db
+JOURNAL_SOURCE_URL=postgres://<user>:<password>@localhost:5433/<production-db-name>
+JOURNAL_FLY_APP=aeternus-db
 ```
 
-In a second terminal, from the repo root, using the same credentials and database name as `docs/data-migration-runbook.md`:
+Then, whenever you want newer entries, run this from the repo root:
 
 ```sh
-read -rs JOURNAL_SOURCE_URL && export JOURNAL_SOURCE_URL
 npm run journal:pull
-unset JOURNAL_SOURCE_URL
 ```
 
-`read -rs` waits for you to paste `postgres://<user>:<password>@localhost:5433/<production-db-name>` without echoing it or saving it to shell history.
+It opens the `fly proxy` tunnel on the port in `JOURNAL_SOURCE_URL`, copies the entries, and closes the tunnel.
+You need to be logged in with `fly auth login`.
 If the database holds more than one user, also set `JOURNAL_USERNAME`.
-Stop the tunnel afterwards, then pull again whenever you want newer entries.
+Variables set in the shell override the file, and leaving out `JOURNAL_FLY_APP` skips the tunnel.
 
 ## Chat
 

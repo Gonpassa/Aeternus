@@ -1,5 +1,9 @@
+import dotenv from 'dotenv';
+import os from 'os';
+import path from 'path';
 import { Client } from 'pg';
 import { htmlToText, JournalEntry, snapshotPath, writeSnapshot } from './snapshot';
+import { withTunnel } from './tunnel';
 
 const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
 
@@ -19,11 +23,7 @@ interface EntryRow {
   content: string;
 }
 
-const pull = async (): Promise<void> => {
-  const url = process.env.JOURNAL_SOURCE_URL;
-  if (!url) throw new Error('Set JOURNAL_SOURCE_URL. See docs/journal-chat.md.');
-  assertLoopbackUrl(url);
-
+const copyEntries = async (url: string): Promise<void> => {
   const client = new Client({
     connectionString: url,
     options: '-c default_transaction_read_only=on',
@@ -63,6 +63,22 @@ const pull = async (): Promise<void> => {
     );
   } finally {
     await client.end();
+  }
+};
+
+const pull = async (): Promise<void> => {
+  // Variables already set in the shell take precedence over this file.
+  dotenv.config({ path: path.join(os.homedir(), '.aeternus', 'env') });
+
+  const url = process.env.JOURNAL_SOURCE_URL;
+  if (!url) throw new Error('Set JOURNAL_SOURCE_URL. See docs/journal-chat.md.');
+  assertLoopbackUrl(url);
+
+  const flyApp = process.env.JOURNAL_FLY_APP;
+  if (flyApp) {
+    await withTunnel(flyApp, Number(new URL(url).port || 5432), () => copyEntries(url));
+  } else {
+    await copyEntries(url);
   }
 };
 

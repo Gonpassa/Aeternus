@@ -67,7 +67,7 @@ npm test         # vitest run
 
 - Never start the backend/dev server against the `nee3` database for agent-driven browser verification (e.g. Playwright, `claude-in-chrome`) or any other automated feature check. Use the seeded test database instead - `backend/.env.test` (`nee3_test`), populated via `npm run seed:test-entries`. Start it with `npm run dev:test-db` (from the root or from `backend/`) rather than falling back to `.env`.
 - Never read, quote, or paste output from a server/process that was run against the `nee3` database - dev server stdout, request logs, stack traces, error messages - since it may contain real entry content. If something needs debugging against real data, ask the user to check it themselves rather than reading logs directly.
-- Never read or run `journal:chat` against `~/.aeternus/journal-snapshot.json`, the local copy of real entries used by the private journal chat (`docs/journal-chat.md`). Test it with `JOURNAL_SNAPSHOT_PATH` pointing at a snapshot pulled from `nee3_test`.
+- Never read or run `journal:chat` against `~/.aeternus/journal-snapshot.json`, the local copy of real entries used by the private journal chat (`docs/journal-chat.md`), and never read `~/.aeternus/env`, which holds the production database password. Test with `JOURNAL_SNAPSHOT_PATH` pointing at a snapshot pulled from `nee3_test`, and with `JOURNAL_SOURCE_URL` set in the shell so the real settings are not used.
 - These rules apply regardless of how mundane the task looks ("just confirming the button works") - default to the seeded DB unless the user explicitly says otherwise for a specific, scoped reason.
 
 ## Architecture
