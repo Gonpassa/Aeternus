@@ -39,4 +39,11 @@ export const endpoints = {
   topics: '/topics',
   // The notes sharing a Topic with one note: the link panel's middle tier (#87).
   topicRelatedNotes: (id: number) => `/notes/${id}/topic-notes`,
+  // The browsable panel's two tiers, keyed on the note being linked from rather than on a
+  // Source, so Review asks the same question without a fork (#85).
+  noteLinkTargets: '/notes/link-targets',
+  // A Link belongs to neither of its ends - it is a relation between two notes, made and
+  // unmade from either side (ADR 0013) - so it has a resource of its own.
+  links: '/links',
+  link: (id: number) => `/links/${id}`,
 } as const;

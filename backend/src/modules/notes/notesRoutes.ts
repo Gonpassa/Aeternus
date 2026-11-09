@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ensureAuth } from '../../middleware/auth';
+import { listLinkTargets } from './linkTargetsController';
 import {
   createPermanentNote,
   deleteLiteratureNote,
@@ -15,6 +16,10 @@ router.use(ensureAuth);
 // Flat rather than nested: a Permanent note belongs to no Source, and the note it was written
 // from is one of its Link targets rather than its parent (CONTEXT.md, Permanent note).
 router.post('/permanent', createPermanentNote);
+// The browsable panel's two tiers, keyed on the note being linked from rather than on a
+// Source, so Review reuses the same question without a fork (#85). Declared ahead of the
+// `/:noteId` routes below so a literal segment is never read as an id.
+router.get('/link-targets', listLinkTargets);
 // Kind-agnostic on purpose: a connections view belongs to a note, not to a note of one kind.
 router.get('/:noteId/connections', getNoteConnections);
 // The link panel's Topic tier, read about one note: the notes sharing a Topic with it, which a

@@ -205,3 +205,40 @@ export const validateTopicNames = (value: unknown): ValidationResult => {
   }
   return { valid: true };
 };
+
+// A Link between two notes that both already exist, as the browsable panel makes it. The
+// reason is held to the same rule and the same ceiling it is held to in the Permanent note
+// composer, because it is the same thing: the smallest unit of the user's thinking, required
+// at link time (ADR 0015).
+export const validateLinkInput = (input: {
+  originNoteId?: unknown;
+  targetNoteId?: unknown;
+  reason?: unknown;
+}): ValidationResult => {
+  if (!isPositiveInteger(input.originNoteId) || !isPositiveInteger(input.targetNoteId)) {
+    return { valid: false, error: 'A connection needs a note at each end.' };
+  }
+  if (input.originNoteId === input.targetNoteId) {
+    return { valid: false, error: 'A note cannot be connected to itself.' };
+  }
+  return validateLinkReason(input.reason);
+};
+
+// The reason on its own, for the edit-in-place path: the Link already exists and only the line
+// is being rewritten. It cannot be emptied, because a Link with no reason from the end that
+// made it is not a state this module allows (ADR 0015).
+export const validateLinkReason = (reason: unknown): ValidationResult => {
+  if (trimmed(reason) === '') {
+    return {
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    };
+  }
+  if (!isWithin(reason, LINK_REASON_MAX)) {
+    return {
+      valid: false,
+      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+    };
+  }
+  return { valid: true };
+};

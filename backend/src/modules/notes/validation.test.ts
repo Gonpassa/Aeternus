@@ -9,6 +9,8 @@ import {
   SOURCE_AUTHOR_MAX,
   SOURCE_TITLE_MAX,
   SOURCE_URL_MAX,
+  validateLinkInput,
+  validateLinkReason,
   validateLiteratureNoteInput,
   validatePermanentNoteInput,
   validateSourceInput,
@@ -307,5 +309,68 @@ describe('validatePermanentNoteInput', () => {
         ],
       }),
     ).toEqual({ valid: false, error: 'A note can only be connected once.' });
+  });
+});
+
+describe('validateLinkInput', () => {
+  const valid = { originNoteId: 1, targetNoteId: 2, reason: 'Both are about effort avoided.' };
+
+  it('accepts a connection with a note at each end and a reason', () => {
+    expect(validateLinkInput(valid)).toEqual({ valid: true });
+  });
+
+  it.each([
+    ['a missing origin', { ...valid, originNoteId: undefined }],
+    ['a missing target', { ...valid, targetNoteId: undefined }],
+    ['a target that is not a whole number', { ...valid, targetNoteId: 2.5 }],
+    ['a target that is not positive', { ...valid, targetNoteId: 0 }],
+  ])('refuses %s', (_case, input) => {
+    expect(validateLinkInput(input)).toEqual({
+      valid: false,
+      error: 'A connection needs a note at each end.',
+    });
+  });
+
+  it('refuses a note connected to itself, which states nothing', () => {
+    expect(validateLinkInput({ ...valid, targetNoteId: valid.originNoteId })).toEqual({
+      valid: false,
+      error: 'A note cannot be connected to itself.',
+    });
+  });
+
+  it('holds the reason to the same rule it is held to in the composer', () => {
+    expect(validateLinkInput({ ...valid, reason: '   ' })).toEqual({
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    });
+    expect(validateLinkInput({ ...valid, reason: 'x'.repeat(LINK_REASON_MAX + 1) })).toEqual({
+      valid: false,
+      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+    });
+  });
+});
+
+describe('validateLinkReason', () => {
+  it('accepts a rewritten line', () => {
+    expect(validateLinkReason('What it was really about.')).toEqual({ valid: true });
+  });
+
+  it('refuses an emptied reason, since a Link cannot exist without one', () => {
+    expect(validateLinkReason('   ')).toEqual({
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    });
+    expect(validateLinkReason(undefined)).toEqual({
+      valid: false,
+      error: 'Every connection needs a line saying why the two belong together.',
+    });
+  });
+
+  it('accepts a reason exactly at the ceiling and refuses one past it', () => {
+    expect(validateLinkReason('x'.repeat(LINK_REASON_MAX))).toEqual({ valid: true });
+    expect(validateLinkReason('x'.repeat(LINK_REASON_MAX + 1))).toEqual({
+      valid: false,
+      error: `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
+    });
   });
 });
