@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
+import {
+  LINK_REASON_MAX,
+  LINK_REASON_REQUIRED,
+  LINK_REASON_TOO_LONG,
+} from '../../utils/linkReason.ts';
 import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
@@ -8,7 +13,6 @@ import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 // voice; the numbers themselves are argued for where they are enforced.
 export const PERMANENT_NOTE_TITLE_MAX = 280;
 export const PERMANENT_NOTE_BODY_MAX = 8000;
-export const LINK_REASON_MAX = 140;
 
 // The target and its reason are one field group rather than two steps: a target picked without
 // a reason blocks the save exactly as a missing Link does (ADR 0015), so the reason is part of
@@ -27,14 +31,9 @@ export const permanentNoteSchema = z.object({
       PERMANENT_NOTE_BODY_MAX,
       `A note is at most ${PERMANENT_NOTE_BODY_MAX.toLocaleString('en-US')} characters.`,
     ),
-  reason: z
-    .string()
-    .trim()
-    .min(1, 'Every connection needs a line saying why the two belong together.')
-    .max(
-      LINK_REASON_MAX,
-      `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
-    ),
+  // The reason's rule is shared with the browsable panel and the connections view's edit in
+  // place, because it is the same line held to the same ceiling wherever it is written.
+  reason: z.string().trim().min(1, LINK_REASON_REQUIRED).max(LINK_REASON_MAX, LINK_REASON_TOO_LONG),
   // A Permanent note is the one note kind that carries its own Topics, and carries them
   // optionally: an idea filed under no word yet is not an incomplete one (#87).
   topicNames: z

@@ -3,7 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { PermanentNoteComposer } from './PermanentNoteComposer.tsx';
-import { LINK_REASON_MAX, PERMANENT_NOTE_TITLE_MAX } from './PermanentNoteComposer.utils.ts';
+import { PERMANENT_NOTE_TITLE_MAX } from './PermanentNoteComposer.utils.ts';
+import { LINK_REASON_MAX } from '../../utils/linkReason.ts';
 
 const renderComposer = (overrides: { onWrite?: () => Promise<void> } = {}) => {
   const onWrite = overrides.onWrite ?? vi.fn().mockResolvedValue(undefined);

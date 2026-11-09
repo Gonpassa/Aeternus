@@ -68,15 +68,28 @@ export const literatureNoteHeading = ({
     .filter((part): part is string => part !== null && part !== '')
     .join(' · ');
 
-export const noteLabel = ({ other, sourceTitle }: NoteConnection): NoteLabel => {
-  if (other.kind === 'permanent') {
-    return { heading: other.title, detail: null };
+// How a note is named wherever it is reached from somewhere else - a connections row, a row of
+// the Link panel, the composer's target line. A Permanent note is named by its title, since
+// that is the claim it states; a Literature note has none, so it is named by its Source's
+// title, its Locator and its opening words (CONTEXT.md, Literature note).
+export const noteNameplate = ({
+  note,
+  sourceTitle,
+}: {
+  note: Note;
+  sourceTitle: string | null;
+}): NoteLabel => {
+  if (note.kind === 'permanent') {
+    return { heading: note.title, detail: null };
   }
   return {
-    heading: literatureNoteHeading({ sourceTitle, ...other }),
-    detail: openingWords(other.body),
+    heading: literatureNoteHeading({ sourceTitle, ...note }),
+    detail: openingWords(note.body),
   };
 };
+
+export const noteLabel = ({ other, sourceTitle }: NoteConnection): NoteLabel =>
+  noteNameplate({ note: other, sourceTitle });
 
 // The kind in the module's own words, so a row says what sort of note it is reaching without
 // relying on the shape of its label alone.

@@ -1,6 +1,6 @@
-import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, isNotNull, ne, or, sql } from 'drizzle-orm';
 import { db } from './index';
-import { notes, Note, NewNote } from './schema';
+import { notes, sources, Note, NewNote } from './schema';
 
 export type NewLiteratureNoteInput = Omit<
   NewNote,
@@ -139,4 +139,84 @@ export const deleteNote = async ({
     .where(and(eq(notes.id, id), eq(notes.userId, userId)))
     .returning({ id: notes.id });
   return deleted.length > 0;
+};
+
+// A note as the Link panel reads it: the note itself and its Source's title where it has one.
+// A Literature note has no title of its own, so the Source title is part of what names it
+// (CONTEXT.md, Literature note), and carrying it here is what makes a panel row readable
+// without a second fetch.
+export interface NoteWithSourceTitle {
+  note: Note;
+  sourceTitle: string | null;
+}
+
+// The panel's first tier: the other Literature notes of the Source being read. Browsable
+// rather than searchable, because the user will not remember how an older note was worded and
+// must not have to in order to connect to it (#67). Creation order, oldest first, as the
+// reading stream itself reads, and the note being linked from is left out - a note linking to
+// itself states nothing.
+export const listNotesBySourceExcept = async ({
+  sourceId,
+  userId,
+  exceptNoteId,
+}: {
+  sourceId: number;
+  userId: number;
+  exceptNoteId: number;
+}): Promise<NoteWithSourceTitle[]> =>
+  db
+    .select({ note: notes, sourceTitle: sources.title })
+    .from(notes)
+    .leftJoin(sources, eq(sources.id, notes.sourceId))
+    .where(and(eq(notes.sourceId, sourceId), eq(notes.userId, userId), ne(notes.id, exceptNoteId)))
+    .orderBy(asc(notes.createdAt), asc(notes.id));
+
+// How many results the search tier returns. A picker is browsed, not paged: a query that
+// matches more notes than this is a query to narrow rather than a list to scroll.
+export const NOTE_SEARCH_LIMIT = 25;
+
+// `%` and `_` are LIKE's own wildcards, so a user searching for "100%" must not have it read
+// as a pattern. Backslash is escaped first, since it is the escape character itself.
+const escapeLikePattern = (value: string): string =>
+  value.replace(/[\\%_]/g, (character) => `\\${character}`);
+
+// The search tier, over both kinds in one query: a Permanent note by its title and body, a
+// Literature note by its body, its Source's title and either half of its Locator. One OR
+// across every column rather than a branch on `kind`, because the columns that belong to the
+// other kind are null on every row (ADR 0012) and a null never matches.
+//
+// Newest first, where the reading stream is oldest first: the stream is a reading in order,
+// and this is a reach back into everything written, where what was written most recently is
+// the likeliest thing to be reaching.
+export const searchNotes = async ({
+  userId,
+  query,
+  exceptNoteId,
+  limit = NOTE_SEARCH_LIMIT,
+}: {
+  userId: number;
+  query: string;
+  exceptNoteId: number;
+  limit?: number;
+}): Promise<NoteWithSourceTitle[]> => {
+  const pattern = `%${escapeLikePattern(query)}%`;
+  return db
+    .select({ note: notes, sourceTitle: sources.title })
+    .from(notes)
+    .leftJoin(sources, eq(sources.id, notes.sourceId))
+    .where(
+      and(
+        eq(notes.userId, userId),
+        ne(notes.id, exceptNoteId),
+        or(
+          ilike(notes.title, pattern),
+          ilike(notes.body, pattern),
+          ilike(notes.section, pattern),
+          ilike(notes.position, pattern),
+          ilike(sources.title, pattern),
+        ),
+      ),
+    )
+    .orderBy(desc(notes.createdAt), desc(notes.id))
+    .limit(limit);
 };

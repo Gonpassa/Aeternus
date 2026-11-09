@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react';
 import type { LiteratureNoteWithConnections, Topic } from '@nee3/shared-types';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { NoteStream } from './NoteStream.tsx';
+import { LinkActionsProvider, type LinkActions } from '../../LinkActionsContext.tsx';
 
 const note = (
   overrides: Partial<LiteratureNoteWithConnections> = {},
@@ -276,5 +277,47 @@ describe('NoteStream', () => {
     renderStream([note()]);
 
     expect(screen.queryByText('From the Source')).not.toBeInTheDocument();
+  });
+});
+
+// The Link affordance sits on the Literature note itself rather than only inside the Permanent
+// note composer: a Link's required reason is the smallest unit of the user's own thought, and a
+// Permanent note is what gets written when that reason outgrows one line (#67, ADR 0015).
+describe('NoteStream, with the Link affordances provided', () => {
+  const linkActions: LinkActions = {
+    link: vi.fn().mockResolvedValue(undefined),
+    editReason: vi.fn().mockResolvedValue(undefined),
+    removeLink: vi.fn().mockResolvedValue(undefined),
+  };
+
+  it('offers to connect each filed card to another note, alongside writing one', async () => {
+    const user = userEvent.setup();
+    render(
+      <LinkActionsProvider value={linkActions}>
+        <NoteStream
+          notes={[note()]}
+          sourceTitle="How to Take Smart Notes"
+          sourceTopics={[]}
+          onCorrect={vi.fn()}
+          onDelete={vi.fn()}
+          onWritePermanentNote={vi.fn()}
+        />
+      </LinkActionsProvider>,
+      { wrapper: queryWrapper() },
+    );
+
+    expect(screen.getByRole('button', { name: 'Write a Permanent note' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Connect this to another note' }));
+
+    // The same panel every linking path uses, opened on the note it was reached from.
+    expect(screen.getByLabelText('Search your notes')).toBeInTheDocument();
+  });
+
+  it('does not offer it where the affordances are not provided', () => {
+    renderStream([note()]);
+
+    expect(
+      screen.queryByRole('button', { name: 'Connect this to another note' }),
+    ).not.toBeInTheDocument();
   });
 });

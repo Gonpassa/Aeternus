@@ -115,3 +115,7 @@ export const sanitizeTopicNames = (value: unknown): string[] => {
   });
   return names;
 };
+
+// A reason is one line by definition, so it collapses its whitespace exactly as it does when
+// it travels with a Permanent note.
+export const sanitizeLinkReason = (reason: string): string => collapse(reason);
