@@ -216,7 +216,7 @@ describe('NoteStream', () => {
   it('shows the server’s refusal beside the deletion it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Deleting this note would leave “Writing is how an idea is tested.” with none. Connect it elsewhere first, or delete it.';
+      'Deleting this note would leave “Writing is how an idea is tested.” with nothing connected to it. Connect it elsewhere first, or delete it.';
     const onDelete = vi.fn().mockRejectedValue(
       new AxiosError('Conflict', undefined, undefined, undefined, {
         status: 409,

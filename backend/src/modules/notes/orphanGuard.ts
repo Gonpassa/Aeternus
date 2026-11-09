@@ -43,11 +43,13 @@ export const findPermanentNotesOrphanedByDeleting = async ({
 // neither is possible from a message that says only how many would be left (ADR 0014).
 //
 // One shape for every guard point, with the action it refused in front of it - the user is
-// being told what their own move would have done, and "this would leave an idea with none" reads
-// the same whether the move was a removal or a deletion.
+// being told what their own move would have done, and the sentence reads the same whether the
+// move was a removal or a deletion. What is left with nothing is named rather than implied:
+// "with none" would lean on the word the action happens to carry, which is "connection" at one
+// guard point and "note" or "Source" at the others.
 export const orphanRefusal = (unlinked: UnlinkedPermanentNote[], action: string): string => {
   const titles = unlinked.map(({ title }) => `“${title}”`).join(', ');
   return unlinked.length === 1
-    ? `${action} would leave ${titles} with none. Connect it elsewhere first, or delete it.`
-    : `${action} would leave these notes with none: ${titles}. Connect them elsewhere first, or delete them.`;
+    ? `${action} would leave ${titles} with nothing connected to it. Connect it elsewhere first, or delete it.`
+    : `${action} would leave these notes with nothing connected to them: ${titles}. Connect them elsewhere first, or delete them.`;
 };

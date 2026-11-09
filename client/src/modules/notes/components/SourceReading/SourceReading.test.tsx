@@ -235,7 +235,7 @@ describe('SourceReading', () => {
   it('shows the server’s refusal beside the cascade it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Deleting this Source would leave these notes with none: “The first idea.”, “The second idea.”. Connect them elsewhere first, or delete them.';
+      'Deleting this Source would leave these notes with nothing connected to them: “The first idea.”, “The second idea.”. Connect them elsewhere first, or delete them.';
     const onDeleteSource = vi.fn().mockRejectedValue(
       new AxiosError('Conflict', undefined, undefined, undefined, {
         status: 409,
