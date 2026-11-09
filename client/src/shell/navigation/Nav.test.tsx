@@ -155,10 +155,7 @@ describe('Nav', () => {
     it('reaches the Topic index from the Notes heading', () => {
       render(<Nav />);
 
-      expect(screen.getByRole('link', { name: 'Topics' })).toHaveAttribute(
-        'href',
-        '/notes/topics',
-      );
+      expect(screen.getByRole('link', { name: 'Topics' })).toHaveAttribute('href', '/notes/topics');
     });
 
     it('renders the full desktop rail with no hamburger', () => {

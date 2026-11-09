@@ -5,7 +5,7 @@ This let every call site independently reinvent spacing, borders, and typography
 
 We decided `client/src/atoms/` (plus `main.tsx` and `theme.ts`, which wire up the provider/theme rather than acting as call sites) is the only place allowed to import from `@chakra-ui/react`.
 Every route, module component, and shell component consumes only `atoms/` components instead.
-This is enforced by an ESLint `no-restricted-imports` rule (see `client/eslint.config.js`), not just convention, so a design system only holds if its primitives are the *only* way to touch Chakra.
+This is enforced by an ESLint `no-restricted-imports` rule (see `client/eslint.config.js`), not just convention, so a design system only holds if its primitives are the _only_ way to touch Chakra.
 
 A narrow escape hatch exists for genuine one-off overrides: an `atoms/*` component may accept an optional `className` prop sourced from a colocated CSS Module, not arbitrary style props or global class strings.
 

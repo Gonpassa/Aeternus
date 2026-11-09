@@ -197,6 +197,20 @@ describe('topic browsing and vocabulary maintenance (integration)', () => {
       expect(res.body.sources).toEqual([]);
     });
 
+    // The ceiling is measured against the name as it will be stored, so surrounding whitespace
+    // on a name that fits is not what makes it too long.
+    it('accepts a name that fits once its whitespace is collapsed', async () => {
+      await createSource(aliceAgent, { topicNames: ['Attention'] });
+      const attention = await topicByName(aliceAgent, 'Attention');
+
+      const res = await aliceAgent
+        .patch(`/api/topics/${attention.id}`)
+        .send({ name: `  ${'t'.repeat(TOPIC_NAME_MAX)}  ` })
+        .expect(200);
+
+      expect(res.body.topic.name).toBe('t'.repeat(TOPIC_NAME_MAX));
+    });
+
     it('answers another user’s Topic as not found', async () => {
       await createSource(aliceAgent, { topicNames: ['Attention'] });
       const attention = await topicByName(aliceAgent, 'Attention');
@@ -276,7 +290,7 @@ describe('topic browsing and vocabulary maintenance (integration)', () => {
 
       const res = await aliceAgent
         .patch(`/api/topics/${attention.id}`)
-        .send({ name: 'focus' })
+        .send({ name: 'focus', merge: true })
         .expect(200);
 
       // The Topic that already had the name survives, now wearing both carriers, and the
@@ -299,7 +313,7 @@ describe('topic browsing and vocabulary maintenance (integration)', () => {
 
       const res = await aliceAgent
         .patch(`/api/topics/${attention.id}`)
-        .send({ name: 'Focus' })
+        .send({ name: 'Focus', merge: true })
         .expect(200);
 
       expect(res.body.merged).toBe(true);
@@ -320,7 +334,7 @@ describe('topic browsing and vocabulary maintenance (integration)', () => {
 
       const res = await aliceAgent
         .patch(`/api/topics/${attention.id}`)
-        .send({ name: 'Focus' })
+        .send({ name: 'Focus', merge: true })
         .expect(200);
 
       expect(res.body.merged).toBe(true);
@@ -345,6 +359,46 @@ describe('topic browsing and vocabulary maintenance (integration)', () => {
       expect(res.body.merged).toBe(false);
       const bobsVocabulary = await bobAgent.get('/api/topics').expect(200);
       expect(topicNames(bobsVocabulary.body.topics)).toEqual(['Focus']);
+    });
+
+    // The merge takes one of the two Topics out of the vocabulary, so it happens only on a
+    // request that agreed to it: without `merge` the server answers with the Topic the name
+    // already belongs to and changes nothing, which is what makes the client's confirmation
+    // enforceable rather than advisory (#88).
+    it('refuses an unconfirmed merge and names the Topic the name belongs to', async () => {
+      const source = await createSource(aliceAgent, { topicNames: ['Attention'] });
+      await createSource(aliceAgent, { title: 'Deep Work', topicNames: ['Focus'] });
+      const attention = await topicByName(aliceAgent, 'Attention');
+      const focus = await topicByName(aliceAgent, 'Focus');
+
+      const res = await aliceAgent
+        .patch(`/api/topics/${attention.id}`)
+        .send({ name: 'focus' })
+        .expect(409);
+
+      expect(res.body.mergeTarget.id).toBe(focus.id);
+      expect(res.body.mergeTarget.name).toBe('Focus');
+      expect(res.body.mergeTarget.sourceCount).toBe(1);
+      // Nothing moved: both words are still in the vocabulary, on the carriers they had.
+      const vocabulary = await aliceAgent.get('/api/topics').expect(200);
+      expect(topicNames(vocabulary.body.topics)).toEqual(['Attention', 'Focus']);
+      const reread = await aliceAgent.get(`/api/sources/${source.id}`).expect(200);
+      expect(topicNames(reread.body.source.topics)).toEqual(['Attention']);
+    });
+
+    // `merge` is about the collision, not about every rename: a plain rename carrying it is
+    // still a plain rename.
+    it('renames in place when merge is asked for but nothing collides', async () => {
+      await createSource(aliceAgent, { topicNames: ['Attention'] });
+      const attention = await topicByName(aliceAgent, 'Attention');
+
+      const res = await aliceAgent
+        .patch(`/api/topics/${attention.id}`)
+        .send({ name: 'Focus', merge: true })
+        .expect(200);
+
+      expect(res.body.merged).toBe(false);
+      expect(res.body.topic.id).toBe(attention.id);
     });
 
     it('refuses a blank name', async () => {

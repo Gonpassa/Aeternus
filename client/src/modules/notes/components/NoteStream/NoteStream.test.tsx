@@ -1,30 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import type { LiteratureNoteWithConnections, Topic } from '@nee3/shared-types';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 
 // A filed note's inherited Topic chips are links to the Topic view, and a router Link needs a
 // router (#88). The stream is rendered without one, so the Link is stubbed as the anchor it
 // renders as.
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    params,
-    children,
-  }: {
-    to: string;
-    params?: Record<string, string>;
-    children: ReactNode;
-  }) => (
-    <a
-      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
-    >
-      {children}
-    </a>
-  ),
-}));
+import { routerLinkStub } from '../../../../test/routerLinkStub.tsx';
+
+vi.mock('@tanstack/react-router', () => routerLinkStub());
 
 const { NoteStream } = await import('./NoteStream.tsx');
 

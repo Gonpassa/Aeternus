@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import type { ApiErrorResponse, RenameTopicRequest } from '@nee3/shared-types';
+import type {
+  ApiErrorResponse,
+  RenameTopicRequest,
+  TopicMergeConflictResponse,
+} from '@nee3/shared-types';
 import {
   deleteTopic as deleteTopicRecord,
   findTopicById,
@@ -9,11 +13,7 @@ import {
   renameTopic as renameTopicRecord,
 } from '../../db/topics';
 import { findNoteById } from '../../db/notes';
-import {
-  toTopicListEntry,
-  toTopicPermanentNote,
-  toTopicRelatedNote,
-} from './serialize';
+import { toTopicListEntry, toTopicPermanentNote, toTopicRelatedNote } from './serialize';
 import { parseNoteId, parseTopicId } from './params';
 import { validateTopicName } from './validation';
 import { sanitizeTopicName } from './sanitize';
@@ -107,7 +107,8 @@ export const renameTopic = async (
     res.status(404).json({ error: 'Topic not found' } satisfies ApiErrorResponse);
     return;
   }
-  const validation = validateTopicName((req.body as RenameTopicRequest).name);
+  const { name, merge } = req.body as RenameTopicRequest;
+  const validation = validateTopicName(name);
   if (!validation.valid) {
     res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
     return;
@@ -117,10 +118,26 @@ export const renameTopic = async (
     const renamed = await renameTopicRecord({
       topicId,
       userId,
-      name: sanitizeTopicName((req.body as RenameTopicRequest).name),
+      name: sanitizeTopicName(name),
+      merge: merge === true,
     });
     if (!renamed) {
       res.status(404).json({ error: 'Topic not found' } satisfies ApiErrorResponse);
+      return;
+    }
+    // The rename turned out to be a merge the request had not agreed to. The Topic the name
+    // already belongs to is handed back so the client can confirm against its real carrier
+    // counts and ask again, rather than folding two Topics together unasked (#88).
+    if ('conflict' in renamed) {
+      const mergeTarget = await findTopicById({ id: renamed.conflict.id, userId });
+      if (!mergeTarget) {
+        res.status(404).json({ error: 'Topic not found' } satisfies ApiErrorResponse);
+        return;
+      }
+      res.status(409).json({
+        error: `“${renamed.conflict.name}” already exists, so renaming merges the two.`,
+        mergeTarget: toTopicListEntry(mergeTarget),
+      } satisfies TopicMergeConflictResponse);
       return;
     }
     // Read back with its counts, because a merge changed them: the surviving Topic now wears

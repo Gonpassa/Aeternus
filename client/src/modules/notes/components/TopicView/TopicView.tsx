@@ -15,7 +15,8 @@ export interface TopicViewProps {
   // The whole vocabulary, which the rename needs: renaming into a name that already exists is
   // the merge, and the confirmation names the other Topic's carrier counts (#88).
   vocabulary: TopicListEntry[];
-  onRename: (name: string) => Promise<void>;
+  // Resolves with the Topic a refused merge collided with - see RenameTopicDialog.
+  onRename: (name: string, merge: boolean) => Promise<TopicListEntry | null>;
   onDelete: () => Promise<void>;
 }
 

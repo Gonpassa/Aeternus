@@ -1,25 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import type { Topic } from '@nee3/shared-types';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    params,
-    children,
-  }: {
-    to: string;
-    params?: Record<string, string>;
-    children: ReactNode;
-  }) => (
-    <a
-      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
-    >
-      {children}
-    </a>
-  ),
-}));
+import { routerLinkStub } from '../../../../test/routerLinkStub.tsx';
+
+vi.mock('@tanstack/react-router', () => routerLinkStub());
 
 const { TopicTags } = await import('./TopicTags.tsx');
 

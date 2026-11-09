@@ -1,10 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import type {
   RenameTopicRequest,
   RenameTopicResponse,
   TopicDetailResponse,
   TopicListEntry,
   TopicListResponse,
+  TopicMergeConflictResponse,
   TopicRelatedNotesResponse,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
@@ -54,44 +56,51 @@ export interface RenameTopicVariables {
   input: RenameTopicRequest;
 }
 
+// A Topic shows up on every carrier at once, so when one is renamed, merged or deleted every
+// cached payload that names a Topic is dropped rather than patched - the catalog's cards, the
+// reading pages' headers and the notes' own Topic lists all carry it. The Topic's own payload
+// is removed rather than refetched, because a merge or a delete leaves its id pointing at
+// nothing.
+const forgetTopicEverywhere = (queryClient: QueryClient, topicId: number) => {
+  queryClient.removeQueries({ queryKey: topicKeys.detail(topicId) });
+  queryClient.invalidateQueries({ queryKey: topicKeys.all });
+  queryClient.invalidateQueries({ queryKey: sourceKeys.all });
+  queryClient.invalidateQueries({ queryKey: noteKeys.all });
+};
+
 // Renaming, which is also the merge: the server answers with the Topic that survived and says
-// which of the two happened (CONTEXT.md, Topic). A renamed Topic shows up on every carrier at
-// once, so every cached payload that names a Topic is dropped rather than patched - the
-// catalog's cards, the reading pages' headers and the notes' own Topic lists all carry it.
+// which of the two happened (CONTEXT.md, Topic). A merge the request did not agree to is
+// refused with a 409 carrying the Topic the name already belongs to, so the caller can confirm
+// and ask again with `merge` - the confirmation is enforced by the server rather than being a
+// courtesy the client could skip (#88).
 export const useRenameTopic = () => {
   const queryClient = useQueryClient();
   return useMutation<RenameTopicResponse, Error, RenameTopicVariables>({
     mutationFn: async ({ topicId, input }) => {
-      const { data } = await apiClient.patch<RenameTopicResponse>(
-        endpoints.topic(topicId),
-        input,
-      );
+      const { data } = await apiClient.patch<RenameTopicResponse>(endpoints.topic(topicId), input);
       return data;
     },
-    onSuccess: (_result, { topicId }) => {
-      // A merge leaves this id pointing at nothing, so its own payload goes rather than being
-      // refetched into a 404.
-      queryClient.removeQueries({ queryKey: topicKeys.detail(topicId) });
-      queryClient.invalidateQueries({ queryKey: topicKeys.all });
-      queryClient.invalidateQueries({ queryKey: sourceKeys.all });
-      queryClient.invalidateQueries({ queryKey: noteKeys.all });
-    },
+    onSuccess: (_result, { topicId }) => forgetTopicEverywhere(queryClient, topicId),
   });
 };
 
-// Deleting a Topic takes the word off every carrier and touches no note, so the same caches
-// that a rename invalidates are invalidated here.
+// The Topic a rename collided with, or null when the failure was something else. A 409 is the
+// server asking for the merge to be confirmed rather than an error to surface.
+export const mergeConflictFrom = (error: unknown): TopicListEntry | null => {
+  if (!isAxiosError<TopicMergeConflictResponse>(error) || error.response?.status !== 409) {
+    return null;
+  }
+  return error.response.data.mergeTarget ?? null;
+};
+
+// Deleting a Topic takes the word off every carrier and touches no note, so the same caches a
+// rename drops are dropped here.
 export const useDeleteTopic = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, number>({
     mutationFn: async (topicId) => {
       await apiClient.delete(endpoints.topic(topicId));
     },
-    onSuccess: (_result, topicId) => {
-      queryClient.removeQueries({ queryKey: topicKeys.detail(topicId) });
-      queryClient.invalidateQueries({ queryKey: topicKeys.all });
-      queryClient.invalidateQueries({ queryKey: sourceKeys.all });
-      queryClient.invalidateQueries({ queryKey: noteKeys.all });
-    },
+    onSuccess: (_result, topicId) => forgetTopicEverywhere(queryClient, topicId),
   });
 };

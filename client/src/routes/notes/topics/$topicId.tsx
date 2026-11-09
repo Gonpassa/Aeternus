@@ -1,6 +1,7 @@
 import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router';
 import { requireAuth } from '../../../auth/requireAuth.ts';
 import {
+  mergeConflictFrom,
   useDeleteTopic,
   useRenameTopic,
   useTopic,
@@ -30,8 +31,17 @@ function TopicPage() {
         <TopicView
           detail={data}
           vocabulary={vocabulary.data ?? []}
-          onRename={async (name) => {
-            const result = await renameTopic.mutateAsync({ topicId: id, input: { name } });
+          onRename={async (name, merge) => {
+            let result;
+            try {
+              result = await renameTopic.mutateAsync({ topicId: id, input: { name, merge } });
+            } catch (error) {
+              // The server refuses a merge nobody agreed to, and says which Topic the name
+              // belongs to; the dialog asks about that one and sends the rename again.
+              const mergeTarget = mergeConflictFrom(error);
+              if (mergeTarget) return mergeTarget;
+              throw error;
+            }
             // A merge leaves this route pointing at a Topic that is gone, so the page follows
             // the Topic that survived rather than showing a Topic that could not be found.
             if (result.merged) {
@@ -41,6 +51,7 @@ function TopicPage() {
                 replace: true,
               });
             }
+            return null;
           }}
           // Back to the index: the word this page was about is no longer in the vocabulary,
           // and nothing was deleted with it.

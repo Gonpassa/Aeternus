@@ -17,15 +17,15 @@ If a decision comes out of this note, that decision should be recorded as the ne
 
 ## What the repo actually does today
 
-| Concern | Where | Behaviour |
-|---|---|---|
-| Primary mood type | `packages/shared-types/src/index.ts:28` | `'happy' \| 'calm' \| 'sad' \| 'anxious' \| 'angry'` |
-| Secondary tier | `packages/shared-types/src/index.ts:32-38` | `MOOD_TAXONOMY`, 4 suggested words per primary |
-| Persistence | `backend/src/db/schema.ts:24,35` | Postgres enum `primary_mood`, column `NOT NULL` |
-| Server validation | `backend/src/modules/journal/validation.ts:14,31` | Primary mood required; specific emotion optional free text |
-| Picker UI | `client/src/modules/journal/components/MoodPicker/MoodPicker.tsx:92-127` | Radiogroup of 5 swatches, then a pill row plus a "Custom" text input |
-| Form gate | `client/src/modules/journal/components/EntryForm/EntryForm.tsx:89-91` | Blocks submit with "Please choose a mood." |
-| Colors | `client/src/modules/journal/moodColors.ts:3-25`, `docs/design/design-system.md:89-100` | rust / moss / ink-blue / `#B98A2E` / `#7A2E1E` |
+| Concern           | Where                                                                                  | Behaviour                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Primary mood type | `packages/shared-types/src/index.ts:28`                                                | `'happy' \| 'calm' \| 'sad' \| 'anxious' \| 'angry'`                 |
+| Secondary tier    | `packages/shared-types/src/index.ts:32-38`                                             | `MOOD_TAXONOMY`, 4 suggested words per primary                       |
+| Persistence       | `backend/src/db/schema.ts:24,35`                                                       | Postgres enum `primary_mood`, column `NOT NULL`                      |
+| Server validation | `backend/src/modules/journal/validation.ts:14,31`                                      | Primary mood required; specific emotion optional free text           |
+| Picker UI         | `client/src/modules/journal/components/MoodPicker/MoodPicker.tsx:92-127`               | Radiogroup of 5 swatches, then a pill row plus a "Custom" text input |
+| Form gate         | `client/src/modules/journal/components/EntryForm/EntryForm.tsx:89-91`                  | Blocks submit with "Please choose a mood."                           |
+| Colors            | `client/src/modules/journal/moodColors.ts:3-25`, `docs/design/design-system.md:89-100` | rust / moss / ink-blue / `#B98A2E` / `#7A2E1E`                       |
 
 Two behaviours matter for the evaluation below.
 
@@ -40,30 +40,30 @@ That is where `neutral` was dropped: it was never in the shipped taxonomy, it wa
 Paul Ekman's own site lists **seven** universal emotions: anger, contempt, disgust, enjoyment, fear, sadness, surprise ([Paul Ekman Group, Universal Emotions](https://www.paulekman.com/universal-emotions/)).
 The site states he initially identified six (anger, surprise, disgust, enjoyment, fear, sadness) and later found "the strongest evidence to date of a seventh emotion, which is contempt".
 It also notes that most emotion scientists agree on at least five core emotions, and - importantly for a two-tier design - that "emotions are comprised of a family of related emotional states" rather than being single points.
-That family framing is the strongest published support for the primary/secondary split as a *shape*, independent of which primaries you choose.
+That family framing is the strongest published support for the primary/secondary split as a _shape_, independent of which primaries you choose.
 
-Robert Plutchik's psychoevolutionary theory posits **eight** basic emotions arranged as four bipolar pairs: joy/sadness, trust/disgust, fear/anger, surprise/anticipation ([Plutchik, R. (2001). The Nature of Emotions. *American Scientist*, 89, 344-350](https://www.scirp.org/reference/referencespapers?referenceid=3549928)).
+Robert Plutchik's psychoevolutionary theory posits **eight** basic emotions arranged as four bipolar pairs: joy/sadness, trust/disgust, fear/anger, surprise/anticipation ([Plutchik, R. (2001). The Nature of Emotions. _American Scientist_, 89, 344-350](https://www.scirp.org/reference/referencespapers?referenceid=3549928)).
 Each is rendered at three intensity levels on the wheel, and adjacent primaries combine into named dyads (joy + trust = love).
 Plutchik's wheel is therefore genuinely two-tier in two different senses at once: intensity within a primary, and blending across primaries.
 
-Gloria Willcox's Feeling Wheel - the source the Phase 4a spec actually cites - is a therapy tool rather than an empirical model. It has an inner ring of core feelings (sad, mad, scared, joyful, powerful, peaceful) and two outer rings of progressively more specific words ([Willcox, G. (1982). The Feeling Wheel. *Transactional Analysis Journal*, 12(4), 274-276](https://journals.sagepub.com/doi/10.1177/036215378201200411)).
+Gloria Willcox's Feeling Wheel - the source the Phase 4a spec actually cites - is a therapy tool rather than an empirical model. It has an inner ring of core feelings (sad, mad, scared, joyful, powerful, peaceful) and two outer rings of progressively more specific words ([Willcox, G. (1982). The Feeling Wheel. _Transactional Analysis Journal_, 12(4), 274-276](https://journals.sagepub.com/doi/10.1177/036215378201200411)).
 Note that Willcox's inner ring is six, not five, and includes `powerful`, an agency/dominance term with no analogue in this repo's set.
 
 Two counterweights are worth recording so the note is not one-sided.
 
-- Cowen and Keltner found that **27** distinct categories, not six, were needed to account for reported feeling across 2,185 emotion-eliciting videos, and that those categories are bridged by continuous gradients rather than discrete boundaries ([Cowen & Keltner, 2017, *PNAS* 114(38): E7900-E7909](https://www.pnas.org/doi/abs/10.1073/pnas.1702247114)). Any small closed primary set is a deliberate lossy compression, and should be defended as a UX decision rather than as psychological truth.
-- Lisa Feldman Barrett argues the natural-kind view of emotion is inconsistent with the evidence and may be "an error of arbitrary aggregation" ([Barrett, L.F. (2006). Are Emotions Natural Kinds? *Perspectives on Psychological Science*, 1(1), 28-58](https://journals.sagepub.com/doi/10.1111/j.1745-6916.2006.00003.x)). This is the strongest argument *against* letting named-emotion buckets be the load-bearing primary tier at all.
+- Cowen and Keltner found that **27** distinct categories, not six, were needed to account for reported feeling across 2,185 emotion-eliciting videos, and that those categories are bridged by continuous gradients rather than discrete boundaries ([Cowen & Keltner, 2017, _PNAS_ 114(38): E7900-E7909](https://www.pnas.org/doi/abs/10.1073/pnas.1702247114)). Any small closed primary set is a deliberate lossy compression, and should be defended as a UX decision rather than as psychological truth.
+- Lisa Feldman Barrett argues the natural-kind view of emotion is inconsistent with the evidence and may be "an error of arbitrary aggregation" ([Barrett, L.F. (2006). Are Emotions Natural Kinds? _Perspectives on Psychological Science_, 1(1), 28-58](https://journals.sagepub.com/doi/10.1111/j.1745-6916.2006.00003.x)). This is the strongest argument _against_ letting named-emotion buckets be the load-bearing primary tier at all.
 
 ## 2. Dimensional models
 
-James Russell's circumplex places affect words in a circle over two bipolar axes: pleasure-displeasure (horizontal) and arousal-sleepiness (vertical) ([Russell, J.A. (1980). A circumplex model of affect. *Journal of Personality and Social Psychology*, 39(6), 1161-1178](https://www.semanticscholar.org/paper/9bb28869d9808b12273c42229c2d1aa564e5bac8)).
+James Russell's circumplex places affect words in a circle over two bipolar axes: pleasure-displeasure (horizontal) and arousal-sleepiness (vertical) ([Russell, J.A. (1980). A circumplex model of affect. _Journal of Personality and Social Psychology_, 39(6), 1161-1178](https://www.semanticscholar.org/paper/9bb28869d9808b12273c42229c2d1aa564e5bac8)).
 The eight reference points sit at 45-degree intervals: pleasure (0), excitement (45), arousal (90), distress (135), displeasure (180), depression (225), sleepiness (270), relaxation (315).
 The model has north of 15,000 citations and is the direct ancestor of most product mood grids.
 
-Watson and Tellegen rotated Russell's circumplex 45 degrees and drew two new axes through the densest clusters, labelling them High Positive Affect and High Negative Affect ([Watson, D. & Tellegen, A. (1985). Toward a consensual structure of mood. *Psychological Bulletin*, 98(2), 219-235](https://pubmed.ncbi.nlm.nih.gov/3901060/)).
+Watson and Tellegen rotated Russell's circumplex 45 degrees and drew two new axes through the densest clusters, labelling them High Positive Affect and High Negative Affect ([Watson, D. & Tellegen, A. (1985). Toward a consensual structure of mood. _Psychological Bulletin_, 98(2), 219-235](https://pubmed.ncbi.nlm.nih.gov/3901060/)).
 The practical consequence is that positive and negative affect behave as two semi-independent dimensions, not as two ends of one slider - which matters if you ever want a single "how was today" scalar.
 
-Mehrabian and Russell's PAD model adds a third axis, dominance, to pleasure and arousal ([PAD emotional state model, from *An Approach to Environmental Psychology*, MIT Press, 1974](https://en.wikipedia.org/wiki/PAD_emotional_state_model)).
+Mehrabian and Russell's PAD model adds a third axis, dominance, to pleasure and arousal ([PAD emotional state model, from _An Approach to Environmental Psychology_, MIT Press, 1974](https://en.wikipedia.org/wiki/PAD_emotional_state_model)).
 Dominance is what separates `angry` (high dominance) from `anxious`/`scared` (low dominance) when both are high-arousal-negative.
 It is also what Willcox's `powerful` is capturing.
 Almost no consumer mood app exposes dominance, and this repo does not either - but it is the reason `angry` and `anxious` feel like genuinely different moods despite occupying the same circumplex quadrant.
@@ -96,12 +96,12 @@ Daylio's primary tier is therefore a **5-point ordinal valence scale with a neut
 
 ### Pattern across all three
 
-| Product | Primary tier | Neutral? | Secondary tier |
-|---|---|---|---|
-| How We Feel | 4 valence x energy quadrants | No explicit neutral | 144 emotion words |
-| Apple Health | continuous valence, 7 buckets | Yes, explicit Neutral | 38 flat labels |
-| Daylio | 5-point ordinal valence | Yes, "Meh" | user-defined, nested |
-| **Aeternus** | **5 named emotions** | **No** | **4 suggestions + free text** |
+| Product      | Primary tier                  | Neutral?              | Secondary tier                |
+| ------------ | ----------------------------- | --------------------- | ----------------------------- |
+| How We Feel  | 4 valence x energy quadrants  | No explicit neutral   | 144 emotion words             |
+| Apple Health | continuous valence, 7 buckets | Yes, explicit Neutral | 38 flat labels                |
+| Daylio       | 5-point ordinal valence       | Yes, "Meh"            | user-defined, nested          |
+| **Aeternus** | **5 named emotions**          | **No**                | **4 suggestions + free text** |
 
 Not one of the three shipped products uses named emotions as the primary tier.
 All three use a dimension, and put the names in tier two.
@@ -113,13 +113,13 @@ Aeternus is the outlier in kind, not just in count.
 
 Plotting the five against Russell's pleasure/arousal axes:
 
-| Mood | Valence | Arousal | Quadrant |
-|---|---|---|---|
-| happy | pleasant | high | high-energy pleasant (yellow) |
-| calm | pleasant | low | low-energy pleasant (green) |
-| sad | unpleasant | low | low-energy unpleasant (blue) |
-| anxious | unpleasant | high | high-energy unpleasant (red) |
-| angry | unpleasant | high | high-energy unpleasant (red) |
+| Mood    | Valence    | Arousal | Quadrant                      |
+| ------- | ---------- | ------- | ----------------------------- |
+| happy   | pleasant   | high    | high-energy pleasant (yellow) |
+| calm    | pleasant   | low     | low-energy pleasant (green)   |
+| sad     | unpleasant | low     | low-energy unpleasant (blue)  |
+| anxious | unpleasant | high    | high-energy unpleasant (red)  |
+| angry   | unpleasant | high    | high-energy unpleasant (red)  |
 
 The set covers all four quadrants, which is better than a naive happy/sad/neutral scale.
 But the coverage is lopsided: **three of five moods are unpleasant, and two of those five share the same quadrant.**
@@ -136,7 +136,7 @@ Missing families that are well attested:
 
 - **Disgust.** Present in Ekman's list, in Plutchik's eight, and in Apple's 38 labels. Absent here with no secondary word anywhere near it. Arguably low value for a personal journal, but its absence should be a stated choice.
 - **Surprise.** In Ekman and Plutchik. Genuinely awkward for daily journaling because it is valence-ambiguous and momentary. Reasonable to omit.
-- **Fear as distinct from anxiety.** The APA and the wider literature draw the line clearly: fear is "an appropriate, present-oriented, and short-lived response to a clearly identifiable and specific threat", while anxiety is future-oriented, longer-acting, and directed at a diffuse threat ([APA, Anxiety topic page](https://www.apa.org/topics/anxiety); [Classification and assessment of fear and anxiety, *Neuroscience & Biobehavioral Reviews*](https://www.sciencedirect.com/science/article/am/pii/S0149763422003670)). Apple carries both `anxious` and `scared`. For a once-a-day retrospective journal, `anxious` is the right one to keep, and dropping `fear` is defensible.
+- **Fear as distinct from anxiety.** The APA and the wider literature draw the line clearly: fear is "an appropriate, present-oriented, and short-lived response to a clearly identifiable and specific threat", while anxiety is future-oriented, longer-acting, and directed at a diffuse threat ([APA, Anxiety topic page](https://www.apa.org/topics/anxiety); [Classification and assessment of fear and anxiety, _Neuroscience & Biobehavioral Reviews_](https://www.sciencedirect.com/science/article/am/pii/S0149763422003670)). Apple carries both `anxious` and `scared`. For a once-a-day retrospective journal, `anxious` is the right one to keep, and dropping `fear` is defensible.
 - **Low-arousal-negative beyond sadness.** `sad` is the only occupant of the blue quadrant, and its four suggestions (`lonely`, `disappointed`, `hurt`, `grieving`) are all grief-family. Nothing covers tiredness, flatness, drained-ness, boredom, or numbness, which are extremely common journal states. Apple covers this with `drained`, `discouraged`, `indifferent`, `hopeless`. This is the most real gap in the set.
 - **Agency / powerful.** Willcox's inner ring includes `powerful`; Apple has `brave`, `confident`, `proud`. Aeternus has `proud` buried as a suggestion under `happy`. This is a defensible tier-two placement.
 
@@ -158,14 +158,14 @@ Tier two trusts the user; tier one does not.
 
 ## 5. Recommendation
 
-**Do not keep the five as-is. Adjust rather than restructure - but restructure the *rationale*.**
+**Do not keep the five as-is. Adjust rather than restructure - but restructure the _rationale_.**
 
 I would not move to valence x arousal quadrants as the visible primary tier, despite that being what How We Feel does.
 Aeternus's design language is explicitly literary and anti-clinical (`design-system.md:87`: a filled dot "instead of an emoji - keeps the journal's tone literary rather than cute").
 A 2D affect grid is a clinical instrument and would read as an imported product pattern, not as this notebook.
 Named moods with hand-mixed pigment colors are the right surface for this product.
 
-The fix is to make the named set *derive* from the circumplex rather than merely coexist with it.
+The fix is to make the named set _derive_ from the circumplex rather than merely coexist with it.
 
 ### Concrete changes
 
@@ -176,7 +176,7 @@ The fix is to make the named set *derive* from the circumplex rather than merely
 
 2. **Add a neutral primary, or make mood optional. Prefer the former.**
    A seventh swatch, `steady` or `neutral`, in `--ink-soft` (the design system already names ink-soft as a mood-mark color at line 87 but no mood currently uses it).
-   Rationale for a bucket over an optional field: an explicit neutral is *data* ("today was unremarkable"), whereas a skipped field is *absence of data*, and the two are not interchangeable for a future insights view. Daylio's "Meh" and Apple's `Neutral` are both explicit values, not skips.
+   Rationale for a bucket over an optional field: an explicit neutral is _data_ ("today was unremarkable"), whereas a skipped field is _absence of data_, and the two are not interchangeable for a future insights view. Daylio's "Meh" and Apple's `Neutral` are both explicit values, not skips.
    If instead you make mood optional, the change is: nullable enum column, drop the `EntryForm.tsx:89` gate, and add deselect-on-reclick to `handlePrimaryMoodClick`. That is the cheaper change but the weaker one.
 
 3. **Rebalance the pleasant side.**
@@ -208,13 +208,13 @@ Roughly half a day of work, most of it picking two more colors that survive next
 ## Sources
 
 - [Paul Ekman Group, Universal Emotions](https://www.paulekman.com/universal-emotions/)
-- [Plutchik, R. (2001). The Nature of Emotions. *American Scientist*, 89, 344-350](https://www.scirp.org/reference/referencespapers?referenceid=3549928)
-- [Willcox, G. (1982). The Feeling Wheel. *Transactional Analysis Journal*, 12(4)](https://journals.sagepub.com/doi/10.1177/036215378201200411)
-- [Russell, J.A. (1980). A circumplex model of affect. *JPSP*, 39(6), 1161-1178](https://www.semanticscholar.org/paper/9bb28869d9808b12273c42229c2d1aa564e5bac8)
-- [Watson, D. & Tellegen, A. (1985). Toward a consensual structure of mood. *Psychological Bulletin*, 98(2)](https://pubmed.ncbi.nlm.nih.gov/3901060/)
+- [Plutchik, R. (2001). The Nature of Emotions. _American Scientist_, 89, 344-350](https://www.scirp.org/reference/referencespapers?referenceid=3549928)
+- [Willcox, G. (1982). The Feeling Wheel. _Transactional Analysis Journal_, 12(4)](https://journals.sagepub.com/doi/10.1177/036215378201200411)
+- [Russell, J.A. (1980). A circumplex model of affect. _JPSP_, 39(6), 1161-1178](https://www.semanticscholar.org/paper/9bb28869d9808b12273c42229c2d1aa564e5bac8)
+- [Watson, D. & Tellegen, A. (1985). Toward a consensual structure of mood. _Psychological Bulletin_, 98(2)](https://pubmed.ncbi.nlm.nih.gov/3901060/)
 - [PAD emotional state model (Mehrabian & Russell, 1974)](https://en.wikipedia.org/wiki/PAD_emotional_state_model)
-- [Cowen & Keltner (2017). Self-report captures 27 distinct categories of emotion. *PNAS* 114(38)](https://www.pnas.org/doi/abs/10.1073/pnas.1702247114)
-- [Barrett, L.F. (2006). Are Emotions Natural Kinds? *Perspectives on Psychological Science*, 1(1)](https://journals.sagepub.com/doi/10.1111/j.1745-6916.2006.00003.x)
+- [Cowen & Keltner (2017). Self-report captures 27 distinct categories of emotion. _PNAS_ 114(38)](https://www.pnas.org/doi/abs/10.1073/pnas.1702247114)
+- [Barrett, L.F. (2006). Are Emotions Natural Kinds? _Perspectives on Psychological Science_, 1(1)](https://journals.sagepub.com/doi/10.1111/j.1745-6916.2006.00003.x)
 - [How We Feel on the App Store](https://apps.apple.com/us/app/how-we-feel/id1562706384)
 - [marcbrackett.com, How We Feel app](https://marcbrackett.com/how-we-feel-app-3/)
 - [RULER Mood Meter Tip Sheet, rulerapproach.org](https://www.rulerapproach.org/wp-content/uploads/2023/03/Mood-Meter-Tip-Sheet.pdf)
@@ -223,4 +223,4 @@ Roughly half a day of work, most of it picking two more colors that survive next
 - [Exploring HealthKit: Working with State of Mind APIs](https://rudrank.com/exploring-healthkit-working-with-state-of-mind)
 - [Daylio Knowledge Base: Create and manage moods](https://daylio.net/faq/docs/daylio-faq/tutorials/create-and-manage-moods/)
 - [APA, Anxiety](https://www.apa.org/topics/anxiety)
-- [Classification and assessment of fear and anxiety, *Neurosci. Biobehav. Rev.*](https://www.sciencedirect.com/science/article/am/pii/S0149763422003670)
+- [Classification and assessment of fear and anxiety, _Neurosci. Biobehav. Rev._](https://www.sciencedirect.com/science/article/am/pii/S0149763422003670)

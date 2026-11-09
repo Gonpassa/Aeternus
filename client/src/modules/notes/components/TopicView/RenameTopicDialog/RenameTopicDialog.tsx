@@ -22,7 +22,10 @@ export interface RenameTopicDialogProps {
   // a name that already belongs to another Topic *is* the merge (CONTEXT.md, Topic).
   vocabulary: TopicListEntry[];
   onClose: () => void;
-  onConfirm: (name: string) => Promise<void>;
+  // Resolves with the Topic the name already belongs to when the server refused an unconfirmed
+  // merge, and with null when the rename went through. The vocabulary above is only the fast
+  // path: if it had not loaded, this is how the dialog still learns to ask first.
+  onConfirm: (name: string, merge: boolean) => Promise<TopicListEntry | null>;
 }
 
 // Renaming a Topic, which changes it on every carrier at once - and, when the new name already
@@ -37,6 +40,7 @@ export function RenameTopicDialog({
   onConfirm,
 }: RenameTopicDialogProps) {
   const [confirming, setConfirming] = useState(false);
+  const [refusedMergeTarget, setRefusedMergeTarget] = useState<TopicListEntry | null>(null);
   const {
     control,
     handleSubmit,
@@ -56,14 +60,22 @@ export function RenameTopicDialog({
     if (open) {
       reset({ name: topic.name });
       setConfirming(false);
+      setRefusedMergeTarget(null);
     }
   }, [open, topic.name, reset]);
 
-  const mergeTarget = mergeTargetFor(typed ?? '', topic, vocabulary);
+  const mergeTarget = mergeTargetFor(typed ?? '', topic, vocabulary) ?? refusedMergeTarget;
 
   const save = handleSubmit(async (values) => {
     try {
-      await onConfirm(values.name);
+      const refused = await onConfirm(values.name, confirming);
+      // The server would not merge without being asked, and named the Topic the name belongs
+      // to: the dialog turns into that confirmation rather than reporting a failure.
+      if (refused) {
+        setRefusedMergeTarget(refused);
+        setConfirming(true);
+        return;
+      }
       onClose();
     } catch {
       // Not field-attributable: the global toast interceptor in api/client.ts has already
@@ -91,7 +103,12 @@ export function RenameTopicDialog({
       footer={{
         secondary: {
           label: 'Cancel',
-          onClick: confirming ? () => setConfirming(false) : onClose,
+          onClick: confirming
+            ? () => {
+                setConfirming(false);
+                setRefusedMergeTarget(null);
+              }
+            : onClose,
         },
         primary: {
           label: confirming ? 'Merge Topics' : 'Rename Topic',

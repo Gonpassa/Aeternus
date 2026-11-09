@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
 import type {
   Source,
   TopicDetailResponse,
@@ -9,23 +8,9 @@ import type {
   TopicPermanentNote,
 } from '@nee3/shared-types';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    params,
-    children,
-  }: {
-    to: string;
-    params?: Record<string, string>;
-    children: ReactNode;
-  }) => (
-    <a
-      href={Object.entries(params ?? {}).reduce((path, [key, v]) => path.replace(`$${key}`, v), to)}
-    >
-      {children}
-    </a>
-  ),
-}));
+import { routerLinkStub } from '../../../../test/routerLinkStub.tsx';
+
+vi.mock('@tanstack/react-router', () => routerLinkStub());
 
 const { TopicView } = await import('./TopicView.tsx');
 
@@ -75,11 +60,12 @@ const detail = (overrides: Partial<TopicDetailResponse> = {}): TopicDetailRespon
   ...overrides,
 });
 
+const noRename = async () => null;
 const noop = async () => {};
 
 describe('TopicView', () => {
   it('names the Topic with its carrier counts', () => {
-    render(<TopicView detail={detail()} vocabulary={[]} onRename={noop} onDelete={noop} />);
+    render(<TopicView detail={detail()} vocabulary={[]} onRename={noRename} onDelete={noop} />);
 
     expect(screen.getByRole('heading', { name: 'Attention' })).toBeInTheDocument();
     expect(screen.getByText('2 Permanent notes · 1 Source')).toBeInTheDocument();
@@ -87,7 +73,7 @@ describe('TopicView', () => {
 
   // Most-linked first: the note most connected to the box is the front door (#88).
   it('lists the Permanent notes in the order given, then the Sources', () => {
-    render(<TopicView detail={detail()} vocabulary={[]} onRename={noop} onDelete={noop} />);
+    render(<TopicView detail={detail()} vocabulary={[]} onRename={noRename} onDelete={noop} />);
 
     const ideas = screen.getByRole('list', { name: 'Permanent notes carrying this Topic' });
     expect(Array.from(ideas.querySelectorAll('h3')).map((heading) => heading.textContent)).toEqual([
@@ -106,7 +92,7 @@ describe('TopicView', () => {
       <TopicView
         detail={detail({ topic: topic(1, 'Attention'), permanentNotes: [], sources: [] })}
         vocabulary={[]}
-        onRename={noop}
+        onRename={noRename}
         onDelete={noop}
       />,
     );
@@ -118,7 +104,7 @@ describe('TopicView', () => {
   });
 
   it('renames the Topic without a confirmation when the name is new', async () => {
-    const onRename = vi.fn(async () => {});
+    const onRename = vi.fn(async () => null);
     render(
       <TopicView
         detail={detail()}
@@ -134,13 +120,13 @@ describe('TopicView', () => {
     await userEvent.type(field, 'Focus');
     await userEvent.click(screen.getByRole('button', { name: 'Rename Topic' }));
 
-    await waitFor(() => expect(onRename).toHaveBeenCalledWith('Focus'));
+    await waitFor(() => expect(onRename).toHaveBeenCalledWith('Focus', false));
   });
 
   // Renaming into a name that already exists *is* the merge, and it confirms first, naming the
   // carrier counts (CONTEXT.md, Topic).
   it('confirms a merge, naming both Topics’ carrier counts', async () => {
-    const onRename = vi.fn(async () => {});
+    const onRename = vi.fn(async () => null);
     render(
       <TopicView
         detail={detail()}
@@ -164,12 +150,38 @@ describe('TopicView', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Merge Topics' }));
 
-    await waitFor(() => expect(onRename).toHaveBeenCalledWith('focus'));
+    await waitFor(() => expect(onRename).toHaveBeenCalledWith('focus', true));
+  });
+
+  // The vocabulary is only the fast path. When it has not loaded, the dialog cannot tell a
+  // rename from a merge, so the server refuses the unconfirmed merge and names the Topic the
+  // name belongs to - and the confirmation happens anyway (#88).
+  it('confirms a merge the server refused, even with no vocabulary to detect it from', async () => {
+    const onRename = vi
+      .fn<(name: string, merge: boolean) => Promise<TopicListEntry | null>>()
+      .mockResolvedValueOnce(topic(2, 'Focus', 4, 3))
+      .mockResolvedValueOnce(null);
+    render(<TopicView detail={detail()} vocabulary={[]} onRename={onRename} onDelete={noop} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
+    const field = screen.getByLabelText('Topic');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'Focus');
+    await userEvent.click(screen.getByRole('button', { name: 'Rename Topic' }));
+
+    await waitFor(() => expect(onRename).toHaveBeenCalledWith('Focus', false));
+    expect(await screen.findByText(/folds into/)).toHaveTextContent(
+      '\u201CAttention\u201D (2 Permanent notes \u00B7 1 Source) folds into \u201CFocus\u201D (4 Permanent notes \u00B7 3 Sources).',
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Merge Topics' }));
+
+    await waitFor(() => expect(onRename).toHaveBeenCalledWith('Focus', true));
   });
 
   it('confirms a deletion by naming what it detaches, and that no note goes', async () => {
     const onDelete = vi.fn(async () => {});
-    render(<TopicView detail={detail()} vocabulary={[]} onRename={noop} onDelete={onDelete} />);
+    render(<TopicView detail={detail()} vocabulary={[]} onRename={noRename} onDelete={onDelete} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
 

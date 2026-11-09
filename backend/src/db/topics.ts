@@ -35,12 +35,21 @@ const carrierCount = (join: typeof noteTopics | typeof sourceTopics) =>
     .from(join)
     .where(eq(join.topicId, topics.id));
 
+// Only a Permanent note carries a Topic of its own - a Literature note inherits its Source's
+// (ADR 0012, which makes that a composite foreign key). The predicate is still spelled out
+// wherever the count or the list claims to be of Permanent notes, so the claim is true of the
+// query rather than only of the write path.
+const permanentNoteCount = db
+  .select({ count: sql<number>`count(*)` })
+  .from(noteTopics)
+  .where(and(eq(noteTopics.topicId, topics.id), eq(noteTopics.noteKind, 'permanent')));
+
 const topicWithCountsColumns = {
   id: topics.id,
   userId: topics.userId,
   name: topics.name,
   createdAt: topics.createdAt,
-  permanentNoteCount: sql<number>`(${carrierCount(noteTopics)})`.mapWith(Number),
+  permanentNoteCount: sql<number>`(${permanentNoteCount})`.mapWith(Number),
   sourceCount: sql<number>`(${carrierCount(sourceTopics)})`.mapWith(Number),
 };
 
@@ -109,7 +118,13 @@ export const listTopicCarriers = async ({
     .select({ note: notes, linkCount: sql<number>`(${linkCount})`.mapWith(Number) })
     .from(noteTopics)
     .innerJoin(notes, eq(notes.id, noteTopics.noteId))
-    .where(and(eq(noteTopics.topicId, topicId), eq(notes.userId, userId)))
+    .where(
+      and(
+        eq(noteTopics.topicId, topicId),
+        eq(noteTopics.noteKind, 'permanent'),
+        eq(notes.userId, userId),
+      ),
+    )
     // Most-linked first - the uncurated front door, with no pinned entry note above it (#88) -
     // then newest first among notes tied on count, so the order is total and stable.
     .orderBy(desc(sql`(${linkCount})`), desc(notes.createdAt), asc(notes.id));
@@ -134,11 +149,17 @@ export const renameTopic = async ({
   topicId,
   userId,
   name,
+  merge = false,
 }: {
   topicId: number;
   userId: number;
   name: string;
-}): Promise<{ topic: Topic; merged: boolean } | undefined> =>
+  // Whether the caller agreed to a merge. A rename into a name another Topic already wears is
+  // the merge (CONTEXT.md, Topic), and because it takes one of the two out of the vocabulary it
+  // is not performed on an unconfirmed request: `conflict` is returned instead so the caller can
+  // ask first.
+  merge?: boolean;
+}): Promise<{ topic: Topic; merged: boolean } | { conflict: Topic } | undefined> =>
   db.transaction(async (tx) => {
     const [own] = await tx
       .select()
@@ -170,6 +191,10 @@ export const renameTopic = async ({
         throw new Error('Topic rename did not return a row');
       }
       return { topic: renamed, merged: false };
+    }
+
+    if (!merge) {
+      return { conflict: existing };
     }
 
     // The merge: every carrier of this Topic is moved onto the one that already has the name,

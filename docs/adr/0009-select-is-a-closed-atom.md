@@ -12,7 +12,7 @@ A single `itemSlot` render prop covers option content beyond a plain label (subt
 Because the atom now owns the option list, it also reserves the width of its widest option, which fixes variable-width layout shift (the month select in the journal calendar header) once for every select in the app rather than per call site.
 
 This makes `Select` deliberately the odd one out among the compound atoms.
-The distinction is not arbitrary: `Dialog`, `Tabs` and `Popover` compose caller-authored *content*, whose shape the atom cannot know, whereas a select's parts are pure chrome with a fixed structure and only the option data varies.
+The distinction is not arbitrary: `Dialog`, `Tabs` and `Popover` compose caller-authored _content_, whose shape the atom cannot know, whereas a select's parts are pure chrome with a fixed structure and only the option data varies.
 When an atom's parts are chrome, closing it is what makes uniformity enforceable rather than conventional.
 
 ## Status

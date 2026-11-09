@@ -51,11 +51,7 @@ export function SourceCard({ source }: SourceCardProps) {
                 chips are unlinked on a card, because the whole card is already one link to
                 the Source - the Topic view is reached from a tag that stands on its own, on
                 the Source header or on a filed note (#88). */}
-            <TopicTags
-              topics={source.topics}
-              label={`Topics on ${source.title}`}
-              linked={false}
-            />
+            <TopicTags topics={source.topics} label={`Topics on ${source.title}`} linked={false} />
             <Text textStyle="label" color="inkSoft" mt="2">
               {lastNoteLabel(source.lastNoteAt)}
             </Text>

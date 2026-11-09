@@ -264,6 +264,20 @@ export interface TopicDetailResponse {
 // Topic). There is no separate merge request.
 export interface RenameTopicRequest {
   name: string;
+  // A merge is destructive in a way a rename is not - one of the two Topics leaves the
+  // vocabulary - so the server performs it only when the request says the merge was agreed to.
+  // Without this the confirmation would be advisory: a client that had not managed to read the
+  // vocabulary could not tell a rename from a merge, and would fold two Topics together without
+  // ever asking (#88).
+  merge?: boolean;
+}
+
+// What a rename that turned out to be a merge is answered with when the request did not agree
+// to one: the Topic the name already belongs to, so the client can confirm against the real
+// carrier counts and send the rename again with `merge`.
+export interface TopicMergeConflictResponse {
+  error: string;
+  mergeTarget: TopicListEntry;
 }
 
 // `merged` says which of the two things the rename turned out to be, so the client can report
