@@ -165,14 +165,19 @@ export const updateSource = async (
       res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
       return;
     }
-    // The Topic list is the whole set the Source should end up with, as every other field here
+    // Given a list, it is the whole set the Source should end up with, as every other field here
     // is written whole (#83): a Topic left out of it is taken off, and the Topic itself stays in
-    // the vocabulary with one fewer carrier.
-    const topics = await setSourceTopics({
-      userId,
-      sourceId: source.id,
-      names: sanitizeTopicNames(topicNames),
-    });
+    // the vocabulary with one fewer carrier. An empty list is therefore how every Topic is taken
+    // off - but a request that never mentions topicNames at all is not saying anything about
+    // them, and must leave the Source's own list alone rather than wipe it.
+    const topics =
+      topicNames === undefined || topicNames === null
+        ? ((await listTopicsBySourceIds({ sourceIds: [source.id] })).get(source.id) ?? [])
+        : await setSourceTopics({
+            userId,
+            sourceId: source.id,
+            names: sanitizeTopicNames(topicNames),
+          });
     res.status(200).json({ source: { ...source, topics: topics.map(toTopic) } });
   } catch (err) {
     next(err);

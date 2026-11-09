@@ -154,6 +154,24 @@ describe('topic tagging routes (integration)', () => {
       expect(res.body.source.topics).toEqual([]);
     });
 
+    // An empty list means take them all off; saying nothing about Topics at all means the
+    // correction was not about Topics, and must leave them where they are.
+    it('leaves the Topics alone when the correction never mentions them', async () => {
+      const source = await createSource(aliceAgent, { topicNames: ['Note-taking'] });
+
+      const res = await aliceAgent
+        .patch(`/api/sources/${source.id}`)
+        .send({ ...sourcePayload, title: 'Smart Notes' })
+        .expect(200);
+
+      expect(res.body.source.topics.map((topic: { name: string }) => topic.name)).toEqual([
+        'Note-taking',
+      ]);
+
+      const reread = await aliceAgent.get(`/api/sources/${source.id}`).expect(200);
+      expect(reread.body.source.topics).toHaveLength(1);
+    });
+
     it('keeps the Topics a corrected Source already carried', async () => {
       const source = await createSource(aliceAgent, { topicNames: ['Note-taking'] });
 

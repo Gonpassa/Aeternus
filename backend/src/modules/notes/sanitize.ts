@@ -97,9 +97,9 @@ export const sanitizePermanentNoteInput = (input: {
   })),
 });
 
-// Topic names are one-line fields, so they collapse their whitespace like a title does, and
-// blanks are dropped rather than refused - an input the user opened and left empty is not a
-// Topic. Casing is never rewritten: the vocabulary resolves a name case-insensitively, and the
+// Topic names are one-line fields, so they collapse their whitespace like a title does. A blank
+// name is refused before this runs, by validateTopicNames; dropping one here as well is defence
+// in depth for a caller that sanitizes without validating. Casing is never rewritten: the vocabulary resolves a name case-insensitively, and the
 // casing that reaches the database is the one the user typed (CONTEXT.md, Topic).
 export const sanitizeTopicNames = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
