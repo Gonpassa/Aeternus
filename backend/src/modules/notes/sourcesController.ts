@@ -19,6 +19,7 @@ import { listConnectionsByNoteIds } from '../../db/links';
 import { listTopicsBySourceIds, setSourceTopics } from '../../db/topics';
 import { EMPTY_CONNECTIONS, toConnections, toLiteratureNote, toTopic } from './serialize';
 import { parseSourceId } from './params';
+import { findPermanentNotesOrphanedByDeleting, orphanRefusal } from './orphanGuard';
 import { getUserId } from '../../types/request';
 
 export const listSources = async (
@@ -186,8 +187,10 @@ export const updateSource = async (
 
 // Read, guard, delete - the same three steps as deleting a note, in the same order. Deleting a
 // Source takes its Literature notes with it (#70); the cascade lives in the foreign key, and
-// the orphan guard of ADR 0014 belongs in front of it once Permanent notes exist (#86), where
-// it is the same check applied across the batch of notes this Source cascades to.
+// the orphan guard of ADR 0014 runs in front of it, as the same check applied once across the
+// whole batch of notes this Source cascades to rather than note by note. Asking it across the
+// batch is what lets the refusal name every idea that would have been left unlinked instead of
+// stopping at the first (#86).
 export const deleteSource = async (
   req: Request,
   res: Response,
@@ -203,6 +206,17 @@ export const deleteSource = async (
     const source = await findSourceById({ id: sourceId, userId });
     if (!source) {
       res.status(404).json({ error: 'Source not found' } satisfies ApiErrorResponse);
+      return;
+    }
+    const cascading = await listNotesBySource({ sourceId: source.id, userId });
+    const orphaned = await findPermanentNotesOrphanedByDeleting({
+      noteIds: cascading.map((note) => note.id),
+      userId,
+    });
+    if (orphaned.length > 0) {
+      res.status(409).json({
+        error: orphanRefusal(orphaned, 'Deleting this Source'),
+      } satisfies ApiErrorResponse);
       return;
     }
     await deleteSourceRecord({ id: source.id, userId });

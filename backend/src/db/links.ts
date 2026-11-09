@@ -167,11 +167,30 @@ export const listConnectionsByNoteIds = async ({
 const touchesNote = (noteId: number | typeof notes.id) =>
   or(eq(links.originNoteId, noteId), eq(links.targetNoteId, noteId));
 
+// The same question asked of a batch of notes, which is what a deletion needs: the Links a
+// cascade would take with it are exactly the Links touching the notes going away, and a Source
+// takes a whole batch of Literature notes (#86). One query rather than one per note, so the
+// guard in front of a Source deletion costs the same as the guard in front of a single note's.
+export const listLinksTouchingNotes = async ({
+  noteIds,
+}: {
+  noteIds: number[];
+}): Promise<Link[]> => {
+  if (noteIds.length === 0) {
+    return [];
+  }
+  return db
+    .select()
+    .from(links)
+    .where(or(inArray(links.originNoteId, noteIds), inArray(links.targetNoteId, noteIds)))
+    .orderBy(asc(links.createdAt), asc(links.id));
+};
+
 // Every Link one note is an end of, in either direction. Read in one query so the panel can
 // mark its candidates with the Link that already connects them without asking per row: there
 // is at most one Link per unordered pair, so the other end's id identifies it (ADR 0013).
 export const listLinksForNote = async ({ noteId }: { noteId: number }): Promise<Link[]> =>
-  db.select().from(links).where(touchesNote(noteId)).orderBy(asc(links.createdAt), asc(links.id));
+  listLinksTouchingNotes({ noteIds: [noteId] });
 
 // A Link read by id, with ownership established through the note at its origin: a Link carries
 // no user of its own, and both of its ends are always the same user's notes.
@@ -303,8 +322,8 @@ export interface UnlinkedPermanentNote {
 // only from another note's Links is linked.
 //
 // Stated as "which of these notes would end at zero" rather than "does this Link's removal
-// orphan anything", so that the deletion guards - a note, a Source's whole batch of notes
-// (#86) - run the same check by passing the Links their own cascade would take.
+// orphan anything", so that the deletion guards - a note, a Source's whole batch of notes -
+// run the same check by passing the Links their own cascade would take (see orphanGuard.ts).
 export const findPermanentNotesLeftUnlinked = async ({
   noteIds,
   userId,

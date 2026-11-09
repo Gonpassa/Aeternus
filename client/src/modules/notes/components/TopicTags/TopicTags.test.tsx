@@ -14,9 +14,7 @@ describe('TopicTags', () => {
   it('names the Topics the carrier wears, in the order given', () => {
     render(<TopicTags topics={[topic(1, 'Attention'), topic(2, 'Myth')]} />);
 
-    const names = screen
-      .getAllByRole('listitem')
-      .map((item) => item.textContent);
+    const names = screen.getAllByRole('listitem').map((item) => item.textContent);
     expect(names).toEqual(['Attention', 'Myth']);
   });
 

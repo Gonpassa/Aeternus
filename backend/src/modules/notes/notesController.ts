@@ -28,7 +28,6 @@ import { parseNoteId, parseSourceId } from './params';
 import {
   createLiteratureNote as createLiteratureNoteRecord,
   deleteNote as deleteNoteRecord,
-  findLiteratureNoteOwnedByUser,
   findNoteById,
   updateLiteratureNote as updateLiteratureNoteRecord,
 } from '../../db/notes';
@@ -38,6 +37,7 @@ import {
   listConnectionsByNoteIds,
 } from '../../db/links';
 import { findSourceById } from '../../db/sources';
+import { findPermanentNotesOrphanedByDeleting, orphanRefusal } from './orphanGuard';
 import { getUserId } from '../../types/request';
 
 // Capture is nested under its Source because capture only happens with a Source open: there
@@ -134,14 +134,15 @@ export const updateLiteratureNote = async (
   }
 };
 
-// Deleting a note is read, guard, delete - three steps, deliberately distinct. The orphan
-// guard of ADR 0014 belongs between the second and the third once Permanent notes exist
-// (#86): a Literature note is a legitimate Link endpoint, so deleting one can orphan an idea
-// written elsewhere - and now that Permanent notes exist (#84), it genuinely can: the Link
-// cascades away with the note, which can leave a Permanent note holding none. The guard stays
-// #86's to write; the read it needs already happens here, and the delete below is only the
-// mechanics.
-export const deleteLiteratureNote = async (
+// Deleting a note is read, guard, delete - three steps, deliberately distinct. The guard is
+// ADR 0014's: a note of either kind is a legitimate Link endpoint, so deleting one takes its
+// Links with it and can leave a Permanent note written elsewhere holding none. It is refused
+// rather than warned about, and the refusal names the ideas it is protecting (#86). The delete
+// below is only the mechanics once the guard has let it through (ADR 0012).
+//
+// Kind-agnostic, as the connections view at this same id is: the invariant holds of both kinds,
+// and a Permanent note is deletable like any other note once nothing depends on it being there.
+export const deleteNote = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -153,9 +154,16 @@ export const deleteLiteratureNote = async (
   }
   const userId = getUserId(req);
   try {
-    const note = await findLiteratureNoteOwnedByUser({ id: noteId, userId });
+    const note = await findNoteById({ id: noteId, userId });
     if (!note) {
       res.status(404).json({ error: 'Note not found' } satisfies ApiErrorResponse);
+      return;
+    }
+    const orphaned = await findPermanentNotesOrphanedByDeleting({ noteIds: [note.id], userId });
+    if (orphaned.length > 0) {
+      res.status(409).json({
+        error: orphanRefusal(orphaned, 'Deleting this note'),
+      } satisfies ApiErrorResponse);
       return;
     }
     await deleteNoteRecord({ id: note.id, userId });
