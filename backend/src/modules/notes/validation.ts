@@ -177,3 +177,31 @@ export const validatePermanentNoteInput = (input: {
   }
   return { valid: true };
 };
+
+// A Topic is a label, not a sentence: a name that runs past 60 characters is a claim, and a
+// claim belongs in a Permanent note's title. The count ceiling is the same kind of sanity
+// bound - a carrier wearing a dozen Topics is not tagged, it is filed under everything.
+export const TOPIC_NAME_MAX = 60;
+export const TOPIC_COUNT_MAX = 12;
+
+// Topics are optional on every carrier and never required: object-tag discipline is guidance
+// copy in the field, because a required Topic guarantees vague ones (#87). So an absent list
+// passes, and so does an empty one - it is how every Topic is taken off a carrier.
+export const validateTopicNames = (value: unknown): ValidationResult => {
+  if (value === undefined || value === null) return { valid: true };
+  if (!Array.isArray(value)) {
+    return { valid: false, error: 'Topics are a list of names.' };
+  }
+  if (value.length > TOPIC_COUNT_MAX) {
+    return { valid: false, error: `A Topic list is at most ${TOPIC_COUNT_MAX} Topics.` };
+  }
+  for (const name of value) {
+    if (typeof name !== 'string' || name.trim() === '') {
+      return { valid: false, error: 'A Topic needs a name.' };
+    }
+    if (!isWithin(name, TOPIC_NAME_MAX)) {
+      return { valid: false, error: `A Topic name is at most ${TOPIC_NAME_MAX} characters.` };
+    }
+  }
+  return { valid: true };
+};

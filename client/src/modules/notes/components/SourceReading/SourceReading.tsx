@@ -2,7 +2,7 @@ import type {
   CreateLiteratureNoteRequest,
   CreatePermanentNoteRequest,
   LiteratureNoteWithConnections,
-  Source,
+  SourceWithTopics,
   UpdateLiteratureNoteRequest,
   UpdateSourceRequest,
 } from '@nee3/shared-types';
@@ -12,7 +12,7 @@ import { NoteStream } from '../NoteStream/NoteStream.tsx';
 import { SourceHeader } from './SourceHeader/SourceHeader.tsx';
 
 export interface SourceReadingProps {
-  source: Source;
+  source: SourceWithTopics;
   notes: LiteratureNoteWithConnections[];
   sections: string[];
   onFile: (input: CreateLiteratureNoteRequest) => Promise<void>;
@@ -26,7 +26,7 @@ export interface SourceReadingProps {
 // The reading page: what the Source is, a blank card to write on, and the stack of cards
 // already written from it, each with what has been built from it. Everything on it is
 // correctable after the fact - the header in place, each filed card on the card itself (#83).
-// Topics arrive with their own ticket.
+// The Source's Topics are shown on the header and inherited by every card below it (#87).
 export function SourceReading({
   source,
   notes,
@@ -57,6 +57,7 @@ export function SourceReading({
           <NoteStream
             notes={notes}
             sourceTitle={source.title}
+            sourceTopics={source.topics}
             onCorrect={onCorrectNote}
             onDelete={onDeleteNote}
             onWritePermanentNote={onWritePermanentNote}

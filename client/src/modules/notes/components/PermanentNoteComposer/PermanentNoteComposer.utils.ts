@@ -8,6 +8,8 @@ import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
 export const PERMANENT_NOTE_TITLE_MAX = 280;
 export const PERMANENT_NOTE_BODY_MAX = 8000;
 export const LINK_REASON_MAX = 140;
+export const TOPIC_NAME_MAX = 60;
+export const TOPIC_COUNT_MAX = 12;
 
 // The target and its reason are one field group rather than two steps: a target picked without
 // a reason blocks the save exactly as a missing Link does (ADR 0015), so the reason is part of
@@ -34,12 +36,22 @@ export const permanentNoteSchema = z.object({
       LINK_REASON_MAX,
       `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`,
     ),
+  // A Permanent note is the one note kind that carries its own Topics, and carries them
+  // optionally: an idea filed under no word yet is not an incomplete one (#87).
+  topicNames: z
+    .array(z.string().trim().min(1).max(TOPIC_NAME_MAX))
+    .max(TOPIC_COUNT_MAX, `A note carries at most ${TOPIC_COUNT_MAX} Topics.`),
 });
 
 export type PermanentNoteValues = z.input<typeof permanentNoteSchema>;
 export type PermanentNoteOutput = z.output<typeof permanentNoteSchema>;
 
-export const BLANK_COMPOSER: PermanentNoteValues = { title: '', body: '', reason: '' };
+export const BLANK_COMPOSER: PermanentNoteValues = {
+  title: '',
+  body: '',
+  reason: '',
+  topicNames: [],
+};
 
 // The note and its first Link in one request, because they are one transaction (ADR 0014).
 // The target is the note the composer was opened from, so it is not a field the user fills in:
@@ -51,4 +63,5 @@ export const toCreateRequest = (
   title: values.title,
   body: values.body,
   links: [{ targetNoteId, reason: values.reason }],
+  topicNames: values.topicNames,
 });

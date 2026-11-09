@@ -34,6 +34,7 @@ const source = (overrides: Partial<SourceListEntry> = {}): SourceListEntry => ({
   updatedAt: '2026-09-01T10:00:00.000Z',
   noteCount: 0,
   lastNoteAt: null,
+  topics: [],
   ...overrides,
 });
 

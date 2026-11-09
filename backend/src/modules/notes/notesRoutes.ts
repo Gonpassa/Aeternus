@@ -6,6 +6,7 @@ import {
   getNoteConnections,
   updateLiteratureNote,
 } from './notesController';
+import { listTopicRelatedNotes } from './topicsController';
 
 const router = Router();
 
@@ -16,6 +17,10 @@ router.use(ensureAuth);
 router.post('/permanent', createPermanentNote);
 // Kind-agnostic on purpose: a connections view belongs to a note, not to a note of one kind.
 router.get('/:noteId/connections', getNoteConnections);
+// The link panel's Topic tier, read about one note: the notes sharing a Topic with it, which a
+// Literature note reaches through the Topics it inherits from its Source (#87). Kind-agnostic
+// for the same reason the connections view is.
+router.get('/:noteId/topic-notes', listTopicRelatedNotes);
 
 // Correcting and deleting a filed note are addressed by the note's own id rather than nested
 // under its Source: capture needs a Source open, a correction needs only the note (#83). Both

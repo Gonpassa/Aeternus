@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from './index';
-import { links, notes, sources, Link, Note } from './schema';
+import { links, notes, sources, Link, Note, Topic } from './schema';
+import { setNoteTopics } from './topics';
 
 // A target named in a create request that is not one of this user's notes. Raised rather than
 // returned so the transaction rolls back on the way out: the note and its Links are created
@@ -22,6 +23,10 @@ export interface NewPermanentNoteInput {
   title: string;
   body: string;
   linkDrafts: LinkDraftInput[];
+  // The Topics the note is filed under, by name. Inside the same transaction as the note and
+  // its Links: a Topic typed in the composer is part of writing the note, not a second step
+  // that could half-succeed (#87, ADR 0014).
+  topicNames: string[];
 }
 
 // The one write path for a Permanent note, and it carries the first Links with it. There is no
@@ -33,7 +38,8 @@ export const createPermanentNoteWithLinks = async ({
   title,
   body,
   linkDrafts,
-}: NewPermanentNoteInput): Promise<{ note: Note; links: Link[] }> =>
+  topicNames,
+}: NewPermanentNoteInput): Promise<{ note: Note; links: Link[]; topics: Topic[] }> =>
   db.transaction(async (tx) => {
     const targetIds = [...new Set(linkDrafts.map((draft) => draft.targetNoteId))];
     // The targets are checked against this user's notes before anything is written, so another
@@ -64,7 +70,13 @@ export const createPermanentNoteWithLinks = async ({
         })),
       )
       .returning();
-    return { note, links: created };
+    const topics = await setNoteTopics({
+      userId,
+      noteId: note.id,
+      names: topicNames,
+      executor: tx,
+    });
+    return { note, links: created, topics };
   });
 
 // One row of a connections view, as it comes out of the database: the Link, the note at the

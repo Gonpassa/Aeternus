@@ -218,6 +218,28 @@ export interface DreamDetailResponse {
   analysisPasses: AnalysisPass[];
 }
 
+// A cross-cutting label carried by a Source or a Permanent note, never a container
+// (CONTEXT.md, Topic). One vocabulary per user, unique on the lowercased name, created by
+// typing a new one - the Symbol vocabulary's shape, in its own table, because a Symbol and a
+// Topic mean different things even when they are spelled the same.
+export interface Topic {
+  id: number;
+  userId: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface TopicListResponse {
+  topics: Topic[];
+}
+
+// Topics travel as names rather than ids on every write, because typing a name is how a Topic
+// is created: the name is resolved against the vocabulary case-insensitively, so "water"
+// attaches the existing "Water" and a genuinely new name is added. The array is the whole set
+// the carrier should end up with - an empty one detaches every Topic - which is the same
+// whole-payload rule the rest of a Source follows (#83).
+export type TopicNames = string[];
+
 // A Source has no lifecycle: no reading status, no "finished" flag (CONTEXT.md, Source).
 // `kind` is a label only - it changes no fields, so changing it strands nothing.
 export const SOURCE_KINDS = ['book', 'article', 'video', 'other'] as const;
@@ -235,10 +257,17 @@ export interface Source {
   updatedAt: string;
 }
 
+// A Source as it is read back, with the Topics it carries. They ride with the Source wherever
+// it is sent rather than being fetched per card: a Source's Topics are part of what it is, and
+// the catalog filters on them (CONTEXT.md, Topic).
+export interface SourceWithTopics extends Source {
+  topics: Topic[];
+}
+
 // `noteCount` and `lastNoteAt` are derived per request, never stored (#70). The recency of a
 // Source's Literature notes is the only signal that it is active, and unlike a status left
 // unmaintained, a derived signal cannot go stale.
-export interface SourceListEntry extends Source {
+export interface SourceListEntry extends SourceWithTopics {
   noteCount: number;
   lastNoteAt: string | null;
 }
@@ -257,6 +286,10 @@ export interface CreateSourceRequest {
   kind: SourceKind;
   author?: string | null;
   url?: string | null;
+  // Optional, and never required: object-tag discipline - tag a thing only when it is *about*
+  // that thing - is guidance copy in the field rather than a constraint, because a required
+  // Topic guarantees vague ones (#87). Omitted means the Source keeps no Topics.
+  topicNames?: TopicNames;
 }
 
 // Both note kinds are one table behind a `kind` discriminator (ADR 0012); the client sees it
@@ -346,9 +379,11 @@ export interface LiteratureNoteWithConnections extends LiteratureNote {
 // The reading page's payload, in one request: the Source, its notes oldest-first with their
 // connections, and the distinct sections of those notes for the tab's suggestions. `sections`
 // is folded in here rather than given its own endpoint so capture never waits on a second
-// round trip (#72). Topics fold in with their own ticket.
+// round trip (#72). The Source carries its Topics, which its Literature notes inherit: there is
+// no per-note Topic list in this payload because a Literature note has none of its own
+// (CONTEXT.md, Topic).
 export interface SourceDetailResponse {
-  source: Source;
+  source: SourceWithTopics;
   notes: LiteratureNoteWithConnections[];
   sections: string[];
 }
@@ -358,7 +393,7 @@ export interface LiteratureNoteResponse {
 }
 
 export interface SourceResponse {
-  source: Source;
+  source: SourceWithTopics;
 }
 
 // A target picked in the composer, with the line saying why the two notes belong together. The
@@ -378,6 +413,9 @@ export interface CreatePermanentNoteRequest {
   title: string;
   body: string;
   links: LinkDraft[];
+  // Optional here as on a Source. A Permanent note is the one note kind that carries its own
+  // Topics: anything worth a Topic of its own is an idea, not a reading note (CONTEXT.md, Topic).
+  topicNames?: TopicNames;
 }
 
 // One note read with its connections, for either kind. The note travels with the groups
@@ -387,7 +425,26 @@ export interface NoteConnectionsResponse {
   connections: NoteConnections;
 }
 
+// A Permanent note read back with the Topics it carries, as a Source is read back with its own.
+export interface PermanentNoteWithTopics extends PermanentNote {
+  topics: Topic[];
+}
+
 export interface PermanentNoteResponse {
-  note: PermanentNote;
+  note: PermanentNoteWithTopics;
   links: Link[];
+}
+
+// The notes that share a Topic with one note, which is the link panel's middle tier: it sits
+// between the same-Source notes above it and full-text search below (#85, #87). Each note
+// travels with the Topics that put it in this list and, for a Literature note, its Source's
+// title, so a row is readable without a second fetch.
+export interface TopicRelatedNote {
+  note: Note;
+  sourceTitle: string | null;
+  topics: Topic[];
+}
+
+export interface TopicRelatedNotesResponse {
+  notes: TopicRelatedNote[];
 }

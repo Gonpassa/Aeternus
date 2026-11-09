@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type {
   CreatePermanentNoteRequest,
   LiteratureNoteWithConnections,
+  Topic,
   UpdateLiteratureNoteRequest,
 } from '@nee3/shared-types';
 import { Button } from '../../../../../atoms/Button/Button.tsx';
@@ -11,6 +12,7 @@ import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { formatLocator, literatureNoteHeading } from '../../../utils/noteLabel.ts';
 import { NoteConnections } from '../../NoteConnections/NoteConnections.tsx';
 import { PermanentNoteComposer } from '../../PermanentNoteComposer/PermanentNoteComposer.tsx';
+import { TopicTags } from '../../TopicTags/TopicTags.tsx';
 import { cardLocator } from './FiledNote.utils.ts';
 import { DeleteNoteDialog } from './DeleteNoteDialog/DeleteNoteDialog.tsx';
 import { NoteEdit } from './NoteEdit/NoteEdit.tsx';
@@ -19,6 +21,10 @@ export interface FiledNoteProps {
   note: LiteratureNoteWithConnections;
   // The Source's title, which is half of how this note is named in a connection it appears in.
   sourceTitle: string;
+  // The Source's Topics, which this note inherits and shows but cannot add to or take off: a
+  // Literature note carries no Topics of its own, and anything worth its own Topic is a
+  // Permanent note (CONTEXT.md, Topic).
+  inheritedTopics: Topic[];
   onCorrect: (input: UpdateLiteratureNoteRequest) => Promise<void>;
   onDelete: () => Promise<void>;
   onWritePermanentNote: (input: CreatePermanentNoteRequest) => Promise<void>;
@@ -32,6 +38,7 @@ export interface FiledNoteProps {
 export function FiledNote({
   note,
   sourceTitle,
+  inheritedTopics,
   onCorrect,
   onDelete,
   onWritePermanentNote,
@@ -116,6 +123,13 @@ export function FiledNote({
             )}
           </Stack>
         )}
+        {/* Shown as the Source's, and read-only: the card offers no way to tag itself, because
+            a Literature note inherits rather than carries (CONTEXT.md, Topic). */}
+        <TopicTags
+          topics={inheritedTopics}
+          caption="From the Source"
+          label="Topics inherited from the Source"
+        />
         {/* Quiet, and at the foot of the card: a filed note is there to be read, and correcting
             one is the rarer of the two things a reader does with it. */}
         <Button

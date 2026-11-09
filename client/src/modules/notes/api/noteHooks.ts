@@ -7,6 +7,7 @@ import type {
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
 import { sourceKeys } from './sourceHooks.ts';
+import { topicKeys } from './topicHooks.ts';
 
 export const noteKeys = {
   all: ['notes'] as const,
@@ -44,6 +45,9 @@ export const useCreatePermanentNote = (sourceId: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sourceKeys.detail(sourceId) });
       queryClient.invalidateQueries({ queryKey: noteKeys.all });
+      // Writing the note is the other way a Topic is created, and the Topic tiers of other
+      // notes change the moment this one carries a word they share (#87).
+      queryClient.invalidateQueries({ queryKey: topicKeys.all });
     },
   });
 };

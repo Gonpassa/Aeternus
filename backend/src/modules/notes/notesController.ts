@@ -5,8 +5,16 @@ import type {
   CreatePermanentNoteRequest,
   UpdateLiteratureNoteRequest,
 } from '@nee3/shared-types';
-import { validateLiteratureNoteInput, validatePermanentNoteInput } from './validation';
-import { sanitizeLiteratureNoteInput, sanitizePermanentNoteInput } from './sanitize';
+import {
+  validateLiteratureNoteInput,
+  validatePermanentNoteInput,
+  validateTopicNames,
+} from './validation';
+import {
+  sanitizeLiteratureNoteInput,
+  sanitizePermanentNoteInput,
+  sanitizeTopicNames,
+} from './sanitize';
 import {
   EMPTY_CONNECTIONS,
   toConnections,
@@ -14,6 +22,7 @@ import {
   toLiteratureNote,
   toNote,
   toPermanentNote,
+  toTopic,
 } from './serialize';
 import { parseNoteId, parseSourceId } from './params';
 import {
@@ -171,16 +180,24 @@ export const createPermanentNote = async (
     res.status(400).json({ error: validation.error } satisfies ApiErrorResponse);
     return;
   }
-  const { title, body, links } = req.body as CreatePermanentNoteRequest;
+  const topicValidation = validateTopicNames((req.body as CreatePermanentNoteRequest).topicNames);
+  if (!topicValidation.valid) {
+    res.status(400).json({ error: topicValidation.error } satisfies ApiErrorResponse);
+    return;
+  }
+  const { title, body, links, topicNames } = req.body as CreatePermanentNoteRequest;
   try {
     const created = await createPermanentNoteWithLinks({
       userId: getUserId(req),
       // Validation has established all three; the cast is the handover from `unknown`-typed
       // body parsing to the validated shape, as above.
       ...sanitizePermanentNoteInput({ title, body, links }),
+      // Optional, as on a Source: a Permanent note with no Topic is a note nobody has filed
+      // under a word yet, not an incomplete one (#87).
+      topicNames: sanitizeTopicNames(topicNames),
     });
     res.status(201).json({
-      note: toPermanentNote(created.note),
+      note: { ...toPermanentNote(created.note), topics: created.topics.map(toTopic) },
       links: created.links.map(toLink),
     });
   } catch (err) {

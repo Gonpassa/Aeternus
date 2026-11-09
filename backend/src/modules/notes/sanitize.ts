@@ -96,3 +96,22 @@ export const sanitizePermanentNoteInput = (input: {
     reason: collapse(link.reason),
   })),
 });
+
+// Topic names are one-line fields, so they collapse their whitespace like a title does, and
+// blanks are dropped rather than refused - an input the user opened and left empty is not a
+// Topic. Casing is never rewritten: the vocabulary resolves a name case-insensitively, and the
+// casing that reaches the database is the one the user typed (CONTEXT.md, Topic).
+export const sanitizeTopicNames = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  const names: string[] = [];
+  value.forEach((raw) => {
+    if (typeof raw !== 'string') return;
+    const name = collapse(raw);
+    // Deduplicated case-insensitively here as well as in the database, so the same name typed
+    // twice in one payload is one Topic rather than a conflict resolved downstream.
+    if (name !== '' && !names.some((already) => already.toLowerCase() === name.toLowerCase())) {
+      names.push(name);
+    }
+  });
+  return names;
+};

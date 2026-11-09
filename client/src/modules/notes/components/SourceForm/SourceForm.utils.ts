@@ -2,8 +2,8 @@ import { z } from 'zod';
 import {
   SOURCE_KINDS,
   type CreateSourceRequest,
-  type Source,
   type SourceKind,
+  type SourceWithTopics,
 } from '@nee3/shared-types';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
@@ -13,6 +13,8 @@ import {
 export const SOURCE_TITLE_MAX = 140;
 export const SOURCE_AUTHOR_MAX = 140;
 export const SOURCE_URL_MAX = 2000;
+export const TOPIC_NAME_MAX = 60;
+export const TOPIC_COUNT_MAX = 12;
 
 const isSourceKind = (value: string): value is SourceKind =>
   (SOURCE_KINDS as readonly string[]).includes(value);
@@ -46,6 +48,12 @@ export const sourceSchema = z.object({
     .refine((value) => value.length <= SOURCE_URL_MAX, {
       message: `A Source link is at most ${SOURCE_URL_MAX.toLocaleString('en-US')} characters.`,
     }),
+  // Optional and never required, as on every carrier: an empty list is a Source nobody has
+  // filed under a word yet (#87). The ceilings are the server's, mirrored here as the text
+  // ceilings above are, so an over-long name is answered where it was typed.
+  topicNames: z
+    .array(z.string().trim().min(1).max(TOPIC_NAME_MAX))
+    .max(TOPIC_COUNT_MAX, `A Source carries at most ${TOPIC_COUNT_MAX} Topics.`),
 });
 
 export type SourceFormValues = z.input<typeof sourceSchema>;
@@ -53,12 +61,14 @@ export type SourceFormOutput = z.output<typeof sourceSchema>;
 
 // A Source read back onto the form that files one, for correcting it after the fact (#83). A
 // null author or link is an untouched input, which is the same empty string a blank form
-// starts from.
-export const toSourceFormValues = (source: Source): SourceFormValues => ({
+// starts from. The Topics come back as names, which is what the form submits: the name is how a
+// Topic is identified on the way in, whether it already exists or is being created by typing.
+export const toSourceFormValues = (source: SourceWithTopics): SourceFormValues => ({
   title: source.title,
   kind: source.kind,
   author: source.author ?? '',
   url: source.url ?? '',
+  topicNames: source.topics.map((topic) => topic.name),
 });
 
 // An untouched optional input submits as the empty string, which is not a different state
@@ -68,4 +78,7 @@ export const toCreateRequest = (values: SourceFormOutput): CreateSourceRequest =
   kind: values.kind,
   author: values.author === '' ? null : values.author,
   url: values.url === '' ? null : values.url,
+  // The whole set the Source should end up carrying, as every other field here is sent whole:
+  // a Topic left out of it is taken off (#83, #87).
+  topicNames: values.topicNames,
 });
