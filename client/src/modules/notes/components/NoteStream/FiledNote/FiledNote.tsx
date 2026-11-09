@@ -11,7 +11,9 @@ import { Stack } from '../../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../../atoms/Text/Text.tsx';
 import { formatLocator, literatureNoteHeading } from '../../../utils/noteLabel.ts';
 import { NoteConnections } from '../../NoteConnections/NoteConnections.tsx';
+import { LinkPanel } from '../../LinkPanel/LinkPanel.tsx';
 import { PermanentNoteComposer } from '../../PermanentNoteComposer/PermanentNoteComposer.tsx';
+import { useLinkActionsContext } from '../../../LinkActionsContext.tsx';
 import { TopicTags } from '../../TopicTags/TopicTags.tsx';
 import { cardLocator } from './FiledNote.utils.ts';
 import { DeleteNoteDialog } from './DeleteNoteDialog/DeleteNoteDialog.tsx';
@@ -47,7 +49,9 @@ export function FiledNote({
   const [correcting, setCorrecting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [linkPanelOpen, setLinkPanelOpen] = useState(false);
   const { tab, catalogNumber } = cardLocator(note);
+  const linkActions = useLinkActionsContext();
 
   if (correcting) {
     return (
@@ -145,6 +149,29 @@ export function FiledNote({
         {/* What the user has built from this reading, which is the payoff: the inbound group
             on a Literature note is the ideas written from it. */}
         <NoteConnections connections={note.connections} noteId={note.id} />
+
+        {/* The Link affordance sits on the Literature note itself rather than only inside the
+            Permanent note composer: a Link's required reason is the smallest unit of the
+            user's own thought, and a Permanent note is what gets written when that reason
+            outgrows one line (#67, ADR 0015). So the two are offered side by side here. */}
+        {linkActions !== null &&
+          (linkPanelOpen ? (
+            <LinkPanel
+              fromNoteId={note.id}
+              onLink={linkActions.link}
+              onClose={() => setLinkPanelOpen(false)}
+            />
+          ) : (
+            <Button
+              type="button"
+              size="xs"
+              variant="ghost"
+              alignSelf="flex-start"
+              onClick={() => setLinkPanelOpen(true)}
+            >
+              Connect this to another note
+            </Button>
+          ))}
 
         {/* The composer is opened from the note that prompted the idea, on the reading page,
             because the user's own thinking happens while reading and not only later (#67). */}

@@ -9,6 +9,8 @@ import {
   useUpdateSource,
 } from '../../../modules/notes/api/sourceHooks.ts';
 import { useCreatePermanentNote } from '../../../modules/notes/api/noteHooks.ts';
+import { useLinkActions } from '../../../modules/notes/api/linkHooks.ts';
+import { LinkActionsProvider } from '../../../modules/notes/LinkActionsContext.tsx';
 import { SourceReading } from '../../../modules/notes/components/SourceReading/SourceReading.tsx';
 import { LoadingGate } from '../../../atoms/LoadingGate/LoadingGate.tsx';
 import { PageContainer } from '../../../atoms/PageContainer/PageContainer.tsx';
@@ -27,38 +29,43 @@ function SourceReadingPage() {
   const updateSource = useUpdateSource(id);
   const deleteSource = useDeleteSource();
   const createPermanentNote = useCreatePermanentNote(id);
+  // Making, rewriting and unmaking a Link is the same everywhere on this page, so it is
+  // provided once here rather than threaded through the stream, each card and each row.
+  const linkActions = useLinkActions();
 
   return (
     <PageContainer maxW="4xl" centered>
       {isPending && <LoadingGate minH="30vh" />}
       {!isPending && !data && <Text variant="muted">This Source could not be found.</Text>}
       {data && (
-        <SourceReading
-          source={data.source}
-          notes={data.notes}
-          sections={data.sections}
-          onFile={async (input) => {
-            await createNote.mutateAsync(input);
-          }}
-          onCorrectNote={async (noteId, input) => {
-            await updateNote.mutateAsync({ noteId, input });
-          }}
-          onDeleteNote={async (noteId) => {
-            await deleteNote.mutateAsync(noteId);
-          }}
-          onCorrectSource={async (input) => {
-            await updateSource.mutateAsync(input);
-          }}
-          // Back to the catalog: the page the deleted Source was being read on has nothing
-          // left to show, since its notes went with it (#70).
-          onDeleteSource={async () => {
-            await deleteSource.mutateAsync(id);
-            await navigate({ to: '/notes/read' });
-          }}
-          onWritePermanentNote={async (input) => {
-            await createPermanentNote.mutateAsync(input);
-          }}
-        />
+        <LinkActionsProvider value={linkActions}>
+          <SourceReading
+            source={data.source}
+            notes={data.notes}
+            sections={data.sections}
+            onFile={async (input) => {
+              await createNote.mutateAsync(input);
+            }}
+            onCorrectNote={async (noteId, input) => {
+              await updateNote.mutateAsync({ noteId, input });
+            }}
+            onDeleteNote={async (noteId) => {
+              await deleteNote.mutateAsync(noteId);
+            }}
+            onCorrectSource={async (input) => {
+              await updateSource.mutateAsync(input);
+            }}
+            // Back to the catalog: the page the deleted Source was being read on has nothing
+            // left to show, since its notes went with it (#70).
+            onDeleteSource={async () => {
+              await deleteSource.mutateAsync(id);
+              await navigate({ to: '/notes/read' });
+            }}
+            onWritePermanentNote={async (input) => {
+              await createPermanentNote.mutateAsync(input);
+            }}
+          />
+        </LinkActionsProvider>
       )}
     </PageContainer>
   );

@@ -14,6 +14,7 @@ import symbolAttachmentsRouter from './modules/dreams/symbolAttachmentsRoutes';
 import associationsRouter from './modules/dreams/associationsRoutes';
 import sourcesRouter from './modules/notes/sourcesRoutes';
 import notesRouter from './modules/notes/notesRoutes';
+import linksRouter from './modules/notes/linksRoutes';
 import topicsRouter from './modules/notes/topicsRoutes';
 import config from './config/default';
 
@@ -46,6 +47,7 @@ export const createApp = (options: { clientDistPath?: string } = {}): Express =>
   app.use('/api/associations', associationsRouter);
   app.use('/api/sources', sourcesRouter);
   app.use('/api/notes', notesRouter);
+  app.use('/api/links', linksRouter);
   app.use('/api/topics', topicsRouter);
 
   app.get('/api/health', (_req, res) => {

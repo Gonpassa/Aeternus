@@ -503,3 +503,50 @@ export interface TopicRelatedNote {
 export interface TopicRelatedNotesResponse {
   notes: TopicRelatedNote[];
 }
+
+// One note offered as a Link target by the browsable panel, carrying everything a row needs
+// to be readable without a second fetch: the note itself, its Source's title where it has one,
+// and the Link that already connects it to the note being linked from. A non-null
+// `existingLink` is what the panel shows instead of offering to make a second Link, since
+// there is at most one per unordered pair (ADR 0013).
+export interface LinkTargetCandidate {
+  note: Note;
+  sourceTitle: string | null;
+  existingLink: Link | null;
+}
+
+// The panel's browsable tiers, in the order it reads them. `sameSource` is this Source's other
+// Literature notes, offered without the user having to recall any wording; `results` is the
+// full-text tier, empty until something is typed. The Topic tier sits between them and is read
+// separately, through the Topics endpoint #87 shipped. Linking must not depend on remembering
+// how an older note was worded, which is why browsing comes first and search second (#67).
+export interface LinkTargetsResponse {
+  sameSource: LinkTargetCandidate[];
+  results: LinkTargetCandidate[];
+  // Every Link this note is already an end of, in either direction. The tiers above carry
+  // their own, but the Topic tier is read from a different endpoint (#87), which knows about
+  // Topics and nothing about Links - so the panel marks those rows from this list. There is at
+  // most one Link per unordered pair, so the note at the other end identifies it (ADR 0013).
+  existingLinks: Link[];
+}
+
+// A Link between two notes that both already exist - the panel's own write, distinct from the
+// Permanent note composer's, where the note and its Links are created together (ADR 0014).
+// `originNoteId` is the end making the Link, so it is also the end the reason is attributed to.
+export interface CreateLinkRequest {
+  originNoteId: number;
+  targetNoteId: number;
+  reason: string;
+}
+
+// A reason edited in place by the end that wrote it: `fromNoteId` says which end is speaking,
+// and the server writes the column that end owns - `reason` for the origin, `targetReason` for
+// the target (ADR 0013).
+export interface UpdateLinkReasonRequest {
+  fromNoteId: number;
+  reason: string;
+}
+
+export interface LinkResponse {
+  link: Link;
+}

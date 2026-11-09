@@ -1,5 +1,6 @@
 import type {
   Link as ApiLink,
+  LinkTargetCandidate,
   LiteratureNote,
   Note as ApiNote,
   NoteConnection,
@@ -123,4 +124,17 @@ export const toTopicPermanentNote = ({
 }): TopicPermanentNote => ({
   ...toPermanentNote(note),
   linkCount,
+});
+
+// One row of the Link panel. The note travels whole rather than as a preview, because a result
+// has to be readable where it is found: the panel exists so that linking never depends on
+// remembering how an older note was worded (#67), and a row the user has to open to recognize
+// would put that back.
+export const toLinkTargetCandidate = (
+  { note, sourceTitle }: { note: Note; sourceTitle: string | null },
+  existingLink: Link | null,
+): LinkTargetCandidate => ({
+  note: toNote(note),
+  sourceTitle,
+  existingLink: existingLink === null ? null : toLink(existingLink),
 });

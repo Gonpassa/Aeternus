@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { AxiosError } from 'axios';
 import userEvent from '@testing-library/user-event';
-import type { Link, Note, NoteConnection } from '@nee3/shared-types';
+import type { Link, Note, NoteConnection, NoteConnections as Groups } from '@nee3/shared-types';
 import { NoteConnections } from './NoteConnections.tsx';
+import { LinkActionsProvider, type LinkActions } from '../../LinkActionsContext.tsx';
 
 const useNoteConnections = vi.fn();
 
@@ -160,7 +162,147 @@ describe('NoteConnections', () => {
     expect(useNoteConnections).toHaveBeenCalledWith(2, true);
     expect(screen.getByText('How to Take Smart Notes · Ch. 3 · p. 42')).toBeInTheDocument();
     // One level of reaching through: the row behind a row offers no further opening, which is
-    // what #85 and #88 are for.
+    // what #88 is for.
     expect(screen.queryByRole('button', { name: 'Its connections' })).not.toBeInTheDocument();
+  });
+});
+
+// A Link is editable and removable from either of its ends, and those affordances arrive with
+// the provider rather than with the row: a connections view read without one - a row reached
+// from another row, a surface that only reads notes - is read rather than edited.
+describe('NoteConnections, with the Link affordances provided', () => {
+  const actions = (overrides: Partial<LinkActions> = {}): LinkActions => ({
+    link: vi.fn().mockResolvedValue(undefined),
+    editReason: vi.fn().mockResolvedValue(undefined),
+    removeLink: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  });
+
+  const renderWith = (value: LinkActions, connections: Groups, noteId: number) =>
+    render(
+      <LinkActionsProvider value={value}>
+        <NoteConnections connections={connections} noteId={noteId} />
+      </LinkActionsProvider>,
+    );
+
+  it('offers nothing to change without a provider', () => {
+    render(
+      <NoteConnections
+        connections={{ connectsTo: [], connectedFrom: [connection()] }}
+        noteId={1}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Rewrite the reason' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Remove this connection' }),
+    ).not.toBeInTheDocument();
+  });
+
+  // ADR 0013: the reason is edited in place by the end that wrote it, and `fromNoteId` is what
+  // says which end is speaking.
+  it('rewrites this end’s reason in place', async () => {
+    const user = userEvent.setup();
+    const value = actions();
+    renderWith(
+      value,
+      {
+        connectsTo: [],
+        connectedFrom: [connection({ link: link({ originNoteId: 1, targetNoteId: 2 }) })],
+      },
+      1,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Rewrite the reason' }));
+    const field = screen.getByLabelText('Why these belong together');
+    // The field opens with the line as it stands: this is a rewrite, not a blank field.
+    expect(field).toHaveValue('This is the claim that note was circling.');
+    await user.clear(field);
+    await user.type(field, 'What it was really about.');
+    await user.click(screen.getByRole('button', { name: 'Save the reason' }));
+
+    expect(value.editReason).toHaveBeenCalledWith(1, 1, 'What it was really about.');
+  });
+
+  it('refuses an emptied reason, since a Link cannot exist without one', async () => {
+    const user = userEvent.setup();
+    const value = actions();
+    renderWith(
+      value,
+      {
+        connectsTo: [],
+        connectedFrom: [connection({ link: link({ originNoteId: 1, targetNoteId: 2 }) })],
+      },
+      1,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Rewrite the reason' }));
+    await user.clear(screen.getByLabelText('Why these belong together'));
+    await user.click(screen.getByRole('button', { name: 'Save the reason' }));
+
+    expect(
+      screen.getByText('Every connection needs a line saying why the two belong together.'),
+    ).toBeInTheDocument();
+    expect(value.editReason).not.toHaveBeenCalled();
+  });
+
+  it('offers no rewrite of a line this end did not write', () => {
+    const value = actions();
+    // Read from the target end, which has said nothing back: the origin's reason is on the row
+    // and is not this note's to restate.
+    renderWith(
+      value,
+      {
+        connectsTo: [],
+        connectedFrom: [connection({ link: link({ originNoteId: 2, targetNoteId: 1 }) })],
+      },
+      1,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Rewrite the reason' })).not.toBeInTheDocument();
+    // The connection itself is still removable from this end.
+    expect(screen.getByRole('button', { name: 'Remove this connection' })).toBeInTheDocument();
+  });
+
+  it('confirms before removing a connection, then removes it', async () => {
+    const user = userEvent.setup();
+    const value = actions();
+    renderWith(value, { connectsTo: [], connectedFrom: [connection()] }, 1);
+
+    await user.click(screen.getByRole('button', { name: 'Remove this connection' }));
+
+    expect(value.removeLink).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Remove connection' }));
+
+    expect(value.removeLink).toHaveBeenCalledWith(1);
+  });
+
+  // ADR 0014: a removal that would leave a Permanent note with no Links is refused, and the
+  // refusal names the note it protects - so it has to be legible where the removal was asked
+  // for, with that note still in view.
+  it('shows the server’s refusal beside the removal it refused', async () => {
+    const user = userEvent.setup();
+    const refusal =
+      'Removing this connection would leave “Writing is how an idea is tested.” with none. Connect it elsewhere first, or delete it.';
+    const value = actions({
+      removeLink: vi.fn().mockRejectedValue(
+        new AxiosError('Conflict', undefined, undefined, undefined, {
+          status: 409,
+          statusText: 'Conflict',
+          data: { error: refusal },
+          headers: {},
+          config: { headers: {} as never },
+        }),
+      ),
+    });
+    renderWith(value, { connectsTo: [], connectedFrom: [connection()] }, 1);
+
+    await user.click(screen.getByRole('button', { name: 'Remove this connection' }));
+    await user.click(screen.getByRole('button', { name: 'Remove connection' }));
+
+    expect(await screen.findByText(refusal)).toBeInTheDocument();
+    // The dialog stays open: the connection is still there, and so is the choice.
+    expect(screen.getByRole('button', { name: 'Remove connection' })).toBeInTheDocument();
   });
 });
