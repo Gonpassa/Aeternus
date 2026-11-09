@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, or, sql } from 'drizzle-orm';
 import type { ReviewBand } from '@nee3/shared-types';
 import { db } from './index';
 import { links, notes, reviewAnswers, sources, Link, Note, ReviewAnswer } from './schema';
@@ -46,23 +46,25 @@ const lastAnswer = sql<ReviewAnswer['answer'] | null>`(
 // structural stand-in for the "come back sooner" Answer that was refused: a note the user
 // flagged as an open question and then found nothing in has genuinely unfinished business,
 // and saying so this way grades nobody.
-const bandRank = sql<number>`case
-  when ${lastAnsweredAt} is null then 1
-  when ${lastAnswer} = 'nothing_here' and ${notes.openQuestion} then 2
-  else 3
+const band = sql<ReviewBand>`case
+  when ${lastAnsweredAt} is null then 'never-answered'
+  when ${lastAnswer} = 'nothing_here' and ${notes.openQuestion} then 'open-question'
+  else 'answered'
 end`;
+
+// Which band a note is in is the CASE above; the order the bands are handed over in is a
+// separate fact about Review, and sorting by the labels keeps it stated once rather than
+// encoded a second time as ranks.
+const bandOrder = sql`array_position(
+  array['never-answered', 'open-question', 'answered'],
+  ${band}
+)`;
 
 export interface ReviewQueueRow {
   note: Note;
   sourceTitle: string;
   band: ReviewBand;
 }
-
-const BANDS: Record<number, ReviewBand> = {
-  1: 'never-answered',
-  2: 'open-question',
-  3: 'answered',
-};
 
 // Every Literature note the user has, in queue order. Nothing is filtered out: an answered
 // note drops behind the due ones and stays available forever, because a second look at the
@@ -78,22 +80,16 @@ export const listReviewQueue = async ({
   userId: number;
 }): Promise<ReviewQueueRow[]> => {
   const rows = await db
-    .select({ note: notes, sourceTitle: sources.title, band: bandRank })
+    .select({ note: notes, sourceTitle: sources.title, band })
     .from(notes)
     .innerJoin(sources, eq(sources.id, notes.sourceId))
     .where(and(eq(notes.userId, userId), eq(notes.kind, 'literature')))
     .orderBy(
-      asc(bandRank),
+      asc(bandOrder),
       asc(sql`coalesce(${lastAnsweredAt}, ${notes.createdAt})`),
       asc(notes.id),
     );
-  return rows.map((row) => ({
-    note: row.note,
-    sourceTitle: row.sourceTitle,
-    // The rank is produced by the CASE above and so is always one of its three branches; the
-    // fallback is the handover from an untyped SQL fragment, not a case that occurs.
-    band: BANDS[Number(row.band)] ?? 'answered',
-  }));
+  return rows;
 };
 
 // The one number the module shows, counting notes that have never been answered - which is
@@ -115,15 +111,25 @@ export const countNotesNeverAnswered = async ({ userId }: { userId: number }): P
   return Number(row?.count ?? 0);
 };
 
-// A Link and a Permanent note read back as this user's, so an Answer never records having
-// produced something that is not theirs. Ownership of a Link runs through the note at its
-// origin, as it does everywhere else in this module: a Link carries no user of its own.
-export const findOwnedLinkAndNote = async ({
+// A Link and a Permanent note read back as this user's, and as having come from the note
+// being answered. Both halves matter: an Answer that named something belonging to someone
+// else, or something unconnected to the note that supposedly produced it, would be a wrong
+// fact in a table nothing ever corrects (ADR 0011).
+//
+// Ownership of a Link runs through the note at its origin, as it does everywhere else in this
+// module: a Link carries no user of its own. Provenance is read from either end, because a
+// Link is one row per unordered pair and linking B to A finds the A-to-B row rather than
+// making a second one (ADR 0013) - so the note being answered may sit at either end of what
+// its own Answer produced. The Permanent note's own mandatory Link (ADR 0014) is what ties it
+// back to the note it was written from.
+export const findProducedByNote = async ({
   userId,
+  answeredNoteId,
   linkId,
   noteId,
 }: {
   userId: number;
+  answeredNoteId: number;
   linkId: number | null;
   noteId: number | null;
 }): Promise<{ link: Link | null; note: Note | null }> => {
@@ -134,31 +140,30 @@ export const findOwnedLinkAndNote = async ({
           .select({ link: links })
           .from(links)
           .innerJoin(notes, eq(notes.id, links.originNoteId))
-          .where(and(eq(links.id, linkId), eq(notes.userId, userId)));
+          .where(
+            and(
+              eq(links.id, linkId),
+              eq(notes.userId, userId),
+              or(eq(links.originNoteId, answeredNoteId), eq(links.targetNoteId, answeredNoteId)),
+            ),
+          );
   const [note] =
     noteId === null
       ? []
       : await db
           .select()
           .from(notes)
-          .where(and(eq(notes.id, noteId), eq(notes.userId, userId), eq(notes.kind, 'permanent')));
+          .where(
+            and(
+              eq(notes.id, noteId),
+              eq(notes.userId, userId),
+              eq(notes.kind, 'permanent'),
+              sql`exists (
+                select 1 from ${links} connection
+                where (connection.origin_note_id = ${notes.id} and connection.target_note_id = ${answeredNoteId})
+                   or (connection.target_note_id = ${notes.id} and connection.origin_note_id = ${answeredNoteId})
+              )`,
+            ),
+          );
   return { link: link?.link ?? null, note: note ?? null };
-};
-
-// One note's Answers, newest first. Nothing in the interface reads this - the history exists
-// to be queried by #76 and by Phase 10 (ADR 0011) - so it is here for the tests that hold the
-// table append-only and for whichever of those two gets to it first.
-export const listReviewAnswersByNoteIds = async ({
-  noteIds,
-}: {
-  noteIds: number[];
-}): Promise<ReviewAnswer[]> => {
-  if (noteIds.length === 0) {
-    return [];
-  }
-  return db
-    .select()
-    .from(reviewAnswers)
-    .where(inArray(reviewAnswers.noteId, noteIds))
-    .orderBy(asc(reviewAnswers.createdAt), asc(reviewAnswers.id));
 };

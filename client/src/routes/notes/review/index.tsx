@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { requireAuth } from '../../../auth/requireAuth.ts';
-import { useCreateLink } from '../../../modules/notes/api/linkHooks.ts';
-import { useCreatePermanentNote } from '../../../modules/notes/api/noteHooks.ts';
-import {
-  useClearOpenQuestion,
-  useRecordReviewAnswer,
-  useReviewQueue,
-} from '../../../modules/notes/api/reviewHooks.ts';
+import { useAnswerReview } from '../../../modules/notes/api/useAnswerReview.ts';
+import { useReviewQueue } from '../../../modules/notes/api/reviewHooks.ts';
 import { ReviewPass } from '../../../modules/notes/components/ReviewPass/ReviewPass.tsx';
 import { Heading } from '../../../atoms/Heading/Heading.tsx';
 import { LoadingGate } from '../../../atoms/LoadingGate/LoadingGate.tsx';
@@ -17,10 +12,7 @@ import { Text } from '../../../atoms/Text/Text.tsx';
 
 function ReviewPage() {
   const queue = useReviewQueue();
-  const recordAnswer = useRecordReviewAnswer();
-  const createLink = useCreateLink();
-  const writePermanentNote = useCreatePermanentNote();
-  const clearOpenQuestion = useClearOpenQuestion();
+  const answer = useAnswerReview();
   // A pass is the queue as it was read, so starting another is a fresh read with a fresh
   // card - the key is what resets the index and the sitting's tally.
   const [passId, setPassId] = useState(0);
@@ -46,31 +38,10 @@ function ReviewPage() {
           key={passId}
           notes={queue.data.notes}
           dueCount={queue.data.dueCount}
-          // The Answer is the write, in every case: "nothing of mine here" records one on its
-          // own, and the other two record one only after the thing they produced exists
-          // (ADR 0011).
-          onNothingHere={async (note) => {
-            await recordAnswer.mutateAsync({ noteId: note.id, answer: 'nothing_here' });
-          }}
-          onLink={async (note, input) => {
-            const { link } = await createLink.mutateAsync(input);
-            await recordAnswer.mutateAsync({
-              noteId: note.id,
-              answer: 'link_made',
-              producedLinkId: link.id,
-            });
-          }}
-          onWritePermanentNote={async (note, input) => {
-            const written = await writePermanentNote.mutateAsync(input);
-            await recordAnswer.mutateAsync({
-              noteId: note.id,
-              answer: 'permanent_note_written',
-              producedNoteId: written.note.id,
-            });
-          }}
-          onClearOpenQuestion={async (note) => {
-            await clearOpenQuestion.mutateAsync(note);
-          }}
+          onNothingHere={answer.nothingHere}
+          onLink={answer.link}
+          onWritePermanentNote={answer.writePermanentNote}
+          onClearOpenQuestion={answer.clearOpenQuestion}
           onStartAgain={async () => {
             await queue.refetch();
             setPassId((current) => current + 1);

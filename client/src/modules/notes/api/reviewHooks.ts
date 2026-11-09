@@ -5,11 +5,11 @@ import type {
   ReviewAnswerResponse,
   ReviewDueCountResponse,
   ReviewQueueResponse,
-  UpdateLiteratureNoteRequest,
 } from '@nee3/shared-types';
 import { apiClient } from '../../../api/client.ts';
 import { endpoints } from '../../../api/endpoints.ts';
 import { noteKeys, reviewKeys, sourceKeys } from './queryKeys.ts';
+import { asCorrection, correctLiteratureNote } from './sourceHooks.ts';
 
 // The queue as a pass reads it. Deliberately not refetched while a pass is under way: an
 // Answer changes which band its note belongs to, and a queue that re-sorted itself under the
@@ -62,13 +62,7 @@ export const useClearOpenQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, LiteratureNote>({
     mutationFn: async (note) => {
-      await apiClient.patch(endpoints.note(note.id), {
-        body: note.body,
-        section: note.section,
-        position: note.position,
-        excerpt: note.excerpt,
-        openQuestion: false,
-      } satisfies UpdateLiteratureNoteRequest);
+      await correctLiteratureNote(note.id, asCorrection(note, { openQuestion: false }));
     },
     // The flag is on the note itself, so it is the reading page and any connections view of
     // that note that go stale, not the badge - clearing a flag is not an Answer.

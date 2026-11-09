@@ -148,13 +148,36 @@ export interface UpdateLiteratureNoteVariables {
   input: UpdateLiteratureNoteRequest;
 }
 
+// The note's correction endpoint, whose payload is the whole note rather than a patch of one
+// field. Exported because Review corrects a note too - it clears an open question - and the
+// endpoint and its payload shape should be stated in one place even though the two callers
+// have nothing to say to the same caches afterwards.
+export const correctLiteratureNote = async (
+  noteId: number,
+  input: UpdateLiteratureNoteRequest,
+): Promise<LiteratureNote> => {
+  const { data } = await apiClient.patch<LiteratureNoteResponse>(endpoints.note(noteId), input);
+  return data.note;
+};
+
+// What a note's fields look like as a correction of itself, so a caller changing one of them
+// does not have to restate the rest.
+export const asCorrection = (
+  note: LiteratureNote,
+  changes: Partial<UpdateLiteratureNoteRequest> = {},
+): UpdateLiteratureNoteRequest => ({
+  body: note.body,
+  section: note.section,
+  position: note.position,
+  excerpt: note.excerpt,
+  openQuestion: note.openQuestion,
+  ...changes,
+});
+
 export const useUpdateLiteratureNote = (sourceId: number) => {
   const queryClient = useQueryClient();
   return useMutation<LiteratureNote, Error, UpdateLiteratureNoteVariables>({
-    mutationFn: async ({ noteId, input }) => {
-      const { data } = await apiClient.patch<LiteratureNoteResponse>(endpoints.note(noteId), input);
-      return data.note;
-    },
+    mutationFn: ({ noteId, input }) => correctLiteratureNote(noteId, input),
     // The corrected card replaces itself in place: the stream keeps its order, which is the
     // order the notes were written in and never a function of when they were last touched
     // (#68). A corrected section joins the tab's suggestions as a filed one does.

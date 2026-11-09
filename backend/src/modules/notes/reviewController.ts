@@ -7,7 +7,7 @@ import type {
 } from '@nee3/shared-types';
 import {
   countNotesNeverAnswered,
-  findOwnedLinkAndNote,
+  findProducedByNote,
   listReviewQueue,
   recordReviewAnswer,
 } from '../../db/reviewAnswers';
@@ -96,14 +96,16 @@ export const createReviewAnswer = async (
       res.status(404).json({ error: 'Note not found' } satisfies ApiErrorResponse);
       return;
     }
-    const produced = await findOwnedLinkAndNote({
+    const produced = await findProducedByNote({
       userId,
+      answeredNoteId: note.id,
       linkId: producedLinkId ?? null,
       noteId: producedNoteId ?? null,
     });
-    // What the Answer claims to have produced has to be this user's, and it has to exist: a row
-    // naming something that was never there is not history, it is a wrong fact in a table that
-    // is never corrected.
+    // What the Answer claims to have produced has to be this user's, it has to exist, and it
+    // has to have come from this note: a row naming something that was never there, or
+    // something this note had no part in, is not history but a wrong fact in a table that is
+    // never corrected.
     if (producedLinkId != null && produced.link === null) {
       res.status(400).json({
         error: 'That connection could not be found.',

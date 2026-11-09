@@ -5,7 +5,12 @@ import { db, pool } from '../../db';
 import { createUser } from '../../db/users';
 import { createApp } from '../../app';
 import { notes, reviewAnswers } from '../../db/schema';
-import { listReviewAnswersByNoteIds } from '../../db/reviewAnswers';
+
+// One note's Answer history, oldest first. Read straight from the table rather than through
+// the module: nothing in the interface reads a note's history back yet, and a query that
+// exists only for its tests does not belong in production code.
+const answersFor = async (noteId: number) =>
+  db.select().from(reviewAnswers).where(eq(reviewAnswers.noteId, noteId)).orderBy(reviewAnswers.id);
 
 describe('review routes (integration)', () => {
   let aliceAgent: ReturnType<typeof request.agent>;
@@ -341,7 +346,7 @@ describe('review routes (integration)', () => {
         producedLinkId: link.body.link.id,
       });
 
-      const history = await listReviewAnswersByNoteIds({ noteIds: [note.id] });
+      const history = await answersFor(note.id);
 
       expect(history.map((row) => row.answer)).toEqual(['nothing_here', 'link_made']);
     });
@@ -357,7 +362,7 @@ describe('review routes (integration)', () => {
         .expect(404);
       await aliceAgent.delete(`/api/review/answers/${body.reviewAnswer.id}`).expect(404);
 
-      expect(await listReviewAnswersByNoteIds({ noteIds: [note.id] })).toHaveLength(1);
+      expect(await answersFor(note.id)).toHaveLength(1);
     });
 
     it("refuses an Answer on a Permanent note's id", async () => {
@@ -399,7 +404,73 @@ describe('review routes (integration)', () => {
       );
 
       expect(body.error).toBe('That connection could not be found.');
-      expect(await listReviewAnswersByNoteIds({ noteIds: [note.id] })).toHaveLength(0);
+      expect(await answersFor(note.id)).toHaveLength(0);
+    });
+
+    it('refuses an Answer naming a Link the note being answered had no part in', async () => {
+      const source = await createSource(aliceAgent);
+      const note = await fileNote(aliceAgent, source.id);
+      const first = await fileNote(aliceAgent, source.id);
+      const second = await fileNote(aliceAgent, source.id);
+      const elsewhere = await aliceAgent
+        .post('/api/links')
+        .send({ originNoteId: first.id, targetNoteId: second.id, reason: 'Same point.' })
+        .expect(201);
+
+      const body = await answer(
+        { noteId: note.id, answer: 'link_made', producedLinkId: elsewhere.body.link.id },
+        400,
+      );
+
+      expect(body.error).toBe('That connection could not be found.');
+      expect(await answersFor(note.id)).toHaveLength(0);
+    });
+
+    it('accepts a Link that reaches the answered note from its far end', async () => {
+      const source = await createSource(aliceAgent);
+      const note = await fileNote(aliceAgent, source.id);
+      const other = await fileNote(aliceAgent, source.id);
+      // A Link is one row per unordered pair, so the row that exists may name the answered
+      // note as its target rather than its origin (ADR 0013) - still a connection this note
+      // took part in.
+      const link = await aliceAgent
+        .post('/api/links')
+        .send({ originNoteId: other.id, targetNoteId: note.id, reason: 'Same point.' })
+        .expect(201);
+
+      const body = await answer({
+        noteId: note.id,
+        answer: 'link_made',
+        producedLinkId: link.body.link.id,
+      });
+
+      expect(body.reviewAnswer).toMatchObject({ producedLinkId: link.body.link.id });
+    });
+
+    it('refuses an Answer naming a Permanent note that is not linked to the answered note', async () => {
+      const source = await createSource(aliceAgent);
+      const note = await fileNote(aliceAgent, source.id);
+      const elsewhere = await fileNote(aliceAgent, source.id);
+      const written = await aliceAgent
+        .post('/api/notes/permanent')
+        .send({
+          title: 'Writing is thinking.',
+          body: 'Because the sentence is where the thought is finished.',
+          links: [{ targetNoteId: elsewhere.id, reason: 'This is where I read it.' }],
+        })
+        .expect(201);
+
+      const body = await answer(
+        {
+          noteId: note.id,
+          answer: 'permanent_note_written',
+          producedNoteId: written.body.note.id,
+        },
+        400,
+      );
+
+      expect(body.error).toBe('That Permanent note could not be found.');
+      expect(await answersFor(note.id)).toHaveLength(0);
     });
 
     it('refuses an Answer that claims to have produced something that is not there', async () => {
@@ -479,7 +550,7 @@ describe('review routes (integration)', () => {
 
       await aliceAgent.delete(`/api/links/${link.body.link.id}`).expect(204);
 
-      const history = await listReviewAnswersByNoteIds({ noteIds: [note.id] });
+      const history = await answersFor(note.id);
       expect(history).toHaveLength(1);
       expect(history[0]).toMatchObject({ answer: 'link_made', producedLinkId: null });
     });
@@ -505,7 +576,7 @@ describe('review routes (integration)', () => {
       // is #86 - so the deletion is made directly against the table the constraint is on.
       await db.delete(notes).where(eq(notes.id, written.body.note.id));
 
-      const history = await listReviewAnswersByNoteIds({ noteIds: [note.id] });
+      const history = await answersFor(note.id);
       expect(history).toHaveLength(1);
       expect(history[0]).toMatchObject({
         answer: 'permanent_note_written',
@@ -541,7 +612,7 @@ describe('review routes (integration)', () => {
         .expect(200);
 
       expect(res.body.note.openQuestion).toBe(false);
-      expect(await listReviewAnswersByNoteIds({ noteIds: [note.id] })).toHaveLength(0);
+      expect(await answersFor(note.id)).toHaveLength(0);
       expect(await dueCount()).toBe(1);
     });
 
