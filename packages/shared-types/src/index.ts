@@ -468,6 +468,11 @@ export interface LinkTargetCandidate {
 export interface LinkTargetsResponse {
   sameSource: LinkTargetCandidate[];
   results: LinkTargetCandidate[];
+  // Every Link this note is already an end of, in either direction. The tiers above carry
+  // their own, but the Topic tier is read from a different endpoint (#87), which knows about
+  // Topics and nothing about Links - so the panel marks those rows from this list. There is at
+  // most one Link per unordered pair, so the note at the other end identifies it (ADR 0013).
+  existingLinks: Link[];
 }
 
 // A Link between two notes that both already exist - the panel's own write, distinct from the

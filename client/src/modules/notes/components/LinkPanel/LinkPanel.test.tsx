@@ -2,14 +2,19 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AxiosError } from 'axios';
 import userEvent from '@testing-library/user-event';
-import type { Link, LinkTargetCandidate, Note } from '@nee3/shared-types';
+import type { Link, LinkTargetCandidate, Note, TopicRelatedNote } from '@nee3/shared-types';
 import { LinkPanel } from './LinkPanel.tsx';
 
 const useLinkTargets = vi.fn();
+const useTopicRelatedNotes = vi.fn();
 
 vi.mock('../../api/linkHooks.ts', () => ({
   useLinkTargets: (fromNoteId: number, query: string, enabled: boolean) =>
     useLinkTargets(fromNoteId, query, enabled),
+}));
+
+vi.mock('../../api/topicHooks.ts', () => ({
+  useTopicRelatedNotes: (noteId: number, enabled: boolean) => useTopicRelatedNotes(noteId, enabled),
 }));
 
 const literature = (overrides: Partial<Extract<Note, { kind: 'literature' }>> = {}): Note => ({
@@ -56,8 +61,22 @@ const link = (overrides: Partial<Link> = {}): Link => ({
   ...overrides,
 });
 
-const answer = (data: { sameSource?: LinkTargetCandidate[]; results?: LinkTargetCandidate[] }) => ({
-  data: { sameSource: data.sameSource ?? [], results: data.results ?? [] },
+const answer = (data: {
+  sameSource?: LinkTargetCandidate[];
+  results?: LinkTargetCandidate[];
+  existingLinks?: Link[];
+}) => ({
+  data: {
+    sameSource: data.sameSource ?? [],
+    results: data.results ?? [],
+    existingLinks: data.existingLinks ?? [],
+  },
+  isPending: false,
+  isError: false,
+});
+
+const topicAnswer = (notes: TopicRelatedNote[] = []) => ({
+  data: { notes },
   isPending: false,
   isError: false,
 });
@@ -65,6 +84,42 @@ const answer = (data: { sameSource?: LinkTargetCandidate[]; results?: LinkTarget
 describe('LinkPanel', () => {
   beforeEach(() => {
     useLinkTargets.mockReset();
+    useTopicRelatedNotes.mockReset();
+    useTopicRelatedNotes.mockReturnValue(topicAnswer());
+  });
+
+  it('offers the notes filed under the same Topic, without anything being typed', () => {
+    useLinkTargets.mockReturnValue(answer({ existingLinks: [link({ targetNoteId: 3 })] }));
+    useTopicRelatedNotes.mockReturnValue(
+      topicAnswer([
+        {
+          note: permanent({ id: 4, title: 'Reading without writing is forgetting.' }),
+          sourceTitle: null,
+          topics: [],
+        },
+        { note: permanent({ id: 3 }), sourceTitle: null, topics: [] },
+      ]),
+    );
+
+    render(<LinkPanel fromNoteId={2} onLink={vi.fn()} onClose={vi.fn()} />);
+
+    expect(screen.getByText('Filed under the same Topic')).toBeInTheDocument();
+    expect(screen.getByText('Reading without writing is forgetting.')).toBeInTheDocument();
+    // A row the pair is already linked on says so rather than offering a second Link.
+    expect(screen.getByText('Already connected')).toBeInTheDocument();
+    expect(useTopicRelatedNotes).toHaveBeenCalledWith(2, true);
+  });
+
+  it('offers a note once when it is both in this reading and under the same Topic', () => {
+    useLinkTargets.mockReturnValue(answer({ sameSource: [candidate()] }));
+    useTopicRelatedNotes.mockReturnValue(
+      topicAnswer([{ note: literature(), sourceTitle: 'How to Take Smart Notes', topics: [] }]),
+    );
+
+    render(<LinkPanel fromNoteId={1} onLink={vi.fn()} onClose={vi.fn()} />);
+
+    expect(screen.queryByText('Filed under the same Topic')).not.toBeInTheDocument();
+    expect(screen.getAllByText('How to Take Smart Notes · Ch. 3 · p. 42')).toHaveLength(1);
   });
 
   it('offers the Source’s own notes without anything being typed', () => {

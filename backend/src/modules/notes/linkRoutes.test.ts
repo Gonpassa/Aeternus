@@ -197,6 +197,11 @@ describe('link routes (integration)', () => {
       expect(res.body.results[0].existingLink).toEqual(
         expect.objectContaining({ id: made.body.link.id, reason: 'Same mechanism.' }),
       );
+      // The same Links are also listed on their own, because the Topic tier is read from the
+      // Topics endpoint and has to be marked from this list (#87, ADR 0013).
+      expect(res.body.existingLinks).toEqual([
+        expect.objectContaining({ id: made.body.link.id, reason: 'Same mechanism.' }),
+      ]);
     });
 
     it('does not offer the same note in both tiers', async () => {

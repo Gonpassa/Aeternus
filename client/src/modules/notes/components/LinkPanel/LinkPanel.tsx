@@ -6,8 +6,9 @@ import { Spinner } from '../../../../atoms/Spinner/Spinner.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { useLinkTargets } from '../../api/linkHooks.ts';
+import { useTopicRelatedNotes } from '../../api/topicHooks.ts';
 import { LinkCandidate } from './LinkCandidate/LinkCandidate.tsx';
-import { SEARCH_DEBOUNCE_MS } from './LinkPanel.utils.ts';
+import { SEARCH_DEBOUNCE_MS, toTopicCandidates } from './LinkPanel.utils.ts';
 
 export interface LinkPanelProps {
   // The note the Link is being made from. Also the end the reason is attributed to, and the
@@ -40,6 +41,10 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
   }, [typed]);
 
   const targets = useLinkTargets(fromNoteId, query, true);
+  // The Topic tier reads from the Topics endpoint rather than from the tiers above, because a
+  // Topic is a filing of notes and the panel's own query knows nothing about it (#87). It does
+  // not wait on the search, for the same reason the first tier does not: it is browsing.
+  const topicRelated = useTopicRelatedNotes(fromNoteId, true);
 
   const renderCandidates = (candidates: LinkTargetCandidate[]) => (
     <Stack as="ul" direction="column" gap="3" listStyleType="none" w="full">
@@ -57,7 +62,16 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
   );
 
   const sameSource = targets.data?.sameSource ?? [];
-  const results = targets.data?.results ?? [];
+  const sameSourceIds = new Set(sameSource.map((candidate) => candidate.note.id));
+  const topicCandidates = toTopicCandidates({
+    related: topicRelated.data?.notes ?? [],
+    existingLinks: targets.data?.existingLinks ?? [],
+    fromNoteId,
+    alreadyOffered: sameSourceIds,
+  });
+  // The search tier drops what the browsable tiers already offered, so a note appears once.
+  const browsed = new Set([...sameSourceIds, ...topicCandidates.map((row) => row.note.id)]);
+  const results = (targets.data?.results ?? []).filter((row) => !browsed.has(row.note.id));
 
   return (
     <Stack
@@ -102,6 +116,15 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
         </Stack>
       )}
 
+      {topicCandidates.length > 0 && (
+        <Stack direction="column" gap="2" w="full">
+          <Text variant="eyebrow" color="inkSoft">
+            Filed under the same Topic
+          </Text>
+          {renderCandidates(topicCandidates)}
+        </Stack>
+      )}
+
       {query !== '' && (
         <Stack direction="column" gap="2" w="full">
           <Text variant="eyebrow" color="inkSoft">
@@ -117,11 +140,15 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
 
       {/* The empty box, said once rather than as two empty tiers: there is nothing to connect
           to yet, and nothing to search either. */}
-      {!targets.isPending && !targets.isError && sameSource.length === 0 && query === '' && (
-        <Text variant="muted">
-          Search for a note to connect to - anything you have written is reachable from here.
-        </Text>
-      )}
+      {!targets.isPending &&
+        !targets.isError &&
+        sameSource.length === 0 &&
+        topicCandidates.length === 0 &&
+        query === '' && (
+          <Text variant="muted">
+            Search for a note to connect to - anything you have written is reachable from here.
+          </Text>
+        )}
     </Stack>
   );
 }

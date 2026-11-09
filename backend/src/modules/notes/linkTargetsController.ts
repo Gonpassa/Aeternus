@@ -7,7 +7,7 @@ import {
   type NoteWithSourceTitle,
 } from '../../db/notes';
 import { listLinksForNote } from '../../db/links';
-import { toLinkTargetCandidate } from './serialize';
+import { toLink, toLinkTargetCandidate } from './serialize';
 import { getUserId } from '../../types/request';
 
 // The two tiers the browsable panel reads, in one request. Browsing comes first and search
@@ -71,6 +71,7 @@ export const listLinkTargets = async (
     res.status(200).json({
       sameSource: sameSource.map(candidate),
       results: results.map(candidate),
+      existingLinks: existing.map(toLink),
     } satisfies LinkTargetsResponse);
   } catch (err) {
     next(err);
