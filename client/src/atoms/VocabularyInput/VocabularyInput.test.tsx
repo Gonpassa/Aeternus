@@ -1,3 +1,4 @@
+import type { FormEvent } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -93,6 +94,48 @@ describe('VocabularyInput', () => {
     await user.type(getField(), 'Motive{Enter}');
 
     expect(onSubmit).toHaveBeenCalledWith('Motive');
+  });
+
+  // The field often sits inside a larger form. Enter here means "add this term", and must not
+  // also file the form around it (#104).
+  it('does not submit a form it sits inside when Enter adds the term', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    const onFormSubmit = vi.fn((event: FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={onFormSubmit}>
+        <VocabularyInput
+          vocabulary={TOPICS}
+          label="Topic name"
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+        />
+        <button type="submit">Save</button>
+      </form>,
+    );
+
+    await user.type(getField(), 'Motive{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledWith('Motive');
+    expect(onFormSubmit).not.toHaveBeenCalled();
+  });
+
+  it('reports what is typed as it is typed, for a caller that must not lose it', async () => {
+    const user = userEvent.setup();
+    const onQueryChange = vi.fn();
+    render(
+      <VocabularyInput
+        vocabulary={TOPICS}
+        label="Topic name"
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        onQueryChange={onQueryChange}
+      />,
+    );
+
+    await user.type(getField(), 'Mo');
+
+    expect(onQueryChange).toHaveBeenLastCalledWith('Mo');
   });
 
   it('ignores a submit with nothing but whitespace typed', async () => {

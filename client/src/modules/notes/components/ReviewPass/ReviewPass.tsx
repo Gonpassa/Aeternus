@@ -8,8 +8,7 @@ import type {
   ReviewQueueNote,
 } from '@nee3/shared-types';
 import { Button } from '../../../../atoms/Button/Button.tsx';
-import { Stack } from '../../../../atoms/Stack/Stack.tsx';
-import { Text } from '../../../../atoms/Text/Text.tsx';
+import { EmptyState } from '../EmptyState/EmptyState.tsx';
 import { PassSummary } from './PassSummary/PassSummary.tsx';
 import { ReviewNoteCard } from './ReviewNoteCard/ReviewNoteCard.tsx';
 import { EMPTY_TALLY, addToTally, reviewStage } from './ReviewPass.utils.ts';
@@ -58,15 +57,16 @@ export function ReviewPass({
 
   if (stage.kind === 'nothing-written') {
     return (
-      <Stack direction="column" gap="4" align="flex-start">
-        <Text textStyle="body" color="inkSoft">
-          Review hands back the notes you wrote while reading, one at a time, and asks what of your
-          own is in them. There is nothing to hand back yet.
-        </Text>
-        <Button asChild>
-          <Link to="/notes/read">Go and read something</Link>
-        </Button>
-      </Stack>
+      <EmptyState
+        action={
+          <Button asChild>
+            <Link to="/notes/read">Go and read something</Link>
+          </Button>
+        }
+      >
+        Review hands back the notes you wrote while reading, one at a time, and asks what of your
+        own is in them. There is nothing to hand back yet.
+      </EmptyState>
     );
   }
 

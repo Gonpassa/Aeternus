@@ -11,8 +11,7 @@ import type { Link } from '@nee3/shared-types';
 // enforced.
 export const LINK_REASON_MAX = 140;
 
-export const LINK_REASON_REQUIRED =
-  'Every connection needs a line saying why the two belong together.';
+export const LINK_REASON_REQUIRED = 'Every Link needs a line saying why the two belong together.';
 
 export const LINK_REASON_TOO_LONG = `A reason is at most ${LINK_REASON_MAX} characters - longer than that is a note of its own.`;
 

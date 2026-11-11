@@ -52,8 +52,15 @@ export function SourceHeader({ source, noteCount, onCorrect, onDelete }: SourceH
           </Heading>
         </Stack>
         <Stack gap="2" flexShrink="0">
-          <Button type="button" size="xs" variant="ghost" onClick={() => setCorrecting(true)}>
-            Correct these details
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            // Named in full for a screen reader: the page below has an "Edit" on every note.
+            aria-label="Edit this Source"
+            onClick={() => setCorrecting(true)}
+          >
+            Edit
           </Button>
           <Button type="button" size="xs" variant="ghost" onClick={() => setConfirmingDelete(true)}>
             Delete this Source

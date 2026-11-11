@@ -19,11 +19,9 @@ describe('linkReasonError', () => {
   });
 
   it('refuses a blank line, since a reason that cannot be written is the signal the Link is not real', () => {
-    expect(linkReasonError('')).toBe(
-      'Every connection needs a line saying why the two belong together.',
-    );
+    expect(linkReasonError('')).toBe('Every Link needs a line saying why the two belong together.');
     expect(linkReasonError('   ')).toBe(
-      'Every connection needs a line saying why the two belong together.',
+      'Every Link needs a line saying why the two belong together.',
     );
   });
 

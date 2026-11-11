@@ -80,7 +80,7 @@ describe('deletion orphan guard (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe(
-        'Deleting this note would leave “An idea worth keeping.” with nothing connected to it. Connect it elsewhere first, or delete it.',
+        'Deleting this note would leave “An idea worth keeping.” with nothing linked to it. Link it elsewhere first, or delete it.',
       );
       // Refused means nothing happened: the note is still filed and the Link is still there.
       expect(await connectionCount(permanentId)).toBe(1);
@@ -130,7 +130,7 @@ describe('deletion orphan guard (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe(
-        'Deleting this note would leave “The second idea.” with nothing connected to it. Connect it elsewhere first, or delete it.',
+        'Deleting this note would leave “The second idea.” with nothing linked to it. Link it elsewhere first, or delete it.',
       );
       expect(await connectionCount(secondId)).toBe(1);
     });
@@ -162,7 +162,7 @@ describe('deletion orphan guard (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe(
-        'Deleting this Source would leave “An idea worth keeping.” with nothing connected to it. Connect it elsewhere first, or delete it.',
+        'Deleting this Source would leave “An idea worth keeping.” with nothing linked to it. Link it elsewhere first, or delete it.',
       );
       const catalog = await aliceAgent.get('/api/sources');
       expect(catalog.body.sources.map((source: { id: number }) => source.id)).toEqual([sourceId]);
@@ -182,7 +182,7 @@ describe('deletion orphan guard (integration)', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe(
-        'Deleting this Source would leave these notes with nothing connected to them: “The first idea.”, “The second idea.”. Connect them elsewhere first, or delete them.',
+        'Deleting this Source would leave these notes with nothing linked to them: “The first idea.”, “The second idea.”. Link them elsewhere first, or delete them.',
       );
     });
 

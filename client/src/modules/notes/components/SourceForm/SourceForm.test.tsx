@@ -60,7 +60,7 @@ describe('SourceForm', () => {
     await user.type(screen.getByLabelText('Title'), 'The Nature of Order');
     await chooseKind(user, 'Book');
     await user.type(screen.getByLabelText('Author'), 'Christopher Alexander');
-    await user.type(screen.getByLabelText('Link'), 'https://example.com/order');
+    await user.type(screen.getByLabelText('Web address'), 'https://example.com/order');
     await submit(user);
 
     await waitFor(() =>
@@ -147,24 +147,58 @@ describe('SourceForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  // A Source's link is rendered as a link, so a scheme-less or `javascript:` value is refused
-  // rather than merely measured.
+  // A Source's web address is rendered as a link, so another scheme or a `javascript:` value is
+  // refused rather than merely measured.
   // eslint-disable-next-line no-script-url -- the script URL being refused is the test's point
-  it.each(['example.com', 'javascript:alert(1)'])('refuses the link %s', async (url) => {
+  it.each(['ftp://example.com', 'javascript:alert(1)'])(
+    'refuses the web address %s',
+    async (url) => {
+      const user = userEvent.setup();
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
+
+      await user.type(screen.getByLabelText('Title'), 'A questionable link');
+      await chooseKind(user, 'Article');
+      await user.click(screen.getByLabelText('Web address'));
+      await user.paste(url);
+      await submit(user);
+
+      expect(
+        await screen.findByText(
+          "A Source's web address needs to look like example.com or https://example.com.",
+        ),
+      ).toBeInTheDocument();
+      expect(onSubmit).not.toHaveBeenCalled();
+    },
+  );
+
+  // Typing "example.com" is not a mistake worth an error: the scheme is added for the user,
+  // where they can see it, as the field is left (#104).
+  it('adds https:// to a web address typed without it, as the field is left', async () => {
+    const user = userEvent.setup();
+    render(<SourceForm onSubmit={vi.fn()} />, { wrapper: queryWrapper() });
+
+    await user.type(screen.getByLabelText('Web address'), 'example.com/order');
+    await user.tab();
+
+    expect(screen.getByLabelText('Web address')).toHaveValue('https://example.com/order');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('submits a web address with https:// added even when the field was never left', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
 
-    await user.type(screen.getByLabelText('Title'), 'A questionable link');
-    await chooseKind(user, 'Article');
-    await user.click(screen.getByLabelText('Link'));
-    await user.paste(url);
-    await submit(user);
+    await user.type(screen.getByLabelText('Title'), 'The Order of Things');
+    await chooseKind(user, 'Book');
+    await user.type(screen.getByLabelText('Web address'), 'example.com/order{Enter}');
 
-    expect(
-      await screen.findByText('A Source link must start with http:// or https://.'),
-    ).toBeInTheDocument();
-    expect(onSubmit).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ url: 'https://example.com/order' }),
+      ),
+    );
   });
 
   it('trims what it submits, so surrounding space never reaches the API', async () => {
@@ -202,6 +236,22 @@ describe('SourceForm', () => {
     await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
     await user.type(screen.getByLabelText('Topic name'), 'Myth');
     await user.click(screen.getByRole('button', { name: 'Add' }));
+    await submit(user);
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ topicNames: ['Myth'] })),
+    );
+  });
+
+  it('submits a Topic that was typed but never added', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<SourceForm onSubmit={onSubmit} />, { wrapper: queryWrapper() });
+
+    await user.type(screen.getByLabelText('Title'), 'Tristes Tropiques');
+    await chooseKind(user, 'Book');
+    await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Myth');
     await submit(user);
 
     await waitFor(() =>

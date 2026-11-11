@@ -106,7 +106,7 @@ describe('LinkPanel', () => {
     expect(screen.getByText('Filed under the same Topic')).toBeInTheDocument();
     expect(screen.getByText('Reading without writing is forgetting.')).toBeInTheDocument();
     // A row the pair is already linked on says so rather than offering a second Link.
-    expect(screen.getByText('Already connected')).toBeInTheDocument();
+    expect(screen.getByText('Already linked')).toBeInTheDocument();
     expect(useTopicRelatedNotes).toHaveBeenCalledWith(2, true);
   });
 
@@ -177,7 +177,7 @@ describe('LinkPanel', () => {
     useLinkTargets.mockReturnValue(answer({ sameSource: [candidate()] }));
 
     render(<LinkPanel fromNoteId={1} onLink={onLink} onClose={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Connect to this' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to this' }));
 
     expect(onLink).not.toHaveBeenCalled();
 
@@ -185,7 +185,7 @@ describe('LinkPanel', () => {
       screen.getByLabelText('Why these belong together'),
       'Both are about effort avoided.',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Connect these' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link these' }));
 
     expect(onLink).toHaveBeenCalledWith({
       originNoteId: 1,
@@ -199,11 +199,11 @@ describe('LinkPanel', () => {
     useLinkTargets.mockReturnValue(answer({ sameSource: [candidate()] }));
 
     render(<LinkPanel fromNoteId={1} onLink={onLink} onClose={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Connect to this' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Connect these' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to this' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link these' }));
 
     expect(
-      screen.getByText('Every connection needs a line saying why the two belong together.'),
+      screen.getByText('Every Link needs a line saying why the two belong together.'),
     ).toBeInTheDocument();
     expect(onLink).not.toHaveBeenCalled();
   });
@@ -243,8 +243,8 @@ describe('LinkPanel', () => {
 
     render(<LinkPanel fromNoteId={1} onLink={vi.fn()} onClose={vi.fn()} />);
 
-    expect(screen.getByText('Already connected')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Connect/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Already linked')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Link to this/ })).not.toBeInTheDocument();
   });
 
   it('says the box is reachable rather than showing two empty tiers', () => {
@@ -254,7 +254,7 @@ describe('LinkPanel', () => {
 
     expect(
       screen.getByText(
-        'Search for a note to connect to - anything you have written is reachable from here.',
+        'Search for a note to link to - anything you have written is reachable from here.',
       ),
     ).toBeInTheDocument();
   });
@@ -262,8 +262,7 @@ describe('LinkPanel', () => {
   // The server's refusals here are written to be read - an end that has already said why, a
   // note that has gone - and nothing else surfaces an expected 4xx, so the field shows them.
   it('shows the server’s refusal at the field that asked for the connection', async () => {
-    const refusal =
-      'This note has already said why - rewrite the reason where the connection is shown.';
+    const refusal = 'This note has already said why - rewrite the reason where the Link is shown.';
     const onLink = vi.fn().mockRejectedValue(
       new AxiosError('Conflict', undefined, undefined, undefined, {
         status: 409,
@@ -276,12 +275,12 @@ describe('LinkPanel', () => {
     useLinkTargets.mockReturnValue(answer({ sameSource: [candidate()] }));
 
     render(<LinkPanel fromNoteId={1} onLink={onLink} onClose={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Connect to this' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to this' }));
     await userEvent.type(
       screen.getByLabelText('Why these belong together'),
       'Both are about effort avoided.',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Connect these' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link these' }));
 
     expect(await screen.findByText(refusal)).toBeInTheDocument();
     // What was typed is still there: the line is the user's thought, not a form entry to redo.

@@ -73,8 +73,8 @@ describe('NoteConnections', () => {
       />,
     );
 
-    expect(screen.getByText('Connected from')).toBeInTheDocument();
-    expect(screen.queryByText('Connects to')).not.toBeInTheDocument();
+    expect(screen.getByText('Linked from')).toBeInTheDocument();
+    expect(screen.queryByText('Links to')).not.toBeInTheDocument();
   });
 
   it('names a Permanent note at the other end by the claim it states, with the reason under it', () => {
@@ -157,13 +157,13 @@ describe('NoteConnections', () => {
     // Nothing is asked for until the row is opened.
     expect(useNoteConnections).toHaveBeenCalledWith(2, false);
 
-    await user.click(screen.getByRole('button', { name: 'Its connections' }));
+    await user.click(screen.getByRole('button', { name: 'Its Links' }));
 
     expect(useNoteConnections).toHaveBeenCalledWith(2, true);
     expect(screen.getByText('How to Take Smart Notes · Ch. 3 · p. 42')).toBeInTheDocument();
     // One level of reaching through: the row behind a row offers no further opening, which is
     // what #88 is for.
-    expect(screen.queryByRole('button', { name: 'Its connections' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Its Links' })).not.toBeInTheDocument();
   });
 });
 
@@ -194,9 +194,7 @@ describe('NoteConnections, with the Link affordances provided', () => {
     );
 
     expect(screen.queryByRole('button', { name: 'Rewrite the reason' })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Remove this connection' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove this Link' })).not.toBeInTheDocument();
   });
 
   // ADR 0013: the reason is edited in place by the end that wrote it, and `fromNoteId` is what
@@ -241,7 +239,7 @@ describe('NoteConnections, with the Link affordances provided', () => {
     await user.click(screen.getByRole('button', { name: 'Save the reason' }));
 
     expect(
-      screen.getByText('Every connection needs a line saying why the two belong together.'),
+      screen.getByText('Every Link needs a line saying why the two belong together.'),
     ).toBeInTheDocument();
     expect(value.editReason).not.toHaveBeenCalled();
   });
@@ -261,7 +259,7 @@ describe('NoteConnections, with the Link affordances provided', () => {
 
     expect(screen.queryByRole('button', { name: 'Rewrite the reason' })).not.toBeInTheDocument();
     // The connection itself is still removable from this end.
-    expect(screen.getByRole('button', { name: 'Remove this connection' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove this Link' })).toBeInTheDocument();
   });
 
   it('confirms before removing a connection, then removes it', async () => {
@@ -269,11 +267,11 @@ describe('NoteConnections, with the Link affordances provided', () => {
     const value = actions();
     renderWith(value, { connectsTo: [], connectedFrom: [connection()] }, 1);
 
-    await user.click(screen.getByRole('button', { name: 'Remove this connection' }));
+    await user.click(screen.getByRole('button', { name: 'Remove this Link' }));
 
     expect(value.removeLink).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: 'Remove connection' }));
+    await user.click(screen.getByRole('button', { name: 'Remove Link' }));
 
     expect(value.removeLink).toHaveBeenCalledWith(1);
   });
@@ -284,7 +282,7 @@ describe('NoteConnections, with the Link affordances provided', () => {
   it('shows the server’s refusal beside the removal it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Removing this connection would leave “Writing is how an idea is tested.” with nothing connected to it. Connect it elsewhere first, or delete it.';
+      'Removing this Link would leave “Writing is how an idea is tested.” with nothing linked to it. Link it elsewhere first, or delete it.';
     const value = actions({
       removeLink: vi.fn().mockRejectedValue(
         new AxiosError('Conflict', undefined, undefined, undefined, {
@@ -298,11 +296,11 @@ describe('NoteConnections, with the Link affordances provided', () => {
     });
     renderWith(value, { connectsTo: [], connectedFrom: [connection()] }, 1);
 
-    await user.click(screen.getByRole('button', { name: 'Remove this connection' }));
-    await user.click(screen.getByRole('button', { name: 'Remove connection' }));
+    await user.click(screen.getByRole('button', { name: 'Remove this Link' }));
+    await user.click(screen.getByRole('button', { name: 'Remove Link' }));
 
     expect(await screen.findByText(refusal)).toBeInTheDocument();
     // The dialog stays open: the connection is still there, and so is the choice.
-    expect(screen.getByRole('button', { name: 'Remove connection' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Link' })).toBeInTheDocument();
   });
 });

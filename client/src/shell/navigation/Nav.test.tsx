@@ -169,11 +169,17 @@ describe('Nav', () => {
       expect(screen.getByRole('link', { name: 'Read' })).toHaveAttribute('href', '/notes/read');
     });
 
-    // The Topic index hangs off the Notes heading rather than taking a rail entry of its
-    // own (#88).
-    it('reaches the Topic index from the Notes heading', () => {
+    // Topics is a page of the module like the other two, listed first because it is the
+    // vocabulary the other two are filed under (#104).
+    it('lists Topics, Read and Review under the Notes heading, in that order', () => {
       render(<Nav />);
 
+      const hrefs = screen
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href'))
+        .filter((href) => href?.startsWith('/notes/'));
+
+      expect(hrefs).toEqual(['/notes/topics', '/notes/read', '/notes/review']);
       expect(screen.getByRole('link', { name: 'Topics' })).toHaveAttribute('href', '/notes/topics');
     });
 

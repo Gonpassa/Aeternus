@@ -17,8 +17,8 @@ export interface NoteConnectionsProps {
 // because the web of Links is the only structure here and an empty heading describes none.
 export function NoteConnections({ connections, noteId, nested = false }: NoteConnectionsProps) {
   const groups = [
-    { heading: 'Connects to', rows: connections.connectsTo },
-    { heading: 'Connected from', rows: connections.connectedFrom },
+    { heading: 'Links to', rows: connections.connectsTo },
+    { heading: 'Linked from', rows: connections.connectedFrom },
   ].filter((group) => group.rows.length > 0);
 
   if (groups.length === 0) {

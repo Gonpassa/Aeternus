@@ -1,4 +1,7 @@
-import { useState } from 'react';
+/* eslint-disable prefer-arrow-callback, @typescript-eslint/no-shadow --
+   Mirrors the Button.tsx wrapper pattern: `function TopicTagger` names the ref-forwarding
+   component for DevTools. */
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { IconButton } from '../../../../atoms/IconButton/IconButton.tsx';
@@ -17,12 +20,25 @@ export interface TopicTaggerProps {
   onChange: (names: string[]) => void;
 }
 
+export interface TopicTaggerHandle {
+  // Adds whatever is typed in the Topic field but not yet added, as if Add had been pressed.
+  // The form around the tagger calls this as it is submitted: a name the user typed is a Topic
+  // they meant, and dropping it silently files the carrier under nothing (#104).
+  commitPending: () => void;
+}
+
 // Topics on a carrier being written or corrected: the New Source form, the Source header's
 // correction, and the Permanent note composer. Optional in all three and never required -
 // object-tag discipline is the guidance copy below rather than a constraint, because a required
 // Topic guarantees vague ones (#87).
-export function TopicTagger({ names, vocabulary, onChange }: TopicTaggerProps) {
+export const TopicTagger = forwardRef<TopicTaggerHandle, TopicTaggerProps>(function TopicTagger(
+  { names, vocabulary, onChange },
+  ref,
+) {
   const [adding, setAdding] = useState(false);
+  // What is typed in the open field, kept so a surrounding form can commit it on submit. A ref
+  // rather than state: nothing renders from it.
+  const pending = useRef('');
 
   // Case-insensitive, as the vocabulary itself is: typing "water" onto a carrier already wearing
   // "Water" is the same Topic twice, which says nothing.
@@ -30,8 +46,21 @@ export function TopicTagger({ names, vocabulary, onChange }: TopicTaggerProps) {
     if (!names.some((already) => already.toLowerCase() === name.toLowerCase())) {
       onChange([...names, name]);
     }
+    pending.current = '';
     setAdding(false);
   };
+
+  const cancel = () => {
+    pending.current = '';
+    setAdding(false);
+  };
+
+  useImperativeHandle(ref, () => ({
+    commitPending: () => {
+      const name = pending.current.trim();
+      if (name !== '') add(name);
+    },
+  }));
 
   return (
     <Stack direction="column" gap="2" align="flex-start">
@@ -65,7 +94,10 @@ export function TopicTagger({ names, vocabulary, onChange }: TopicTaggerProps) {
           placeholder="Topic name…"
           submitLabel="Add"
           onSubmit={add}
-          onCancel={() => setAdding(false)}
+          onCancel={cancel}
+          onQueryChange={(query) => {
+            pending.current = query;
+          }}
         />
       ) : (
         <Button type="button" size="xs" variant="ghost" onClick={() => setAdding(true)}>
@@ -80,4 +112,4 @@ export function TopicTagger({ names, vocabulary, onChange }: TopicTaggerProps) {
       </Text>
     </Stack>
   );
-}
+});

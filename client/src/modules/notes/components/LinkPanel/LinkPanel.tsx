@@ -82,12 +82,12 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
       borderWidth="1px"
       borderColor="borderSoft"
       p="4"
-      aria-label="Connect this note"
+      aria-label="Link this note"
       role="group"
     >
       <Stack align="center" justify="space-between" gap="3">
         <Text variant="eyebrow" color="moss">
-          Connect this note to
+          Link this note to
         </Text>
         <Button type="button" size="xs" variant="ghost" onClick={onClose}>
           Done
@@ -146,7 +146,7 @@ export function LinkPanel({ fromNoteId, onLink, onClose }: LinkPanelProps) {
         topicCandidates.length === 0 &&
         query === '' && (
           <Text variant="muted">
-            Search for a note to connect to - anything you have written is reachable from here.
+            Search for a note to link to - anything you have written is reachable from here.
           </Text>
         )}
     </Stack>

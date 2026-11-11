@@ -5,6 +5,7 @@ import {
   type SourceKind,
   type SourceWithTopics,
 } from '@nee3/shared-types';
+import { isWebAddress, normalizeWebAddress } from '../../utils/webAddress.ts';
 import { TOPIC_COUNT_MAX, TOPIC_NAME_MAX } from '../../utils/topicLimits.ts';
 
 // The backend's modules/notes/validation.ts is the authority on these ceilings - it is what a
@@ -35,17 +36,18 @@ export const sourceSchema = z.object({
     .string()
     .trim()
     .max(SOURCE_AUTHOR_MAX, `An author is at most ${SOURCE_AUTHOR_MAX} characters.`),
-  // Held to http(s) rather than merely to a length: a Source's link is rendered as a link, so
-  // a `javascript:` scheme would be an injection surface and a bare "example.com" would
-  // resolve against this app's own origin. Blank passes - the field is optional.
+  // `https://` is added to an address typed without a scheme, here as on the server, so what
+  // is validated and submitted is what will be stored (#104). What is left is held to http(s)
+  // rather than merely to a length: a Source's web address is rendered as a link, so a
+  // `javascript:` scheme would be an injection surface. Blank passes - the field is optional.
   url: z
     .string()
-    .trim()
-    .refine((value) => value === '' || /^https?:\/\/\S+$/i.test(value), {
-      message: 'A Source link must start with http:// or https://.',
+    .transform(normalizeWebAddress)
+    .refine((value) => value === '' || isWebAddress(value), {
+      message: "A Source's web address needs to look like example.com or https://example.com.",
     })
     .refine((value) => value.length <= SOURCE_URL_MAX, {
-      message: `A Source link is at most ${SOURCE_URL_MAX.toLocaleString('en-US')} characters.`,
+      message: `A Source's web address is at most ${SOURCE_URL_MAX.toLocaleString('en-US')} characters.`,
     }),
   // Optional and never required, as on every carrier: an empty list is a Source nobody has
   // filed under a word yet (#87). The ceilings are the server's, mirrored here as the text
@@ -71,7 +73,7 @@ export const toSourceFormValues = (source: SourceWithTopics): SourceFormValues =
 });
 
 // An untouched optional input submits as the empty string, which is not a different state
-// from "not given" for an author or a link - both reach the API as null, as they are stored.
+// from "not given" for an author or a web address - both reach the API as null, as they are stored.
 export const toCreateRequest = (values: SourceFormOutput): CreateSourceRequest => ({
   title: values.title,
   kind: values.kind,

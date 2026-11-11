@@ -1,4 +1,5 @@
 import type { SourceKind } from '@nee3/shared-types';
+import { normalizeWebAddress } from './webAddress';
 
 // The Notes module's sanitizer trims and normalizes text rather than filtering markup
 // (ADR 0017): every field in the module is plain text, so there is no HTML allow-list here
@@ -31,9 +32,9 @@ export const sanitizeSourceInput = (input: {
   title: collapse(input.title),
   kind: input.kind,
   author: optional(input.author),
-  // A link is trimmed but never otherwise rewritten - no case folding, no trailing-slash
-  // normalizing - so it still resolves to exactly what the user pasted.
-  url: typeof input.url === 'string' && input.url.trim() !== '' ? input.url.trim() : null,
+  // A web address is trimmed and given `https://` when it was typed without a scheme, and
+  // never otherwise rewritten, so it still resolves to exactly what the user pasted (#104).
+  url: typeof input.url === 'string' ? normalizeWebAddress(input.url) || null : null,
 });
 
 // A note's own text keeps the line breaks the user typed - the one piece of structure a plain

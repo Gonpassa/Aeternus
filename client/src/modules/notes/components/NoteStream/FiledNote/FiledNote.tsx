@@ -141,9 +141,11 @@ export function FiledNote({
           size="xs"
           variant="ghost"
           alignSelf="flex-start"
+          // Named in full for a screen reader: a reading page has one of these per note.
+          aria-label="Edit this note"
           onClick={() => setCorrecting(true)}
         >
-          Correct this note
+          Edit
         </Button>
 
         {/* What the user has built from this reading, which is the payoff: the inbound group
@@ -169,7 +171,7 @@ export function FiledNote({
               alignSelf="flex-start"
               onClick={() => setLinkPanelOpen(true)}
             >
-              Connect this to another note
+              Link to another note
             </Button>
           ))}
 
@@ -179,6 +181,7 @@ export function FiledNote({
           <PermanentNoteComposer
             targetNoteId={note.id}
             targetLabel={literatureNoteHeading({ sourceTitle, ...note })}
+            initialTopicNames={inheritedTopics.map((topic) => topic.name)}
             onWrite={async (input) => {
               await onWritePermanentNote(input);
               setComposerOpen(false);

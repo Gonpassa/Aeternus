@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import type { TopicListEntry } from '@nee3/shared-types';
-import { Heading } from '../../../../atoms/Heading/Heading.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
+import { EmptyState } from '../EmptyState/EmptyState.tsx';
 import { topicCarrierLabel } from '../../utils/topicCarriers.ts';
 
 export interface TopicIndexProps {
@@ -16,15 +16,10 @@ export interface TopicIndexProps {
 export function TopicIndex({ topics }: TopicIndexProps) {
   if (topics.length === 0) {
     return (
-      <Stack direction="column" gap="4" align="flex-start" maxW="30rem" pt="4">
-        <Heading as="h2" variant="section">
-          No Topics yet.
-        </Heading>
-        <Text textStyle="body" color="inkSoft">
-          A Topic is created by typing it on a Source or on a Permanent note - tag a thing only when
-          it is about that thing, and this becomes the list of what you read about.
-        </Text>
-      </Stack>
+      <EmptyState heading="No Topics yet.">
+        A Topic is created by typing it on a Source or on a Permanent note - tag a thing only when
+        it is about that thing, and this becomes the list of what you read about.
+      </EmptyState>
     );
   }
 

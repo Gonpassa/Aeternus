@@ -104,12 +104,18 @@ describe('validateSourceInput', () => {
       expect(validateSourceInput({ ...valid, url })).toEqual({ valid: true });
     });
 
-    it.each(['example.com', 'ftp://example.com', 'javascript:alert(1)', 'not a url at all'])(
-      'rejects %p, which is not an http(s) link',
+    // A scheme is added rather than demanded: refusing "example.com" for want of "https://"
+    // is friction the server can remove (#104).
+    it.each(['example.com', 'www.example.com/a/b'])('accepts %p, typed without a scheme', (url) => {
+      expect(validateSourceInput({ ...valid, url })).toEqual({ valid: true });
+    });
+
+    it.each(['ftp://example.com', 'javascript:alert(1)', 'not a url at all', 'example'])(
+      'rejects %p, which is not a web address',
       (url) => {
         expect(validateSourceInput({ ...valid, url })).toEqual({
           valid: false,
-          error: 'A Source link must start with http:// or https://.',
+          error: "A Source's web address needs to look like example.com or https://example.com.",
         });
       },
     );
@@ -118,14 +124,14 @@ describe('validateSourceInput', () => {
       const url = `https://example.com/${'a'.repeat(SOURCE_URL_MAX)}`;
       expect(validateSourceInput({ ...valid, url })).toEqual({
         valid: false,
-        error: 'A Source link is at most 2,000 characters.',
+        error: "A Source's web address is at most 2,000 characters.",
       });
     });
 
     it('rejects a url that is not a string', () => {
       expect(validateSourceInput({ ...valid, url: 42 })).toEqual({
         valid: false,
-        error: 'A Source link must start with http:// or https://.',
+        error: "A Source's web address needs to look like example.com or https://example.com.",
       });
     });
   });
@@ -264,7 +270,7 @@ describe('validatePermanentNoteInput', () => {
     (links) => {
       expect(validatePermanentNoteInput({ ...valid, links })).toEqual({
         valid: false,
-        error: 'A Permanent note needs at least one connection to a note already in the box.',
+        error: 'A Permanent note needs at least one Link to a note already in the box.',
       });
     },
   );
@@ -274,7 +280,7 @@ describe('validatePermanentNoteInput', () => {
       validatePermanentNoteInput({ ...valid, links: [{ targetNoteId: 7, reason: '  ' }] }),
     ).toEqual({
       valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
+      error: 'Every Link needs a line saying why the two belong together.',
     });
   });
 
@@ -295,7 +301,7 @@ describe('validatePermanentNoteInput', () => {
     (targetNoteId) => {
       expect(
         validatePermanentNoteInput({ ...valid, links: [{ targetNoteId, reason: 'Why.' }] }),
-      ).toEqual({ valid: false, error: 'A connection needs a note to connect to.' });
+      ).toEqual({ valid: false, error: 'A Link needs a note to link to.' });
     },
   );
 
@@ -308,7 +314,7 @@ describe('validatePermanentNoteInput', () => {
           { targetNoteId: 7, reason: 'And another.' },
         ],
       }),
-    ).toEqual({ valid: false, error: 'A note can only be connected once.' });
+    ).toEqual({ valid: false, error: 'A note can only be linked once.' });
   });
 });
 
@@ -327,21 +333,21 @@ describe('validateLinkInput', () => {
   ])('refuses %s', (_case, input) => {
     expect(validateLinkInput(input)).toEqual({
       valid: false,
-      error: 'A connection needs a note at each end.',
+      error: 'A Link needs a note at each end.',
     });
   });
 
   it('refuses a note connected to itself, which states nothing', () => {
     expect(validateLinkInput({ ...valid, targetNoteId: valid.originNoteId })).toEqual({
       valid: false,
-      error: 'A note cannot be connected to itself.',
+      error: 'A note cannot be linked to itself.',
     });
   });
 
   it('holds the reason to the same rule it is held to in the composer', () => {
     expect(validateLinkInput({ ...valid, reason: '   ' })).toEqual({
       valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
+      error: 'Every Link needs a line saying why the two belong together.',
     });
     expect(validateLinkInput({ ...valid, reason: 'x'.repeat(LINK_REASON_MAX + 1) })).toEqual({
       valid: false,
@@ -358,11 +364,11 @@ describe('validateLinkReason', () => {
   it('refuses an emptied reason, since a Link cannot exist without one', () => {
     expect(validateLinkReason('   ')).toEqual({
       valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
+      error: 'Every Link needs a line saying why the two belong together.',
     });
     expect(validateLinkReason(undefined)).toEqual({
       valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
+      error: 'Every Link needs a line saying why the two belong together.',
     });
   });
 

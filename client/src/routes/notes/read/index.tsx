@@ -12,9 +12,13 @@ import { Text } from '../../../atoms/Text/Text.tsx';
 function ReadCatalogPage() {
   const sources = useSources();
   const hasSources = (sources.data?.length ?? 0) > 0;
+  // The catalog is a grid and takes the wide column. An empty shelf is a few lines of text, and
+  // in that column it sits against the left edge of the page instead of in the middle of it,
+  // so it takes the narrow column Review and Topics read in (#104).
+  const isEmpty = sources.data?.length === 0;
 
   return (
-    <PageContainer maxW="4xl" centered>
+    <PageContainer maxW={isEmpty ? '2xl' : '4xl'} centered>
       <Stack mb="4" align="center" justify="space-between">
         <Stack direction="column" gap="1">
           <Text variant="eyebrow" color="rust">

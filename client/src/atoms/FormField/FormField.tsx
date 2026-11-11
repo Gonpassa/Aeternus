@@ -14,12 +14,16 @@ export interface FormFieldProps<
   control: Control<TFieldValues>;
   name: TName;
   label: ReactNode;
+  // Rewrites what was typed as the field is left, before it is validated - for a value the
+  // form can tidy on the user's behalf, where they can see it, instead of refusing it.
+  normalizeOnBlur?: (value: string) => string;
 }
 
 export function FormField<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
   control,
   name,
   label,
+  normalizeOnBlur,
   ...inputProps
 }: FormFieldProps<TFieldValues, TName>) {
   return (
@@ -34,6 +38,10 @@ export function FormField<TFieldValues extends FieldValues, TName extends FieldP
               {...inputProps}
               {...field}
               value={field.value ?? ''}
+              onBlur={() => {
+                if (normalizeOnBlur) field.onChange(normalizeOnBlur(field.value ?? ''));
+                field.onBlur();
+              }}
               id={name}
               aria-invalid={fieldState.invalid || undefined}
               aria-describedby={fieldState.error ? `${name}-error` : undefined}

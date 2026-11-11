@@ -108,7 +108,7 @@ export const createReviewAnswer = async (
     // never corrected.
     if (producedLinkId != null && produced.link === null) {
       res.status(400).json({
-        error: 'That connection could not be found.',
+        error: 'That Link could not be found.',
       } satisfies ApiErrorResponse);
       return;
     }

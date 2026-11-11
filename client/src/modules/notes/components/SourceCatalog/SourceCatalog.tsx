@@ -3,9 +3,9 @@ import { Link } from '@tanstack/react-router';
 import type { SourceListEntry } from '@nee3/shared-types';
 import { Button } from '../../../../atoms/Button/Button.tsx';
 import { Grid } from '../../../../atoms/Grid/Grid.tsx';
-import { Heading } from '../../../../atoms/Heading/Heading.tsx';
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
+import { EmptyState } from '../EmptyState/EmptyState.tsx';
 import { SourceCard } from './SourceCard/SourceCard.tsx';
 import { TopicFilterStrip } from './TopicFilterStrip/TopicFilterStrip.tsx';
 import { catalogTopics, filterSourcesByTopic } from './SourceCatalog.utils.ts';
@@ -23,18 +23,17 @@ export function SourceCatalog({ sources }: SourceCatalogProps) {
 
   if (sources.length === 0) {
     return (
-      <Stack direction="column" gap="4" align="flex-start" maxW="30rem" pt="4">
-        <Heading as="h2" variant="section">
-          Nothing on the shelf yet.
-        </Heading>
-        <Text textStyle="body" color="inkSoft">
-          Add the book or the article you are reading, and this becomes the catalog you file your
-          notes against.
-        </Text>
-        <Button asChild>
-          <Link to="/notes/read/new">Add the first Source</Link>
-        </Button>
-      </Stack>
+      <EmptyState
+        heading="Nothing on the shelf yet."
+        action={
+          <Button asChild>
+            <Link to="/notes/read/new">Add the first Source</Link>
+          </Button>
+        }
+      >
+        Add the book or the article you are reading, and this becomes the catalog you file your
+        notes against.
+      </EmptyState>
     );
   }
 

@@ -333,7 +333,7 @@ describe('link routes (integration)', () => {
 
       expect(again.status).toBe(409);
       expect(again.body.error).toBe(
-        'This note has already said why - rewrite the reason where the connection is shown.',
+        'This note has already said why - rewrite the reason where the Link is shown.',
       );
 
       const { rows } = await db.execute<{ reason: string }>(
@@ -395,7 +395,7 @@ describe('link routes (integration)', () => {
         .send({ originNoteId: a, targetNoteId: a, reason: 'It reminds me of itself.' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toMatch(/cannot be connected to itself/);
+      expect(res.body.error).toMatch(/cannot be linked to itself/);
     });
 
     it('refuses an end that is not this user’s note', async () => {
@@ -484,7 +484,7 @@ describe('link routes (integration)', () => {
         .send({ fromNoteId: b, reason: 'B has not linked back.' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toMatch(/connect back from it/);
+      expect(res.body.error).toMatch(/link back from it/);
     });
 
     it('refuses an emptied reason', async () => {

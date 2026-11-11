@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router';
 import { useAuth } from '../AuthProvider.tsx';
 import { Stack } from '../../atoms/Stack/Stack.tsx';
 import { Text } from '../../atoms/Text/Text.tsx';
@@ -19,20 +18,16 @@ export function NavSections({ onLinkClick }: { onLinkClick?: () => void }) {
             Dream Journal
           </RailLink>
           {/* Notes is a heading rather than a link: the module has no landing page of its
-              own, and both of its pages - Read and Review - are destinations in their own
-              right. The Topic index hangs off the heading rather than taking a rail entry of
-              its own: it is the module's vocabulary rather than a third thing to do in it
-              (#88). */}
-          <Stack direction="row" align="baseline" justify="space-between" px="2.5" pt="3" pb="1">
-            <Text textStyle="label" color="paper/50">
-              Notes
-            </Text>
-            <Text asChild textStyle="label" color="paper/50" _hover={{ color: 'paper' }}>
-              <Link to="/notes/topics" onClick={onLinkClick}>
-                Topics
-              </Link>
-            </Text>
-          </Stack>
+              own, and its pages - Topics, Read and Review - are destinations in their own
+              right. Topics is an entry like the other two rather than a link beside the
+              heading, where it read as a different kind of thing from the pages below it
+              (#104). */}
+          <Text textStyle="label" color="paper/50" px="2.5" pt="3" pb="1">
+            Notes
+          </Text>
+          <RailLink to="/notes/topics" nested onClick={onLinkClick}>
+            Topics
+          </RailLink>
           <RailLink to="/notes/read" nested onClick={onLinkClick}>
             Read
           </RailLink>

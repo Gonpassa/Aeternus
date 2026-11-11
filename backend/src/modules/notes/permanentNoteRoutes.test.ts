@@ -144,7 +144,7 @@ describe('permanent note routes (integration)', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe(
-        'A Permanent note needs at least one connection to a note already in the box.',
+        'A Permanent note needs at least one Link to a note already in the box.',
       );
       const permanent = await db.execute(sql`SELECT id FROM notes WHERE kind = 'permanent'`);
       expect(permanent.rows).toHaveLength(0);
@@ -157,7 +157,7 @@ describe('permanent note routes (integration)', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe(
-        'A Permanent note needs at least one connection to a note already in the box.',
+        'A Permanent note needs at least one Link to a note already in the box.',
       );
     });
 
@@ -171,9 +171,7 @@ describe('permanent note routes (integration)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe(
-        'Every connection needs a line saying why the two belong together.',
-      );
+      expect(res.body.error).toBe('Every Link needs a line saying why the two belong together.');
       const permanent = await db.execute(sql`SELECT id FROM notes WHERE kind = 'permanent'`);
       expect(permanent.rows).toHaveLength(0);
     });
@@ -238,7 +236,7 @@ describe('permanent note routes (integration)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('A note can only be connected once.');
+      expect(res.body.error).toBe('A note can only be linked once.');
     });
 
     it('collapses the title and reason to one line and keeps the body as typed', async () => {
@@ -261,7 +259,7 @@ describe('permanent note routes (integration)', () => {
       const res = await aliceAgent.post('/api/notes/permanent').send(validPayload(bobNoteId));
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('That note could not be found to connect to.');
+      expect(res.body.error).toBe('That note could not be found to link to.');
       const permanent = await db.execute(sql`SELECT id FROM notes WHERE kind = 'permanent'`);
       expect(permanent.rows).toHaveLength(0);
     });
@@ -270,7 +268,7 @@ describe('permanent note routes (integration)', () => {
       const res = await aliceAgent.post('/api/notes/permanent').send(validPayload(9999));
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('That note could not be found to connect to.');
+      expect(res.body.error).toBe('That note could not be found to link to.');
       const permanent = await db.execute(sql`SELECT id FROM notes WHERE kind = 'permanent'`);
       expect(permanent.rows).toHaveLength(0);
     });
@@ -281,7 +279,7 @@ describe('permanent note routes (integration)', () => {
         .send({ ...validPayload(1), links: [{ targetNoteId: 1.5, reason: 'Why.' }] });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('A connection needs a note to connect to.');
+      expect(res.body.error).toBe('A Link needs a note to link to.');
     });
 
     it('requires authentication', async () => {
