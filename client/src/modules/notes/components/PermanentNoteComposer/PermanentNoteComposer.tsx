@@ -1,4 +1,3 @@
-import type { FormEventHandler } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreatePermanentNoteRequest } from '@nee3/shared-types';
@@ -18,6 +17,7 @@ import {
 import { WRITTEN_ON_CARD_RULED } from '../../utils/cardInput.ts';
 import { useTopics } from '../../api/topicHooks.ts';
 import { TopicTagger } from '../TopicTagger/TopicTagger.tsx';
+import { useSubmitWithPendingTopic } from '../TopicTagger/useSubmitWithPendingTopic.ts';
 
 export interface PermanentNoteComposerProps {
   // The note the composer was opened from: the Link's target, pre-selected and not a field.
@@ -25,6 +25,10 @@ export interface PermanentNoteComposerProps {
   // How that note is named on the card, so the connection is visible while the reason for it
   // is being written rather than confirmed afterwards.
   targetLabel: string;
+  // The Topics of the note the composer was opened from - its Source's, which a Literature note
+  // inherits. The new note starts with them as its own, each removable before filing; they are
+  // a copy, so a later change to the Source's Topics does not reach the note (CONTEXT.md, Topic).
+  initialTopicNames?: string[];
   onWrite: (input: CreatePermanentNoteRequest) => Promise<void>;
   onDiscard: () => void;
 }
@@ -39,10 +43,11 @@ const ERROR_ID = 'permanent-note-composer-error';
 // (ADR 0014). The target is the Literature note this was opened from, named on the card and
 // not editable; the reason for the connection is a field of the composer rather than a step
 // after it (ADR 0015). Topics are optional here, and this is the only note kind that carries its
-// own: a Literature note inherits its Source's (#87). Finding other targets is #85.
+// own: a Literature note inherits its Source's (#87), and the composer starts from those (#104). Finding other targets is #85.
 export function PermanentNoteComposer({
   targetNoteId,
   targetLabel,
+  initialTopicNames = [],
   onWrite,
   onDiscard,
 }: PermanentNoteComposerProps) {
@@ -52,7 +57,7 @@ export function PermanentNoteComposer({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<PermanentNoteValues, unknown, PermanentNoteOutput>({
-    defaultValues: BLANK_COMPOSER,
+    defaultValues: { ...BLANK_COMPOSER, topicNames: initialTopicNames },
     resolver: zodResolver(permanentNoteSchema),
     mode: 'onBlur',
     reValidateMode: 'onChange',
@@ -74,12 +79,12 @@ export function PermanentNoteComposer({
     }
   };
 
+  const { topicTagger, submit } = useSubmitWithPendingTopic(handleSubmit(onValid));
+
   return (
     <IndexCard
       as="form"
-      // IndexCard's props are typed against its div-rendering default; `as="form"` changes the
-      // rendered element at runtime but not the typed handler signature, hence the cast.
-      onSubmit={handleSubmit(onValid) as unknown as FormEventHandler<HTMLDivElement>}
+      onSubmit={submit}
       aria-label="Write a Permanent note"
       // Ink-blue as on the blank capture card: moss and rust are what a filed card says about
       // itself, and nothing has been filed yet.
@@ -88,6 +93,9 @@ export function PermanentNoteComposer({
       // No catalog number: a Permanent note is bound to no Source and carries no Locator, so
       // the corner the card keeps for one stays empty (ADR 0012).
       catalogNumber=""
+      // Room for the die-cut tab, which stands proud of the card's top edge: the composer opens
+      // under a row of buttons, and without this the tab touches them.
+      mt="4"
       pt="6"
       pb="8"
     >
@@ -155,7 +163,7 @@ export function PermanentNoteComposer({
           py="2"
         >
           <Text variant="eyebrow" color="moss">
-            Connects to
+            Links to
           </Text>
           <Text textStyle="body" color="ink">
             {targetLabel}
@@ -184,6 +192,7 @@ export function PermanentNoteComposer({
           name="topicNames"
           render={({ field }) => (
             <TopicTagger
+              ref={topicTagger}
               names={field.value}
               vocabulary={(topics.data ?? []).map((topic) => topic.name)}
               onChange={field.onChange}

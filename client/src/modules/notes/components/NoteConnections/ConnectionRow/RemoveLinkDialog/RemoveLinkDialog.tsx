@@ -32,7 +32,7 @@ export function RemoveLinkDialog({ open, otherLabel, onClose, onConfirm }: Remov
       await onConfirm();
       onClose();
     } catch (error) {
-      setRefusal(serverMessage(error, 'That connection could not be removed just now.'));
+      setRefusal(serverMessage(error, 'That Link could not be removed just now.'));
     } finally {
       setRemoving(false);
     }
@@ -49,11 +49,11 @@ export function RemoveLinkDialog({ open, otherLabel, onClose, onConfirm }: Remov
       onClose={close}
       variant="small"
       role="alertdialog"
-      header={{ title: 'Remove this connection?' }}
+      header={{ title: 'Remove this Link?' }}
       footer={{
         secondary: { label: 'Cancel', onClick: close },
         primary: {
-          label: 'Remove connection',
+          label: 'Remove Link',
           variant: 'destructive',
           onClick: handleConfirm,
           loading: removing,

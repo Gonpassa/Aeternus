@@ -142,7 +142,7 @@ describe('SourceReading', () => {
     const onCorrectSource = vi.fn().mockResolvedValue(undefined);
     renderPage({ onCorrectSource });
 
-    await user.click(screen.getByRole('button', { name: 'Correct these details' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this Source' }));
 
     expect(screen.getByLabelText('Title')).toHaveValue('How to Take Smart Notes');
     expect(screen.getByLabelText('Author')).toHaveValue('Sonke Ahrens');
@@ -177,7 +177,7 @@ describe('SourceReading', () => {
       { wrapper: queryWrapper() },
     );
 
-    await user.click(screen.getByRole('button', { name: 'Correct these details' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this Source' }));
     await user.clear(screen.getByLabelText('Title'));
     await user.type(screen.getByLabelText('Title'), 'A corrected title');
     await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -205,7 +205,7 @@ describe('SourceReading', () => {
     const onCorrectSource = vi.fn();
     renderPage({ onCorrectSource });
 
-    await user.click(screen.getByRole('button', { name: 'Correct these details' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this Source' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(onCorrectSource).not.toHaveBeenCalled();
@@ -235,7 +235,7 @@ describe('SourceReading', () => {
   it('shows the server’s refusal beside the cascade it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Deleting this Source would leave these notes with nothing connected to them: “The first idea.”, “The second idea.”. Connect them elsewhere first, or delete them.';
+      'Deleting this Source would leave these notes with nothing linked to them: “The first idea.”, “The second idea.”. Link them elsewhere first, or delete them.';
     const onDeleteSource = vi.fn().mockRejectedValue(
       new AxiosError('Conflict', undefined, undefined, undefined, {
         status: 409,
@@ -261,11 +261,11 @@ describe('SourceReading', () => {
     const onDeleteNote = vi.fn().mockResolvedValue(undefined);
     renderPage({ notes: [note({ id: 11 })], onCorrectNote, onDeleteNote });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(onCorrectNote).toHaveBeenCalledWith(11, expect.objectContaining({ section: 'Ch. 3' }));
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.click(screen.getByRole('button', { name: 'Delete this note' }));
     await user.click(screen.getByRole('button', { name: 'Delete note' }));
     expect(onDeleteNote).toHaveBeenCalledWith(11);

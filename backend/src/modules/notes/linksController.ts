@@ -62,7 +62,7 @@ export const createLink = async (
     // that could not be found.
     if (err instanceof UnknownLinkTargetError) {
       res.status(400).json({
-        error: 'That note could not be found to connect to.',
+        error: 'That note could not be found to link to.',
       } satisfies ApiErrorResponse);
       return;
     }
@@ -71,7 +71,7 @@ export const createLink = async (
     // Link, so reaching this is a client out of step with the Link rather than a user error.
     if (err instanceof ReasonAlreadyGivenError) {
       res.status(409).json({
-        error: 'This note has already said why - rewrite the reason where the connection is shown.',
+        error: 'This note has already said why - rewrite the reason where the Link is shown.',
       } satisfies ApiErrorResponse);
       return;
     }
@@ -99,14 +99,14 @@ export const updateLinkReason = async (
 ): Promise<void> => {
   const linkId = parseLinkId(req);
   if (linkId === null) {
-    res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+    res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
     return;
   }
   const { fromNoteId, reason } = req.body as UpdateLinkReasonRequest;
   // Which end is speaking is an id like any other in this module, so it is held to the same
   // shape before it reaches a query rather than being coerced and left to miss.
   if (!Number.isInteger(fromNoteId) || fromNoteId <= 0) {
-    res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+    res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
     return;
   }
   const validation = validateLinkReason(reason);
@@ -118,17 +118,17 @@ export const updateLinkReason = async (
   try {
     const link = await findLinkById({ id: linkId, userId });
     if (!link) {
-      res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+      res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
       return;
     }
     const end = endOf(link, fromNoteId);
     if (end === null) {
-      res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+      res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
       return;
     }
     if (end === 'target' && link.targetReason === null) {
       res.status(400).json({
-        error: 'That end has not said why yet - connect back from it to add a reason.',
+        error: 'That end has not said why yet - link back from it to add a reason.',
       } satisfies ApiErrorResponse);
       return;
     }
@@ -138,7 +138,7 @@ export const updateLinkReason = async (
       reason: sanitizeLinkReason(reason),
     });
     if (!updated) {
-      res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+      res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
       return;
     }
     res.status(200).json({ link: toLink(updated) } satisfies LinkResponse);
@@ -159,14 +159,14 @@ export const deleteLink = async (
 ): Promise<void> => {
   const linkId = parseLinkId(req);
   if (linkId === null) {
-    res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+    res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
     return;
   }
   const userId = getUserId(req);
   try {
     const link = await findLinkById({ id: linkId, userId });
     if (!link) {
-      res.status(404).json({ error: 'Connection not found' } satisfies ApiErrorResponse);
+      res.status(404).json({ error: 'Link not found' } satisfies ApiErrorResponse);
       return;
     }
     const unlinked = await findPermanentNotesLeftUnlinked({
@@ -176,7 +176,7 @@ export const deleteLink = async (
     });
     if (unlinked.length > 0) {
       res.status(409).json({
-        error: orphanRefusal(unlinked, 'Removing this connection'),
+        error: orphanRefusal(unlinked, 'Removing this Link'),
       } satisfies ApiErrorResponse);
       return;
     }

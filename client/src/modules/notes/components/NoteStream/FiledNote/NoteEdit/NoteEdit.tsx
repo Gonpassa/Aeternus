@@ -70,7 +70,7 @@ export function NoteEdit({ note, onSave, onCancel, onDelete }: NoteEditProps) {
       // IndexCard's props are typed against its div-rendering default; `as="form"` changes the
       // rendered element at runtime but not the typed handler signature, hence the cast.
       onSubmit={handleSubmit(onValid) as unknown as FormEventHandler<HTMLDivElement>}
-      aria-label={`Correcting the note on ${note.section ?? note.position ?? 'this Source'}`}
+      aria-label={`Editing the note on ${note.section ?? note.position ?? 'this Source'}`}
       // Ink-blue while it is being written on, as the blank card is: rust on a filed card means
       // an open question, and a card under correction is not making that claim yet.
       accent="inkBlue"

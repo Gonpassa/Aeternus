@@ -39,6 +39,12 @@ describe('sanitizeSourceInput', () => {
     });
   });
 
+  it('stores a url typed without a scheme as https', () => {
+    expect(
+      sanitizeSourceInput({ title: 'A', kind: 'book', url: ' example.com/smart ' }),
+    ).toMatchObject({ url: 'https://example.com/smart' });
+  });
+
   it.each([undefined, null, '', '   '])('stores an absent url (%p) as null', (url) => {
     expect(sanitizeSourceInput({ title: 'A', kind: 'book', url })).toMatchObject({ url: null });
   });

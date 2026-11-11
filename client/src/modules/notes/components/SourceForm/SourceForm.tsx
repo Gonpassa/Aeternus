@@ -1,4 +1,3 @@
-import type { FormEventHandler } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateSourceRequest, SourceWithTopics } from '@nee3/shared-types';
@@ -9,8 +8,10 @@ import { FormSelectField } from '../../../../atoms/FormSelectField/FormSelectFie
 import { Stack } from '../../../../atoms/Stack/Stack.tsx';
 import { Text } from '../../../../atoms/Text/Text.tsx';
 import { SOURCE_KIND_OPTIONS } from '../../sourceKinds.ts';
+import { normalizeWebAddress } from '../../utils/webAddress.ts';
 import { useTopics } from '../../api/topicHooks.ts';
 import { TopicTagger } from '../TopicTagger/TopicTagger.tsx';
+import { useSubmitWithPendingTopic } from '../TopicTagger/useSubmitWithPendingTopic.ts';
 import {
   sourceSchema,
   toCreateRequest,
@@ -69,13 +70,13 @@ export function SourceForm({
     }
   };
 
+  const { topicTagger, submit } = useSubmitWithPendingTopic(handleSubmit(onValid));
+
   return (
     <Card
       as="form"
       variant="railed"
-      // Card's props are typed against its div-rendering default; `as="form"` changes the
-      // rendered element at runtime but not the typed handler signature, hence the cast.
-      onSubmit={handleSubmit(onValid) as unknown as FormEventHandler<HTMLDivElement>}
+      onSubmit={submit}
       display="flex"
       flexDirection="column"
       gap="4"
@@ -90,13 +91,23 @@ export function SourceForm({
         placeholder="Choose a kind"
       />
       <FormField control={control} name="author" label="Author" placeholder="Optional" />
-      <FormField control={control} name="url" label="Link" placeholder="Optional" />
+      {/* "Web address" rather than "Link": a Link is what joins two notes in this module
+          (CONTEXT.md, Link), and the scheme is added as the field is left rather than asked for
+          (#104). */}
+      <FormField
+        control={control}
+        name="url"
+        label="Web address"
+        placeholder="Optional"
+        normalizeOnBlur={normalizeWebAddress}
+      />
 
       <Controller
         control={control}
         name="topicNames"
         render={({ field }) => (
           <TopicTagger
+            ref={topicTagger}
             names={field.value}
             // While the vocabulary is still loading the tagger simply offers no suggestions:
             // typing a name is how a Topic is created, so the field works without them.

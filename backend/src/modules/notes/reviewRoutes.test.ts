@@ -403,7 +403,7 @@ describe('review routes (integration)', () => {
         400,
       );
 
-      expect(body.error).toBe('That connection could not be found.');
+      expect(body.error).toBe('That Link could not be found.');
       expect(await answersFor(note.id)).toHaveLength(0);
     });
 
@@ -422,7 +422,7 @@ describe('review routes (integration)', () => {
         400,
       );
 
-      expect(body.error).toBe('That connection could not be found.');
+      expect(body.error).toBe('That Link could not be found.');
       expect(await answersFor(note.id)).toHaveLength(0);
     });
 

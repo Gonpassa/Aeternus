@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AxiosError } from 'axios';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import type { LiteratureNoteWithConnections, Topic } from '@nee3/shared-types';
@@ -117,7 +117,7 @@ describe('NoteStream', () => {
       note({ body: 'Reading is not understanding.', section: 'Ch. 3', position: '42' }),
     ]);
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
 
     expect(screen.getByLabelText('Note')).toHaveValue('Reading is not understanding.');
     expect(screen.getByLabelText('Section')).toHaveValue('Ch. 3');
@@ -132,7 +132,7 @@ describe('NoteStream', () => {
       onCorrect,
     });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.clear(screen.getByLabelText('Note'));
     await user.type(screen.getByLabelText('Note'), 'A corrected draft.');
     await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -152,7 +152,7 @@ describe('NoteStream', () => {
     const onCorrect = vi.fn().mockResolvedValue(undefined);
     renderStream([note({ id: 9, openQuestion: false })], { onCorrect });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.click(screen.getByRole('button', { name: 'Open question' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -164,7 +164,7 @@ describe('NoteStream', () => {
     const onCorrect = vi.fn().mockResolvedValue(undefined);
     renderStream([note({ id: 9, excerpt: 'Their exact words.' })], { onCorrect });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.clear(screen.getByLabelText("The author's words"));
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -176,7 +176,7 @@ describe('NoteStream', () => {
     const onCorrect = vi.fn().mockResolvedValue(undefined);
     renderStream([note({ id: 9, section: 'Ch. 3', position: '42' })], { onCorrect });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.clear(screen.getByLabelText('Section'));
     await user.clear(screen.getByLabelText('Position'));
     await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -192,7 +192,7 @@ describe('NoteStream', () => {
     const onCorrect = vi.fn();
     renderStream([note({ body: 'As filed.' })], { onCorrect });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.clear(screen.getByLabelText('Note'));
     await user.type(screen.getByLabelText('Note'), 'A change never saved.');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -206,7 +206,7 @@ describe('NoteStream', () => {
     const onDelete = vi.fn().mockResolvedValue(undefined);
     renderStream([note({ id: 9, section: 'Ch. 3', position: '42' })], { onDelete });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.click(screen.getByRole('button', { name: 'Delete this note' }));
 
     expect(onDelete).not.toHaveBeenCalled();
@@ -223,7 +223,7 @@ describe('NoteStream', () => {
   it('shows the server’s refusal beside the deletion it refused', async () => {
     const user = userEvent.setup();
     const refusal =
-      'Deleting this note would leave “Writing is how an idea is tested.” with nothing connected to it. Connect it elsewhere first, or delete it.';
+      'Deleting this note would leave “Writing is how an idea is tested.” with nothing linked to it. Link it elsewhere first, or delete it.';
     const onDelete = vi.fn().mockRejectedValue(
       new AxiosError('Conflict', undefined, undefined, undefined, {
         status: 409,
@@ -235,7 +235,7 @@ describe('NoteStream', () => {
     );
     renderStream([note({ id: 9 })], { onDelete });
 
-    await user.click(screen.getByRole('button', { name: 'Correct this note' }));
+    await user.click(screen.getByRole('button', { name: 'Edit this note' }));
     await user.click(screen.getByRole('button', { name: 'Delete this note' }));
     await user.click(screen.getByRole('button', { name: 'Delete note' }));
 
@@ -250,6 +250,23 @@ describe('NoteStream', () => {
     renderStream([note()]);
 
     expect(screen.getByRole('button', { name: 'Write a Permanent note' })).toBeInTheDocument();
+  });
+
+  // What is written from a reading starts out about what the reading is about (#104).
+  it("opens the composer with the Source's Topics already on the new note", async () => {
+    const user = userEvent.setup();
+    renderStream([note()], {
+      sourceTopics: [
+        { id: 3, userId: 1, name: 'Christianity', createdAt: '2026-09-01T10:00:00.000Z' },
+      ],
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Write a Permanent note' }));
+
+    const composer = screen.getByRole('form', { name: 'Write a Permanent note' });
+    expect(
+      within(composer).getByRole('button', { name: 'Remove the Topic Christianity' }),
+    ).toBeInTheDocument();
   });
 
   it('shows what has been written from a note, in the inbound group', () => {
@@ -284,10 +301,10 @@ describe('NoteStream', () => {
       }),
     ]);
 
-    expect(screen.getByText('Connected from')).toBeInTheDocument();
+    expect(screen.getByText('Linked from')).toBeInTheDocument();
     expect(screen.getByText('Writing is how an idea is tested.')).toBeInTheDocument();
     expect(screen.getByText('This is the claim that note was circling.')).toBeInTheDocument();
-    expect(screen.queryByText('Connects to')).not.toBeInTheDocument();
+    expect(screen.queryByText('Links to')).not.toBeInTheDocument();
   });
   // A Literature note carries no Topics of its own: it shows the Source's, named as the Source's,
   // and offers no way to add one (CONTEXT.md, Topic).
@@ -342,7 +359,7 @@ describe('NoteStream, with the Link affordances provided', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Write a Permanent note' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Connect this to another note' }));
+    await user.click(screen.getByRole('button', { name: 'Link to another note' }));
 
     // The same panel every linking path uses, opened on the note it was reached from.
     expect(screen.getByLabelText('Search your notes')).toBeInTheDocument();
@@ -351,8 +368,6 @@ describe('NoteStream, with the Link affordances provided', () => {
   it('does not offer it where the affordances are not provided', () => {
     renderStream([note()]);
 
-    expect(
-      screen.queryByRole('button', { name: 'Connect this to another note' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Link to another note' })).not.toBeInTheDocument();
   });
 });

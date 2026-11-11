@@ -1,18 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { queryWrapper } from '../../../../test/queryWrapper.tsx';
 import { PermanentNoteComposer } from './PermanentNoteComposer.tsx';
 import { PERMANENT_NOTE_TITLE_MAX } from './PermanentNoteComposer.utils.ts';
 import { LINK_REASON_MAX } from '../../utils/linkReason.ts';
 
-const renderComposer = (overrides: { onWrite?: () => Promise<void> } = {}) => {
+const renderComposer = (
+  overrides: { onWrite?: () => Promise<void>; initialTopicNames?: string[] } = {},
+) => {
   const onWrite = overrides.onWrite ?? vi.fn().mockResolvedValue(undefined);
   const onDiscard = vi.fn();
   render(
     <PermanentNoteComposer
       targetNoteId={7}
       targetLabel="How to Take Smart Notes · Ch. 3 · p. 42"
+      initialTopicNames={overrides.initialTopicNames}
       onWrite={onWrite}
       onDiscard={onDiscard}
     />,
@@ -46,7 +49,7 @@ describe('PermanentNoteComposer', () => {
   it('names the pre-selected target on the card and offers no target to pick', () => {
     renderComposer();
 
-    expect(screen.getByText('Connects to')).toBeInTheDocument();
+    expect(screen.getByText('Links to')).toBeInTheDocument();
     expect(screen.getByText('How to Take Smart Notes · Ch. 3 · p. 42')).toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
@@ -103,6 +106,62 @@ describe('PermanentNoteComposer', () => {
     );
   });
 
+  // The bug behind "Topics does not count Permanent notes": a name typed but never added was
+  // dropped without a word, so the note was filed under no Topic at all (#104).
+  it('files a Topic that was typed but never added', async () => {
+    const user = userEvent.setup();
+    const { onWrite } = renderComposer();
+
+    await user.type(screen.getByLabelText('The claim'), 'Writing is how an idea is tested.');
+    await user.type(screen.getByLabelText('The idea'), 'An unwritten idea has not been had.');
+    await user.type(screen.getByLabelText('Why these belong together'), 'The claim it circled.');
+    await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Attention');
+    await user.click(file());
+
+    await waitFor(() =>
+      expect(onWrite).toHaveBeenCalledWith(expect.objectContaining({ topicNames: ['Attention'] })),
+    );
+  });
+
+  it('adds a Topic on Enter without filing the note', async () => {
+    const user = userEvent.setup();
+    const { onWrite } = renderComposer();
+
+    await user.type(screen.getByLabelText('The claim'), 'Writing is how an idea is tested.');
+    await user.type(screen.getByLabelText('The idea'), 'An unwritten idea has not been had.');
+    await user.type(screen.getByLabelText('Why these belong together'), 'The claim it circled.');
+    await user.click(screen.getByRole('button', { name: 'Add a Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Attention{Enter}');
+
+    expect(
+      within(screen.getByRole('list', { name: 'Topics' })).getByText('Attention'),
+    ).toBeInTheDocument();
+    expect(onWrite).not.toHaveBeenCalled();
+  });
+
+  // A note written from a reading starts out about what the reading is about (CONTEXT.md,
+  // Topic). The Topics are the note's own from then on, so each can be taken off before filing.
+  it('starts with the Topics of the note it was opened from', async () => {
+    const user = userEvent.setup();
+    const { onWrite } = renderComposer({ initialTopicNames: ['Christianity', 'History'] });
+
+    await user.type(screen.getByLabelText('The claim'), 'Writing is how an idea is tested.');
+    await user.type(screen.getByLabelText('The idea'), 'An unwritten idea has not been had.');
+    await user.type(screen.getByLabelText('Why these belong together'), 'The claim it circled.');
+    await user.click(screen.getByRole('button', { name: 'Remove the Topic History' }));
+    await user.click(screen.getByRole('button', { name: 'Add another Topic' }));
+    await user.type(screen.getByLabelText('Topic name'), 'Grace');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await user.click(file());
+
+    await waitFor(() =>
+      expect(onWrite).toHaveBeenCalledWith(
+        expect.objectContaining({ topicNames: ['Christianity', 'Grace'] }),
+      ),
+    );
+  });
+
   it('refuses to save a picked target with no reason', async () => {
     const user = userEvent.setup();
     const { onWrite } = renderComposer();
@@ -112,7 +171,7 @@ describe('PermanentNoteComposer', () => {
     await user.click(file());
 
     expect(
-      await screen.findByText('Every connection needs a line saying why the two belong together.'),
+      await screen.findByText('Every Link needs a line saying why the two belong together.'),
     ).toBeInTheDocument();
     expect(onWrite).not.toHaveBeenCalled();
   });

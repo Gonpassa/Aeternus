@@ -116,16 +116,27 @@ describe('sources routes (integration)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('A Source link is at most 2,000 characters.');
+      expect(res.body.error).toBe("A Source's web address is at most 2,000 characters.");
     });
 
-    it('returns 400 for a link that is not http(s)', async () => {
+    it('adds https:// to a web address typed without it', async () => {
+      const res = await aliceAgent
+        .post('/api/sources')
+        .send({ title: 'A bare link', kind: 'article', url: 'example.com/smart-notes' });
+
+      expect(res.status).toBe(201);
+      expect(res.body.source.url).toBe('https://example.com/smart-notes');
+    });
+
+    it('returns 400 for a link that is not a web address', async () => {
       const res = await aliceAgent
         .post('/api/sources')
         .send({ title: 'A bad link', kind: 'article', url: 'javascript:alert(1)' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('A Source link must start with http:// or https://.');
+      expect(res.body.error).toBe(
+        "A Source's web address needs to look like example.com or https://example.com.",
+      );
     });
 
     it('requires authentication', async () => {
@@ -502,7 +513,9 @@ describe('sources routes (integration)', () => {
         .patch(`/api/sources/${sourceId}`)
         .send({ title: 'A bad link', kind: 'article', url: 'javascript:alert(1)' });
       expect(badLink.status).toBe(400);
-      expect(badLink.body.error).toBe('A Source link must start with http:// or https://.');
+      expect(badLink.body.error).toBe(
+        "A Source's web address needs to look like example.com or https://example.com.",
+      );
     });
 
     it("returns 404 for another user's Source rather than editing it", async () => {

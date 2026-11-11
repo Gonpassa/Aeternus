@@ -122,7 +122,7 @@ export function ConnectionRow({ connection, fromNoteId, nested = false }: Connec
             variant="ghost"
             onClick={() => setConfirmingRemoval(true)}
           >
-            Remove this connection
+            Remove this Link
           </Button>
         </Stack>
       )}
@@ -136,13 +136,13 @@ export function ConnectionRow({ connection, fromNoteId, nested = false }: Connec
             aria-expanded={opened}
             onClick={() => setOpened(!opened)}
           >
-            {opened ? 'Hide its connections' : 'Its connections'}
+            {opened ? 'Hide its Links' : 'Its Links'}
           </Button>
           {opened && connections.data && (
             <NoteConnections connections={connections.data.connections} noteId={other.id} nested />
           )}
           {opened && connections.isError && (
-            <Text variant="muted">Its connections could not be loaded.</Text>
+            <Text variant="muted">Its Links could not be loaded.</Text>
           )}
         </Stack>
       )}

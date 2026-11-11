@@ -162,7 +162,7 @@ export function ReviewNoteCard({
               setLinkPanelOpen(true);
             }}
           >
-            Connect this to another note
+            Link to another note
           </Button>
           <Button
             type="button"
@@ -188,6 +188,7 @@ export function ReviewNoteCard({
           <PermanentNoteComposer
             targetNoteId={note.id}
             targetLabel={heading}
+            initialTopicNames={inheritedTopics.map((topic) => topic.name)}
             onWrite={onWritePermanentNote}
             onDiscard={() => setComposerOpen(false)}
           />

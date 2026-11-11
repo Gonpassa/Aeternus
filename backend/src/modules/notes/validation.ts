@@ -1,5 +1,6 @@
 import { SOURCE_KINDS, type ReviewAnswerKind, type SourceKind } from '@nee3/shared-types';
 import { sanitizeTopicName } from './sanitize';
+import { isWebAddress, normalizeWebAddress } from './webAddress';
 
 export type ValidationResult = { valid: true } | { valid: false; error: string };
 
@@ -36,11 +37,10 @@ const isOmitted = (value: unknown): boolean =>
 const isSourceKind = (value: unknown): value is SourceKind =>
   typeof value === 'string' && (SOURCE_KINDS as readonly string[]).includes(value);
 
-// `url` is held to http(s) rather than merely to a length. A Source's link is rendered as a
-// link, so a `javascript:` or `data:` scheme would be an injection surface, and a bare
-// "example.com" would resolve against this app's own origin.
-const isHttpUrl = (value: unknown): boolean =>
-  typeof value === 'string' && /^https?:\/\/\S+$/i.test(value.trim());
+// `url` is checked as it will be stored: with `https://` added when it was typed without a
+// scheme, which sanitize.ts does to the stored value too (#104).
+const isSourceUrl = (value: unknown): boolean =>
+  typeof value === 'string' && isWebAddress(normalizeWebAddress(value));
 
 export const validateSourceInput = (input: {
   title?: unknown;
@@ -61,13 +61,16 @@ export const validateSourceInput = (input: {
     return { valid: false, error: `An author is at most ${SOURCE_AUTHOR_MAX} characters.` };
   }
   if (!isOmitted(input.url)) {
-    if (!isHttpUrl(input.url)) {
-      return { valid: false, error: 'A Source link must start with http:// or https://.' };
-    }
-    if (!isWithin(input.url, SOURCE_URL_MAX)) {
+    if (!isSourceUrl(input.url)) {
       return {
         valid: false,
-        error: `A Source link is at most ${SOURCE_URL_MAX.toLocaleString('en-US')} characters.`,
+        error: "A Source's web address needs to look like example.com or https://example.com.",
+      };
+    }
+    if (normalizeWebAddress(input.url as string).length > SOURCE_URL_MAX) {
+      return {
+        valid: false,
+        error: `A Source's web address is at most ${SOURCE_URL_MAX.toLocaleString('en-US')} characters.`,
       };
     }
   }
@@ -127,7 +130,7 @@ export const validateLinkReason = (reason: unknown): ValidationResult => {
   if (trimmed(reason) === '') {
     return {
       valid: false,
-      error: 'Every connection needs a line saying why the two belong together.',
+      error: 'Every Link needs a line saying why the two belong together.',
     };
   }
   if (!isWithin(reason, LINK_REASON_MAX)) {
@@ -166,14 +169,14 @@ export const validatePermanentNoteInput = (input: {
   if (!Array.isArray(input.links) || input.links.length === 0) {
     return {
       valid: false,
-      error: 'A Permanent note needs at least one connection to a note already in the box.',
+      error: 'A Permanent note needs at least one Link to a note already in the box.',
     };
   }
   const targetIds: number[] = [];
   for (const draft of input.links) {
     const link = draft as { targetNoteId?: unknown; reason?: unknown };
     if (!isPositiveInteger(link.targetNoteId)) {
-      return { valid: false, error: 'A connection needs a note to connect to.' };
+      return { valid: false, error: 'A Link needs a note to link to.' };
     }
     // The same rule the browsable panel's reasons are held to: it is the same thing being
     // written, so there is one place it is checked (ADR 0015).
@@ -187,7 +190,7 @@ export const validatePermanentNoteInput = (input: {
   // twice rather than two Links (ADR 0013). Caught here so it reads as the mistake it is
   // instead of as a unique-index violation.
   if (new Set(targetIds).size !== targetIds.length) {
-    return { valid: false, error: 'A note can only be connected once.' };
+    return { valid: false, error: 'A note can only be linked once.' };
   }
   return { valid: true };
 };
@@ -247,10 +250,10 @@ export const validateLinkInput = (input: {
   reason?: unknown;
 }): ValidationResult => {
   if (!isPositiveInteger(input.originNoteId) || !isPositiveInteger(input.targetNoteId)) {
-    return { valid: false, error: 'A connection needs a note at each end.' };
+    return { valid: false, error: 'A Link needs a note at each end.' };
   }
   if (input.originNoteId === input.targetNoteId) {
-    return { valid: false, error: 'A note cannot be connected to itself.' };
+    return { valid: false, error: 'A note cannot be linked to itself.' };
   }
   return validateLinkReason(input.reason);
 };
@@ -283,13 +286,13 @@ export const validateReviewAnswerInput = (input: {
     return {
       valid: false,
       error:
-        'An Answer is one of three: nothing of yours is here, a connection was made, or a Permanent note was written.',
+        'An Answer is one of three: nothing of yours is here, a Link was made, or a Permanent note was written.',
     };
   }
   const link = isOmitted(input.producedLinkId) ? null : input.producedLinkId;
   const note = isOmitted(input.producedNoteId) ? null : input.producedNoteId;
   if (link !== null && !isPositiveInteger(link)) {
-    return { valid: false, error: 'An Answer names the connection it produced.' };
+    return { valid: false, error: 'An Answer names the Link it produced.' };
   }
   if (note !== null && !isPositiveInteger(note)) {
     return { valid: false, error: 'An Answer names the Permanent note it produced.' };
@@ -298,7 +301,7 @@ export const validateReviewAnswerInput = (input: {
     return { valid: false, error: 'Nothing of yours here produced nothing.' };
   }
   if (input.answer === 'link_made' && (link === null || note !== null)) {
-    return { valid: false, error: 'An Answer names the connection it produced.' };
+    return { valid: false, error: 'An Answer names the Link it produced.' };
   }
   if (input.answer === 'permanent_note_written' && (note === null || link !== null)) {
     return { valid: false, error: 'An Answer names the Permanent note it produced.' };

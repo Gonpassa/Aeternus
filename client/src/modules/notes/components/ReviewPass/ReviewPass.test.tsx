@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps, ReactNode } from 'react';
 import type { LiteratureNote, ReviewBand, ReviewQueueNote } from '@nee3/shared-types';
@@ -28,14 +28,16 @@ const literatureNote = (overrides: Partial<LiteratureNote> = {}): LiteratureNote
 const queued = ({
   band = 'never-answered' as ReviewBand,
   sourceTitle = 'How to Take Smart Notes',
+  inheritedTopics = [] as ReviewQueueNote['inheritedTopics'],
   ...note
 }: Partial<LiteratureNote> & {
   band?: ReviewBand;
   sourceTitle?: string;
+  inheritedTopics?: ReviewQueueNote['inheritedTopics'];
 } = {}): ReviewQueueNote => ({
   note: literatureNote(note),
   sourceTitle,
-  inheritedTopics: [],
+  inheritedTopics,
   band,
 });
 
@@ -76,9 +78,7 @@ describe('ReviewPass', () => {
     renderPass();
 
     expect(screen.getByRole('button', { name: 'Nothing of mine here' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Connect this to another note' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Link to another note' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Write a Permanent note from it' }),
     ).toBeInTheDocument();
@@ -117,16 +117,16 @@ describe('ReviewPass', () => {
   it('opens the existing link panel rather than anything of its own', async () => {
     renderPass();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Connect this to another note' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to another note' }));
 
-    expect(screen.getByRole('group', { name: 'Connect this note' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Link this note' })).toBeInTheDocument();
   });
 
   it('records no Answer when the link panel is closed again', async () => {
     const onLink = vi.fn();
     renderPass({ onLink });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Connect this to another note' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to another note' }));
     await userEvent.click(screen.getByRole('button', { name: 'Done' }));
 
     expect(onLink).not.toHaveBeenCalled();
@@ -140,6 +140,25 @@ describe('ReviewPass', () => {
 
     expect(screen.getByRole('form', { name: 'Write a Permanent note' })).toBeInTheDocument();
     expect(screen.getByText('How to Take Smart Notes · Ch. 3 · p. 42')).toBeInTheDocument();
+  });
+
+  it("opens the composer with the note's inherited Topics already on the new note", async () => {
+    renderPass({
+      notes: [
+        queued({
+          inheritedTopics: [
+            { id: 3, userId: 1, name: 'Christianity', createdAt: '2026-09-01T10:00:00.000Z' },
+          ],
+        }),
+      ],
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Write a Permanent note from it' }));
+
+    const composer = screen.getByRole('form', { name: 'Write a Permanent note' });
+    expect(
+      within(composer).getByRole('button', { name: 'Remove the Topic Christianity' }),
+    ).toBeInTheDocument();
   });
 
   it('records no Answer when the composer is abandoned, and leaves the note where it was', async () => {
@@ -163,11 +182,11 @@ describe('ReviewPass', () => {
   it('shows only one of the panel and the composer at a time', async () => {
     renderPass();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Connect this to another note' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Link to another note' }));
     await userEvent.click(screen.getByRole('button', { name: 'Write a Permanent note from it' }));
 
     expect(screen.getByRole('form', { name: 'Write a Permanent note' })).toBeInTheDocument();
-    expect(screen.queryByRole('group', { name: 'Connect this note' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Link this note' })).not.toBeInTheDocument();
   });
 
   it('closes the pass on a summary card at the end of the notes never answered', async () => {

@@ -14,6 +14,9 @@ export interface VocabularyInputProps {
   submitLabel?: string;
   onSubmit: (term: string) => void | Promise<void>;
   onCancel: () => void;
+  // What is in the field as it is typed, for a caller that has to act on text the user never
+  // submitted - a surrounding form that should not drop a half-entered term when it is saved.
+  onQueryChange?: (query: string) => void;
 }
 
 // Entry for a controlled-but-growing per-user vocabulary: suggestions come from the
@@ -28,6 +31,7 @@ export function VocabularyInput({
   submitLabel = 'Add',
   onSubmit,
   onCancel,
+  onQueryChange,
 }: VocabularyInputProps) {
   const [query, setQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,9 +67,17 @@ export function VocabularyInput({
         // eslint-disable-next-line jsx-a11y/no-autofocus -- the input appears in direct
         // response to the user asking to enter a term; focusing it is the expected flow.
         autoFocus
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          onQueryChange?.(event.target.value);
+        }}
         onKeyDown={(event) => {
-          if (event.key === 'Enter') submit(query);
+          if (event.key === 'Enter') {
+            // Enter adds the term. Without this it would also submit whatever form the field
+            // sits inside, filing it at the moment the user was still naming things.
+            event.preventDefault();
+            submit(query);
+          }
           if (event.key === 'Escape') onCancel();
         }}
       />

@@ -58,7 +58,7 @@ export const harvestLine = (tally: SittingTally): string | null => {
     tally.nothing_here > 0
       ? `${plural(tally.nothing_here, 'note', 'notes')} with nothing of yours in them yet`
       : null,
-    tally.link_made > 0 ? plural(tally.link_made, 'connection made', 'connections made') : null,
+    tally.link_made > 0 ? plural(tally.link_made, 'Link made', 'Links made') : null,
     tally.permanent_note_written > 0
       ? plural(tally.permanent_note_written, 'Permanent note written', 'Permanent notes written')
       : null,

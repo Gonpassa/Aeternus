@@ -80,7 +80,7 @@ describe('TopicView', () => {
       'Attention is the scarce resource.',
       'What you attend to is what you think with.',
     ]);
-    expect(screen.getByText('3 connections')).toBeInTheDocument();
+    expect(screen.getByText('3 Links')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /How to Take Smart Notes/ })).toHaveAttribute(
       'href',
       '/notes/read/20',

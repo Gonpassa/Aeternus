@@ -78,14 +78,14 @@ export function LinkCandidate({ candidate, fromNoteId, onLink }: LinkCandidatePr
 
       {ownReason !== null ? (
         <Text variant="eyebrow" color="moss">
-          Already connected
+          Already linked
         </Text>
       ) : (
         <Stack direction="column" gap="2" align="flex-start" w="full">
           {picked ? (
             <ReasonField
               id={`link-candidate-error-${note.id}`}
-              submitLabel={existingLink === null ? 'Connect these' : 'Add your reason'}
+              submitLabel={existingLink === null ? 'Link these' : 'Add your reason'}
               onSubmit={async (reason) => {
                 await onLink(reason);
                 setPicked(false);
@@ -94,7 +94,7 @@ export function LinkCandidate({ candidate, fromNoteId, onLink }: LinkCandidatePr
             />
           ) : (
             <Button type="button" size="xs" variant="ghost" onClick={() => setPicked(true)}>
-              {existingLink === null ? 'Connect to this' : 'Say why from this end'}
+              {existingLink === null ? 'Link to this' : 'Say why from this end'}
             </Button>
           )}
         </Stack>

@@ -25,7 +25,7 @@ export function TopicNoteCard({ note }: TopicNoteCardProps) {
           {note.body}
         </Text>
         <Text textStyle="label" color="inkSoft">
-          {countLabel(note.linkCount, 'connection', 'connections')}
+          {countLabel(note.linkCount, 'Link', 'Links')}
         </Text>
       </Stack>
     </Card>

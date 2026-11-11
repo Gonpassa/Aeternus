@@ -286,7 +286,7 @@ describe('topic tagging routes (integration)', () => {
         })
         .expect(400);
 
-      expect(res.body.error).toBe('That note could not be found to connect to.');
+      expect(res.body.error).toBe('That note could not be found to link to.');
       // Nothing was written, the vocabulary included: the note, its Links and its Topics are
       // one transaction (ADR 0014).
       const vocabulary = await aliceAgent.get('/api/topics').expect(200);

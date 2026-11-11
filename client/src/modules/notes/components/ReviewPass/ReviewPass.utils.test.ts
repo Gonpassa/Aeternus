@@ -86,7 +86,7 @@ describe('harvestLine', () => {
   });
 
   it('leaves out what the sitting did not produce', () => {
-    expect(harvestLine(addToTally(EMPTY_TALLY, 'link_made'))).toBe('1 connection made.');
+    expect(harvestLine(addToTally(EMPTY_TALLY, 'link_made'))).toBe('1 Link made.');
   });
 
   it('reads the three parts in the order the Answers are stated in', () => {
@@ -96,7 +96,7 @@ describe('harvestLine', () => {
     );
 
     expect(harvestLine(tally)).toBe(
-      '1 note with nothing of yours in them yet · 1 connection made · 1 Permanent note written.',
+      '1 note with nothing of yours in them yet · 1 Link made · 1 Permanent note written.',
     );
   });
 });

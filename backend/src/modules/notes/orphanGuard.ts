@@ -50,6 +50,6 @@ export const findPermanentNotesOrphanedByDeleting = async ({
 export const orphanRefusal = (unlinked: UnlinkedPermanentNote[], action: string): string => {
   const titles = unlinked.map(({ title }) => `“${title}”`).join(', ');
   return unlinked.length === 1
-    ? `${action} would leave ${titles} with nothing connected to it. Connect it elsewhere first, or delete it.`
-    : `${action} would leave these notes with nothing connected to them: ${titles}. Connect them elsewhere first, or delete them.`;
+    ? `${action} would leave ${titles} with nothing linked to it. Link it elsewhere first, or delete it.`
+    : `${action} would leave these notes with nothing linked to them: ${titles}. Link them elsewhere first, or delete them.`;
 };

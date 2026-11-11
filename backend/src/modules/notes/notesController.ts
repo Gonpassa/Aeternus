@@ -214,7 +214,7 @@ export const createPermanentNote = async (
     // connection that could not be made.
     if (err instanceof UnknownLinkTargetError) {
       res.status(400).json({
-        error: 'That note could not be found to connect to.',
+        error: 'That note could not be found to link to.',
       } satisfies ApiErrorResponse);
       return;
     }
